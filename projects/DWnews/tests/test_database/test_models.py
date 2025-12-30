@@ -77,12 +77,12 @@ class TestCategoryModel:
 
     def test_category_slug_unique(self, db_session):
         """Test category slug uniqueness"""
-        cat1 = Category(name="Labor", slug="labor")
+        cat1 = Category(name="Environment", slug="environment")
         db_session.add(cat1)
         db_session.commit()
 
         # Try to create duplicate slug - should fail
-        cat2 = Category(name="Labour", slug="labor")
+        cat2 = Category(name="Climate", slug="environment")
         db_session.add(cat2)
 
         with pytest.raises(Exception):

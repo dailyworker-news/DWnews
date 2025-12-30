@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from pythonjsonlogger import jsonlogger
 
-from config import settings
+from backend.config import settings
 
 
 def setup_logging():

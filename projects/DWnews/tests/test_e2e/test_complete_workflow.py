@@ -7,7 +7,6 @@ import pytest
 from datetime import datetime
 from sqlalchemy.orm import Session
 from database.models import Article, Topic, Category, Source
-from scripts.utils.text_utils import generate_hash
 
 
 class TestCompleteWorkflow:
@@ -19,14 +18,17 @@ class TestCompleteWorkflow:
         # Step 1: Simulate topic discovery
         topic = Topic(
             title="Local Union Wins Major Contract Victory",
-            url="https://example.com/union-victory",
-            source_name="Labor Notes",
-            discovered_at=datetime.utcnow(),
-            content_hash=generate_hash("Local Union Wins Major Contract Victory"),
+            description="Workers secure major contract improvements",
+            keywords="union,labor,contract,victory",
+            discovered_from="RSS:Labor Notes",
+            discovery_date=datetime.utcnow(),
             category_id=sample_category.id,
             status="discovered",
             engagement_score=0.8,
-            relevance_score=0.9
+            worker_relevance_score=0.9,
+            source_count=3,
+            is_national=False,
+            is_local=True
         )
         db_session.add(topic)
         db_session.commit()
@@ -36,11 +38,12 @@ class TestCompleteWorkflow:
 
         # Step 2: Filter topic (viability check)
         topic.status = "filtered"
-        topic.viability_score = 0.85
+        topic.worker_relevance_score = 0.85
+        topic.source_count = 4
         db_session.commit()
 
         assert topic.status == "filtered"
-        assert topic.viability_score == 0.85
+        assert topic.worker_relevance_score == 0.85
 
         # Step 3: Generate article (simulate LLM generation)
         article = Article(

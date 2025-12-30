@@ -66,11 +66,10 @@ class TestConfiguration:
         assert "localhost" in base_url
         assert "8000" in base_url
 
-    def test_secret_key_validation_local(self):
+    def test_secret_key_validation_local(self, monkeypatch):
         """Test secret key validation in local environment"""
         # Should not raise error in local environment
-        settings = Settings(
-            environment="local",
-            secret_key="insecure-dev-key"
-        )
+        monkeypatch.setenv("ENVIRONMENT", "local")
+        monkeypatch.setenv("SECRET_KEY", "insecure-dev-key")
+        settings = Settings()
         assert settings.secret_key == "insecure-dev-key"

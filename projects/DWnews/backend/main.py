@@ -11,8 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 
-from config import settings, setup_directories
-from logging_config import setup_logging
+from backend.config import settings, setup_directories
+from backend.logging_config import setup_logging
 
 # Initialize logging
 logger = setup_logging()

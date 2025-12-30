@@ -38,6 +38,12 @@ def db_session(test_db_engine):
 @pytest.fixture
 def sample_source(db_session):
     """Create a sample news source"""
+    # Check if source already exists
+    from sqlalchemy import select
+    existing = db_session.execute(select(Source).filter_by(name="Test News Wire")).scalar_one_or_none()
+    if existing:
+        return existing
+
     source = Source(
         name="Test News Wire",
         url="https://test.example.com",
@@ -55,6 +61,12 @@ def sample_source(db_session):
 @pytest.fixture
 def sample_category(db_session):
     """Create a sample category"""
+    # Check if category already exists
+    from sqlalchemy import select
+    existing = db_session.execute(select(Category).filter_by(slug="labor")).scalar_one_or_none()
+    if existing:
+        return existing
+
     category = Category(
         name="Labor",
         slug="labor",
@@ -70,6 +82,12 @@ def sample_category(db_session):
 @pytest.fixture
 def sample_region(db_session):
     """Create a sample region"""
+    # Check if region already exists
+    from sqlalchemy import select
+    existing = db_session.execute(select(Region).filter_by(name="National")).scalar_one_or_none()
+    if existing:
+        return existing
+
     region = Region(
         name="National",
         region_type="national",

@@ -9,6 +9,13 @@ from typing import List, Set
 from difflib import SequenceMatcher
 
 
+def generate_hash(text: str) -> str:
+    """Generate MD5 hash from text for deduplication"""
+    if not text:
+        return ""
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
+
+
 def clean_text(text: str) -> str:
     """Clean and normalize text"""
     if not text:

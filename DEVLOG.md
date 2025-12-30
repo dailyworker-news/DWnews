@@ -610,9 +610,378 @@ pytest -m integration
 
 ---
 
+## 2025-12-29 | Batch 3: Local Web Portal ✅
+
+### Phase 3.1: Local Admin Dashboard
+**Status:** Complete
+**Duration:** ~1.5 hours
+
+**Implemented:**
+
+**Backend API:**
+- ✅ Article routes (`routes/articles.py`)
+  - GET /api/articles/ - List with filtering
+  - GET /api/articles/{id} - Single article detail
+  - PATCH /api/articles/{id} - Update article
+  - Pydantic models for validation
+  - Pagination support (limit/offset)
+  - Status filtering (draft, published, archived)
+- ✅ Database session management (`database.py`)
+  - FastAPI dependency injection
+  - Proper session lifecycle
+  - Connection pooling ready
+- ✅ Authentication system (`auth.py`)
+  - HTTP Basic Auth
+  - Password hashing with bcrypt
+  - Simple username/password verification
+  - Secure password storage
+
+**Admin Frontend:**
+- ✅ Admin dashboard (`admin/index.html`)
+  - Sidebar navigation
+  - Article list with status badges
+  - Click-to-preview functionality
+  - Real-time statistics
+- ✅ Admin styling (`admin/admin.css`)
+  - Professional card layouts
+  - Status-specific colors
+  - Preview side panel
+  - Responsive design
+- ✅ Admin JavaScript (`admin/admin.js`)
+  - Article loading and filtering
+  - Preview panel functionality
+  - Approve/publish workflow
+  - Mark as ongoing
+  - Archive articles
+  - Live count updates
+
+**Features:**
+- ✅ Status workflow (draft → published → archived)
+- ✅ Ongoing story flagging
+- ✅ Article statistics tracking
+- ✅ Preview with full metadata
+- ✅ Category and badge display
+
+**Files Created:** 7 files
+- `backend/routes/articles.py` (174 lines)
+- `backend/database.py` (34 lines)
+- `backend/auth.py` (38 lines)
+- `backend/main.py` (updated)
+- `frontend/admin/index.html` (149 lines)
+- `frontend/admin/admin.css` (471 lines)
+- `frontend/admin/admin.js` (351 lines)
+
+**Commits:**
+- `272471e` - Phase 3.1: Admin dashboard for article review
+
+**Notes:**
+- Basic auth sufficient for local MVP
+- All admin actions logged
+- Real-time UI updates after actions
+- Zero cloud costs
+
+---
+
+### Phase 3.2: Event-Based Homepage
+**Status:** Complete
+**Duration:** ~1 hour
+
+**Implemented:**
+
+**Homepage Layout:**
+- ✅ Ongoing stories section
+  - Separate API fetch for ongoing articles
+  - Visual prominence with gradient background
+  - Larger cards with summaries
+  - Always displayed at top
+  - Up to 10 ongoing stories shown
+- ✅ Latest stories section
+  - Separate API fetch excluding ongoing
+  - Standard grid layout
+  - Paginated (12 per page)
+  - Category and region filtering
+
+**Styling Updates:**
+- ✅ Ongoing section styling (`main.css`)
+  - Gradient background (blue to gray)
+  - 2px colored border
+  - Thicker borders on cards
+  - Enhanced shadows
+  - Special typography
+- ✅ Pagination controls
+  - Previous/next buttons
+  - Page number display
+  - Disabled state styling
+  - Hover effects
+- ✅ Footer improvements
+  - Grid layout (3 columns)
+  - Category quick links
+  - Responsive mobile layout
+
+**JavaScript Functionality:**
+- ✅ Dual content loading (`main.js`)
+  - loadOngoingStories() function
+  - loadLatestStories() function
+  - Separate render functions
+  - Independent API calls
+- ✅ Pagination system
+  - Previous/next navigation
+  - Page state tracking
+  - Button enable/disable logic
+  - Smooth scrolling on page change
+- ✅ Filter integration
+  - Category filtering for latest
+  - Region filtering for both sections
+  - Auto-hide ongoing section if empty
+
+**Files Updated:** 3 files
+- `frontend/index.html` (updated structure)
+- `frontend/styles/main.css` (+66 lines)
+- `frontend/scripts/main.js` (complete rewrite, 294 lines)
+
+**Commits:**
+- `4986587` - Phase 3.2: Event-based homepage
+
+**Features:**
+- Event-based layout (ongoing vs. latest)
+- Visual hierarchy for important stories
+- Category diversity in both sections
+- Mobile-responsive design
+- Pagination for latest articles
+
+**Notes:**
+- Ongoing stories always show if available
+- Latest section excludes ongoing to avoid duplication
+- Smooth transitions between pages
+- Zero additional costs
+
+---
+
+### Phase 3.3: Article Pages
+**Status:** Complete
+**Duration:** ~1 hour
+
+**Implemented:**
+
+**Article Page:**
+- ✅ Dedicated detail page (`article.html`)
+  - Full article layout
+  - Header with badges
+  - Hero image section
+  - Summary box (if available)
+  - Full body content
+  - Special sections
+  - Metadata footer
+  - Back to home link
+- ✅ Article styling (`article.css`)
+  - Max-width 800px for readability
+  - Large title typography (2.5rem)
+  - Article body at 1.125rem
+  - Line height 1.8 for readability
+  - Special section gradients
+  - Reading level color indicators
+  - Responsive breakpoints
+- ✅ Article JavaScript (`article.js`)
+  - URL parameter parsing (?id=123)
+  - API fetch with error handling
+  - Published-only filtering
+  - Auto-format paragraphs
+  - Reading time calculation
+  - SEO meta updates
+  - Special section rendering
+
+**Article Components:**
+- ✅ Header with badges
+  - Category, ongoing, new, local badges
+  - Publication date
+  - Reading level with color coding
+  - Estimated read time
+- ✅ Featured image
+  - Full-width with rounding
+  - Attribution display
+  - Conditional rendering
+- ✅ Summary box
+  - Highlighted background
+  - Border accent
+  - Prominent placement
+- ✅ Body content
+  - Formatted paragraphs
+  - Line break preservation
+  - Responsive typography
+- ✅ Special sections
+  - "Why This Matters" (orange gradient)
+  - "What You Can Do" (green gradient)
+  - Conditional display
+- ✅ Metadata footer
+  - 2-column grid (mobile: 1-column)
+  - Category, reading level, date, word count
+
+**Files Created:** 3 files
+- `frontend/article.html` (150 lines)
+- `frontend/styles/article.css` (342 lines)
+- `frontend/scripts/article.js` (235 lines)
+
+**Files Updated:** 1 file
+- `frontend/scripts/main.js` (updated article links)
+
+**Commits:**
+- `797384a` - Phase 3.3: Article detail pages
+
+**Features:**
+- Clean, readable article layout
+- SEO-friendly meta tags
+- Reading level indicators
+- Special action sections
+- Error handling for 404s
+- Draft/archived filtering
+
+**Notes:**
+- URL format: article.html?id=123
+- Only shows published articles
+- Reading time based on 200 words/min
+- Mobile-optimized typography
+
+---
+
+### Phase 3.4: Category + Regional Navigation
+**Status:** Complete
+**Duration:** ~45 minutes
+
+**Implemented:**
+
+**URL State Management:**
+- ✅ State persistence (`main.js`)
+  - loadStateFromUrl() - Parse query params
+  - applyStateToUI() - Restore UI state
+  - updateUrlState() - Save to URL
+  - Browser history integration
+- ✅ Query parameters
+  - ?category=labor - Category filter
+  - ?region=local - Region filter
+  - ?page=2 - Pagination state
+  - Clean URLs (defaults omitted)
+
+**Navigation Updates:**
+- ✅ Category navigation
+  - Updates URL on category change
+  - Restores active state on load
+  - Footer links update URL
+  - Syncs main and footer nav
+- ✅ Region selector
+  - Updates URL on change
+  - Restores selected value on load
+  - Reloads both sections
+- ✅ Pagination
+  - Updates URL on page change
+  - Restores page number on load
+  - Smooth scroll to top
+
+**User Experience:**
+- ✅ Bookmarkable filtered views
+- ✅ Shareable URLs with filters
+- ✅ Browser back/forward support
+- ✅ Page refresh preserves state
+- ✅ Clean URL format
+
+**Files Updated:** 1 file
+- `frontend/scripts/main.js` (+76 lines)
+
+**Commits:**
+- `0cc021c` - Phase 3.4: URL state management
+
+**Example URLs:**
+- `/?category=labor&region=local`
+- `/?category=politics&page=2`
+- `/?region=all&category=good-news`
+
+**Features:**
+- URL-based state persistence
+- No page reloads on filter changes
+- History API integration
+- Mobile and desktop support
+
+**Notes:**
+- Improves shareability
+- Better user experience
+- SEO-friendly URLs
+- Zero additional costs
+
+---
+
+### Phase 3.5: Share Buttons
+**Status:** Complete
+**Duration:** ~45 minutes
+
+**Implemented:**
+
+**Share Functionality:**
+- ✅ Social platform integrations
+  - Twitter/X: Tweet intent with title + URL
+  - Facebook: Share dialog
+  - LinkedIn: Offsite sharing
+  - Reddit: Submit with title + URL
+  - Email: mailto with formatted message
+  - Copy Link: Clipboard API with fallback
+- ✅ Share button UI
+  - Platform-specific brand colors
+  - SVG icons (inline for performance)
+  - Hover effects (lift + shadow)
+  - Click animations
+  - "Copied!" visual feedback
+
+**Implementation:**
+- ✅ HTML structure (`article.html`)
+  - Share section after article body
+  - 6 share buttons with icons
+  - Semantic button elements
+  - Accessibility attributes
+- ✅ CSS styling (`article.css`)
+  - Platform brand colors
+  - Hover transformY animation
+  - Mobile responsive (stack vertically)
+  - Copy button success state
+  - Smooth transitions
+- ✅ JavaScript (`article.js`)
+  - setupShareButtons() function
+  - URL encoding for all parameters
+  - Popup windows (550x420px)
+  - Clipboard API with execCommand fallback
+  - 2-second visual feedback
+
+**Platform Details:**
+- Twitter: Opens tweet compose with title + URL
+- Facebook: Opens share dialog (requires HTTPS in production)
+- LinkedIn: Opens offsite sharing dialog
+- Reddit: Opens submit page with title
+- Email: Opens mail client with formatted body
+- Copy: Modern Clipboard API with legacy fallback
+
+**Files Updated:** 3 files
+- `frontend/article.html` (+47 lines)
+- `frontend/styles/article.css` (+113 lines)
+- `frontend/scripts/article.js` (+84 lines)
+
+**Commits:**
+- `8827023` - Phase 3.5: Social sharing buttons
+
+**Features:**
+- 6 sharing platforms
+- Proper URL encoding
+- Mobile responsive
+- Visual feedback
+- Fallback support
+
+**Notes:**
+- Popup windows for better UX
+- Email includes article summary
+- Copy link works on all browsers
+- Zero additional costs
+
+---
+
 ## Summary Statistics
 
-### Batches Completed: 2 / 7
+### Batches Completed: 3 / 7
 
 **Batch 1: Local Development Setup**
 - Phases: 3/3 complete
@@ -626,6 +995,12 @@ pytest -m integration
 - Lines of code: ~2,300
 - Cost: $0 (discovery/filtering), $0.50-2.00/run (generation)
 
+**Batch 3: Local Web Portal**
+- Phases: 5/5 complete
+- Files: 13 files created/updated
+- Lines of code: ~2,800
+- Cost: $0
+
 **Test Suite:**
 - Test files: 8
 - Test cases: 80+
@@ -633,9 +1008,9 @@ pytest -m integration
 - Lines of code: ~1,000
 
 ### Total Project Stats
-- **Commits:** 6 (all on main branch)
-- **Total Files:** 43
-- **Total Lines:** ~4,600
+- **Commits:** 11 (all on main branch)
+- **Total Files:** 56
+- **Total Lines:** ~7,400
 - **Test Coverage:** 85% average
 - **Cost to Date:** $0 (all local development)
 
@@ -647,14 +1022,18 @@ pytest -m integration
 ✅ Image sourcing with optimization
 ✅ Comprehensive test suite
 ✅ Full documentation
+✅ Admin dashboard for article management
+✅ Event-based homepage with ongoing stories
+✅ Article detail pages with share buttons
+✅ URL-based navigation and filtering
 
-### Next Up: Batch 3
-**Local Web Portal & Admin Interface**
-- Phase 3.1: Local Admin Dashboard
-- Phase 3.2: Event-Based Homepage
-- Phase 3.3: Article Pages
-- Phase 3.4: Category + Regional Navigation
-- Phase 3.5: Share Buttons
+### Next Up: Batch 4
+**Local Testing & Validation**
+- Phase 4.1: End-to-End Local Testing
+- Phase 4.2: Local Security Review
+- Phase 4.3: Content Pre-Generation
+- Phase 4.4: Local Documentation
+- Phase 4.5: Legal Basics (Draft)
 
 ---
 
@@ -728,18 +1107,24 @@ pytest -m integration
 - Pytest configuration
 - Test documentation
 
+### [2025-12-29] - Batch 3 Complete
+**Added:**
+- Backend article API routes (GET, PATCH)
+- Database session management
+- HTTP Basic Auth for admin
+- Admin dashboard frontend (HTML/CSS/JS)
+- Event-based homepage layout (ongoing + latest)
+- Dedicated article detail pages
+- URL state management for filters
+- Social sharing buttons (6 platforms)
+- Mobile-responsive design throughout
+- Pagination for latest articles
+
 ---
 
 ## Future Development Log
 
-### Batch 3: Local Web Portal (Planned)
-- Admin dashboard for article review
-- Event-based homepage layout
-- Article detail pages
-- Category and regional navigation
-- Social share buttons
-
-### Batch 4: Local Testing & Validation (Planned)
+### Batch 4: Local Testing & Validation (Next)
 - End-to-end testing
 - Security scanning
 - Content pre-generation
@@ -756,5 +1141,5 @@ pytest -m integration
 ---
 
 **Last Updated:** 2025-12-29
-**Current Phase:** Tests complete, ready for Batch 3
-**Next Milestone:** Admin dashboard and web portal
+**Current Phase:** Batch 3 complete - Full web portal operational
+**Next Milestone:** Batch 4 - Local testing and validation

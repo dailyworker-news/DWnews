@@ -13,9 +13,15 @@ const articlesPerPage = 12;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('The Daily Worker - Initializing');
 
+    // Load state from URL first
+    loadStateFromUrl();
+
     setupCategoryNav();
     setupRegionSelector();
     setupPagination();
+
+    // Apply saved state to UI
+    applyStateToUI();
 
     loadContent();
 });
@@ -211,6 +217,7 @@ function setupCategoryNav() {
             currentPage = 1;  // Reset to first page
 
             console.log(`Switching to category: ${currentCategory}`);
+            updateUrlState();
             loadLatestStories();
         });
     });
@@ -236,6 +243,7 @@ function setupCategoryNav() {
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
+            updateUrlState();
             loadLatestStories();
         });
     });
@@ -250,6 +258,7 @@ function setupRegionSelector() {
         currentPage = 1;  // Reset to first page
 
         console.log(`Switching to ${currentRegion} articles`);
+        updateUrlState();
         loadContent();  // Reload both ongoing and latest
     });
 }
@@ -262,6 +271,7 @@ function setupPagination() {
     prevButton.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
+            updateUrlState();
             loadLatestStories();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -269,6 +279,7 @@ function setupPagination() {
 
     nextButton.addEventListener('click', () => {
         currentPage++;
+        updateUrlState();
         loadLatestStories();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -290,4 +301,69 @@ function updatePagination(hasMore) {
 
     // Update page info
     pageInfo.textContent = `Page ${currentPage}`;
+}
+
+// URL State Management - Save and restore filters
+function loadStateFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has('region')) {
+        currentRegion = params.get('region');
+    }
+
+    if (params.has('category')) {
+        currentCategory = params.get('category');
+    }
+
+    if (params.has('page')) {
+        const page = parseInt(params.get('page'));
+        if (!isNaN(page) && page > 0) {
+            currentPage = page;
+        }
+    }
+
+    console.log('Loaded state from URL:', { currentRegion, currentCategory, currentPage });
+}
+
+// Apply current state to UI elements
+function applyStateToUI() {
+    // Set region selector
+    const regionSelect = document.getElementById('regionSelect');
+    if (regionSelect) {
+        regionSelect.value = currentRegion;
+    }
+
+    // Set active category nav link
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        const linkCategory = link.getAttribute('data-category');
+        if (linkCategory === currentCategory) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
+
+// Update URL with current state (without page reload)
+function updateUrlState() {
+    const params = new URLSearchParams();
+
+    if (currentRegion !== 'national') {
+        params.set('region', currentRegion);
+    }
+
+    if (currentCategory !== 'all') {
+        params.set('category', currentCategory);
+    }
+
+    if (currentPage > 1) {
+        params.set('page', currentPage.toString());
+    }
+
+    const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+
+    window.history.pushState({}, '', newUrl);
 }

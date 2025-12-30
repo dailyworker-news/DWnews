@@ -1,23 +1,114 @@
 // The Daily Worker - Frontend JavaScript
-// Handles article loading and display
+// Event-based homepage with separate ONGOING and LATEST sections
 
 const API_BASE_URL = 'http://localhost:8000/api';
+
+// State management
+let currentPage = 1;
+let currentRegion = 'national';
+let currentCategory = 'all';
+const articlesPerPage = 12;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     console.log('The Daily Worker - Initializing');
-    loadArticles();
+
+    setupCategoryNav();
     setupRegionSelector();
+    setupPagination();
+
+    loadContent();
 });
 
-// Load articles from API
-async function loadArticles(region = 'national', category = null) {
+// Load all content (ongoing + latest)
+async function loadContent() {
+    await loadOngoingStories();
+    await loadLatestStories();
+}
+
+// Load ongoing stories (separate section)
+async function loadOngoingStories() {
+    const ongoingSection = document.getElementById('ongoingSection');
+    const ongoingGrid = document.getElementById('ongoingGrid');
+
+    try {
+        // Fetch ongoing stories (always show all ongoing, regardless of region/category for now)
+        const params = new URLSearchParams({
+            status: 'published',
+            ongoing: 'true',
+            limit: '10'
+        });
+
+        const response = await fetch(`${API_BASE_URL}/articles/?${params}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch ongoing stories');
+        }
+
+        const articles = await response.json();
+
+        if (articles.length === 0) {
+            ongoingSection.style.display = 'none';
+            return;
+        }
+
+        ongoingSection.style.display = 'block';
+        renderOngoingStories(articles);
+
+    } catch (error) {
+        console.error('Error loading ongoing stories:', error);
+        ongoingSection.style.display = 'none';
+    }
+}
+
+// Render ongoing stories to their special section
+function renderOngoingStories(articles) {
+    const ongoingGrid = document.getElementById('ongoingGrid');
+
+    ongoingGrid.innerHTML = articles.map(article => `
+        <article class="article-card ongoing-story">
+            ${article.image_url ? `
+                <img src="${article.image_url}" alt="${article.title}" loading="lazy">
+            ` : ''}
+            <div class="article-content">
+                <span class="article-badge badge-ongoing">🚩 Ongoing</span>
+                ${article.is_local ? '<span class="article-badge badge-local">Local</span>' : ''}
+
+                <p class="article-category">${article.category_name || article.category}</p>
+                <h3 class="article-title">
+                    <a href="/article/${article.id}">${article.title}</a>
+                </h3>
+                ${article.summary ? `<p class="article-summary">${article.summary}</p>` : ''}
+                <p class="article-date">${formatDate(article.published_at)}</p>
+            </div>
+        </article>
+    `).join('');
+}
+
+// Load latest stories (main grid, paginated)
+async function loadLatestStories() {
     const articlesGrid = document.getElementById('articlesGrid');
     articlesGrid.innerHTML = '<p class="loading-message">Loading articles...</p>';
 
     try {
-        // TODO: Replace with actual API endpoint when implemented
-        const response = await fetch(`${API_BASE_URL}/articles?region=${region}${category ? `&category=${category}` : ''}`);
+        const params = new URLSearchParams({
+            status: 'published',
+            ongoing: 'false',  // Exclude ongoing stories from latest section
+            limit: articlesPerPage.toString(),
+            offset: ((currentPage - 1) * articlesPerPage).toString()
+        });
+
+        // Add region filter
+        if (currentRegion !== 'all') {
+            params.append('region', currentRegion);
+        }
+
+        // Add category filter
+        if (currentCategory !== 'all') {
+            params.append('category', currentCategory);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/articles/?${params}`);
 
         if (!response.ok) {
             throw new Error('Failed to fetch articles');
@@ -26,36 +117,39 @@ async function loadArticles(region = 'national', category = null) {
         const articles = await response.json();
 
         if (articles.length === 0) {
-            articlesGrid.innerHTML = '<p class="loading-message">No articles found. Start generating content!</p>';
+            articlesGrid.innerHTML = '<p class="loading-message">No articles found. Try a different filter!</p>';
+            updatePagination(false);
             return;
         }
 
-        renderArticles(articles);
+        renderLatestStories(articles);
+        updatePagination(articles.length === articlesPerPage);
+
     } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error('Error loading latest stories:', error);
         articlesGrid.innerHTML = `
             <p class="loading-message">
                 Unable to load articles. Make sure the backend is running at ${API_BASE_URL}
             </p>
         `;
+        updatePagination(false);
     }
 }
 
-// Render articles to the grid
-function renderArticles(articles) {
+// Render latest stories to main grid
+function renderLatestStories(articles) {
     const articlesGrid = document.getElementById('articlesGrid');
 
     articlesGrid.innerHTML = articles.map(article => `
-        <article class="article-card ${article.is_ongoing ? 'ongoing' : ''}">
+        <article class="article-card">
             ${article.image_url ? `
                 <img src="${article.image_url}" alt="${article.title}" loading="lazy">
             ` : ''}
             <div class="article-content">
-                ${article.is_ongoing ? '<span class="article-badge badge-ongoing">Ongoing</span>' : ''}
-                ${!article.is_ongoing && isNewArticle(article.published_at) ? '<span class="article-badge badge-new">New</span>' : ''}
+                ${isNewArticle(article.published_at) ? '<span class="article-badge badge-new">✨ New</span>' : ''}
                 ${article.is_local ? '<span class="article-badge badge-local">Local</span>' : ''}
 
-                <p class="article-category">${article.category}</p>
+                <p class="article-category">${article.category_name || article.category}</p>
                 <h3 class="article-title">
                     <a href="/article/${article.id}">${article.title}</a>
                 </h3>
@@ -67,6 +161,7 @@ function renderArticles(articles) {
 
 // Check if article is new (published within last 24 hours)
 function isNewArticle(publishedAt) {
+    if (!publishedAt) return false;
     const articleDate = new Date(publishedAt);
     const now = new Date();
     const hoursDiff = (now - articleDate) / (1000 * 60 * 60);
@@ -75,6 +170,8 @@ function isNewArticle(publishedAt) {
 
 // Format date for display
 function formatDate(dateString) {
+    if (!dateString) return '';
+
     const date = new Date(dateString);
     const now = new Date();
     const hoursDiff = (now - date) / (1000 * 60 * 60);
@@ -94,21 +191,12 @@ function formatDate(dateString) {
     }
 }
 
-// Set up region selector
-function setupRegionSelector() {
-    const regionSelect = document.getElementById('regionSelect');
-
-    regionSelect.addEventListener('change', (e) => {
-        const region = e.target.value;
-        console.log(`Switching to ${region} articles`);
-        loadArticles(region);
-    });
-}
-
 // Set up category navigation
 function setupCategoryNav() {
     const navLinks = document.querySelectorAll('.nav-link');
+    const footerLinks = document.querySelectorAll('.footer-nav a[data-category]');
 
+    // Main nav
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -117,18 +205,89 @@ function setupCategoryNav() {
             navLinks.forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 
-            // Load articles for category
-            const category = link.textContent.toLowerCase();
-            const region = document.getElementById('regionSelect').value;
+            // Get category from data attribute
+            const category = link.getAttribute('data-category');
+            currentCategory = category || 'all';
+            currentPage = 1;  // Reset to first page
 
-            if (category === 'home') {
-                loadArticles(region);
-            } else {
-                loadArticles(region, category);
-            }
+            console.log(`Switching to category: ${currentCategory}`);
+            loadLatestStories();
+        });
+    });
+
+    // Footer nav
+    footerLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const category = link.getAttribute('data-category');
+            currentCategory = category || 'all';
+            currentPage = 1;
+
+            // Update main nav active state
+            navLinks.forEach(l => {
+                if (l.getAttribute('data-category') === category) {
+                    l.classList.add('active');
+                } else {
+                    l.classList.remove('active');
+                }
+            });
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            loadLatestStories();
         });
     });
 }
 
-// Initialize category navigation
-setupCategoryNav();
+// Set up region selector
+function setupRegionSelector() {
+    const regionSelect = document.getElementById('regionSelect');
+
+    regionSelect.addEventListener('change', (e) => {
+        currentRegion = e.target.value;
+        currentPage = 1;  // Reset to first page
+
+        console.log(`Switching to ${currentRegion} articles`);
+        loadContent();  // Reload both ongoing and latest
+    });
+}
+
+// Set up pagination
+function setupPagination() {
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadLatestStories();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    nextButton.addEventListener('click', () => {
+        currentPage++;
+        loadLatestStories();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+// Update pagination UI
+function updatePagination(hasMore) {
+    const pagination = document.getElementById('pagination');
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+
+    // Show/hide pagination
+    pagination.style.display = (currentPage > 1 || hasMore) ? 'flex' : 'none';
+
+    // Update button states
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = !hasMore;
+
+    // Update page info
+    pageInfo.textContent = `Page ${currentPage}`;
+}

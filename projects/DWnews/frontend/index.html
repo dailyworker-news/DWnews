@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Daily Worker - Working-Class News</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">The Daily Worker</h1>
+            <p class="site-tagline">Accurate, Worker-Centric News That Doesn't Pull Punches</p>
+            <nav class="main-nav">
+                <a href="#" class="nav-link active">Home</a>
+                <a href="#" class="nav-link">Labor</a>
+                <a href="#" class="nav-link">Politics</a>
+                <a href="#" class="nav-link">Economics</a>
+                <a href="#" class="nav-link">Tech</a>
+                <a href="#" class="nav-link">Current Affairs</a>
+                <a href="#" class="nav-link">Art & Culture</a>
+                <a href="#" class="nav-link">Sport</a>
+                <a href="#" class="nav-link">Good News</a>
+            </nav>
+            <div class="region-selector">
+                <select id="regionSelect">
+                    <option value="national">National</option>
+                    <option value="local">Local</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="site-main container">
+        <section class="articles-section">
+            <h2>Latest Stories</h2>
+            <div id="articlesGrid" class="articles-grid">
+                <!-- Articles will be loaded dynamically -->
+                <p class="loading-message">Loading articles...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 The Daily Worker. Quality over quantity.</p>
+            <nav class="footer-nav">
+                <a href="#">About</a>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+            </nav>
+        </div>
+    </footer>
+
+    <script src="scripts/main.js"></script>
+</body>
+</html>

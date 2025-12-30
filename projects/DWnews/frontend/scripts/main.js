@@ -76,7 +76,7 @@ function renderOngoingStories(articles) {
 
                 <p class="article-category">${article.category_name || article.category}</p>
                 <h3 class="article-title">
-                    <a href="/article/${article.id}">${article.title}</a>
+                    <a href="article.html?id=${article.id}">${article.title}</a>
                 </h3>
                 ${article.summary ? `<p class="article-summary">${article.summary}</p>` : ''}
                 <p class="article-date">${formatDate(article.published_at)}</p>
@@ -151,7 +151,7 @@ function renderLatestStories(articles) {
 
                 <p class="article-category">${article.category_name || article.category}</p>
                 <h3 class="article-title">
-                    <a href="/article/${article.id}">${article.title}</a>
+                    <a href="article.html?id=${article.id}">${article.title}</a>
                 </h3>
                 <p class="article-date">${formatDate(article.published_at)}</p>
             </div>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Article - The Daily Worker</title>
+    <meta name="description" id="pageDescription" content="Read the full article on The Daily Worker">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/article.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title"><a href="/" style="color: white; text-decoration: none;">The Daily Worker</a></h1>
+            <p class="site-tagline">Accurate, Worker-Centric News That Doesn't Pull Punches</p>
+
+            <nav class="main-nav">
+                <a href="/" class="nav-link">← Back to Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Article Content -->
+    <main class="site-main container">
+        <div id="loadingMessage" class="loading-message">Loading article...</div>
+
+        <article id="articleContent" class="article-page" style="display: none;">
+            <!-- Article Header -->
+            <div class="article-header">
+                <div class="article-meta-badges">
+                    <span id="categoryBadge" class="article-badge"></span>
+                    <span id="ongoingBadge" class="article-badge badge-ongoing" style="display: none;">🚩 Ongoing</span>
+                    <span id="newBadge" class="article-badge badge-new" style="display: none;">✨ New</span>
+                    <span id="localBadge" class="article-badge badge-local" style="display: none;">📍 Local</span>
+                </div>
+
+                <h1 id="articleTitle" class="article-page-title"></h1>
+
+                <div class="article-page-meta">
+                    <span id="articleDate" class="meta-item"></span>
+                    <span class="meta-separator">•</span>
+                    <span id="articleReadingLevel" class="meta-item"></span>
+                    <span class="meta-separator">•</span>
+                    <span id="articleWordCount" class="meta-item"></span>
+                </div>
+            </div>
+
+            <!-- Article Image -->
+            <div id="articleImageContainer" class="article-page-image" style="display: none;">
+                <img id="articleImage" src="" alt="">
+                <p id="imageAttribution" class="image-attribution"></p>
+            </div>
+
+            <!-- Article Summary -->
+            <div id="articleSummaryContainer" class="article-summary-box" style="display: none;">
+                <h2>Summary</h2>
+                <p id="articleSummary"></p>
+            </div>
+
+            <!-- Article Body -->
+            <div id="articleBody" class="article-page-body"></div>
+
+            <!-- Special Sections -->
+            <div id="whyThisMattersSection" class="article-special-section why-matters" style="display: none;">
+                <h2>💡 Why This Matters</h2>
+                <div id="whyThisMattersContent"></div>
+            </div>
+
+            <div id="whatYouCanDoSection" class="article-special-section what-to-do" style="display: none;">
+                <h2>✊ What You Can Do</h2>
+                <div id="whatYouCanDoContent"></div>
+            </div>
+
+            <!-- Article Footer / Metadata -->
+            <div class="article-footer">
+                <div class="article-footer-meta">
+                    <h3>Article Information</h3>
+                    <div class="meta-grid">
+                        <div class="meta-grid-item">
+                            <strong>Category:</strong>
+                            <span id="footerCategory"></span>
+                        </div>
+                        <div class="meta-grid-item">
+                            <strong>Reading Level:</strong>
+                            <span id="footerReadingLevel"></span>
+                        </div>
+                        <div class="meta-grid-item">
+                            <strong>Published:</strong>
+                            <span id="footerPublished"></span>
+                        </div>
+                        <div class="meta-grid-item">
+                            <strong>Word Count:</strong>
+                            <span id="footerWordCount"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Error State -->
+        <div id="errorMessage" class="error-message" style="display: none;">
+            <h2>Article Not Found</h2>
+            <p>Sorry, we couldn't find the article you're looking for.</p>
+            <a href="/" class="btn-primary">← Back to Home</a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>The Daily Worker</h3>
+                    <p>Accurate, worker-centric news that doesn't pull punches.</p>
+                    <p class="footer-tagline">Quality over quantity. Always.</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Categories</h3>
+                    <nav class="footer-nav">
+                        <a href="/">Labor</a>
+                        <a href="/">Politics</a>
+                        <a href="/">Economics</a>
+                        <a href="/">Good News</a>
+                    </nav>
+                </div>
+
+                <div class="footer-section">
+                    <h3>About</h3>
+                    <nav class="footer-nav">
+                        <a href="/about.html">About Us</a>
+                        <a href="/privacy.html">Privacy</a>
+                        <a href="/terms.html">Terms</a>
+                    </nav>
+                </div>
+            </div>
+
+            <p class="copyright">&copy; 2025 The Daily Worker. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/article.js"></script>
+</body>
+</html>

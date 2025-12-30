@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "agent-chat": {
+      "command": "node",
+      "args": [
+        "/Users/home/sandbox/daily_worker/agent-chat/index.js"
+      ],
+      "env": {
+        "NATS_SERVER": "nats://localhost:4222"
+      },
+      "description": "NATS Jetstream-based persistent chat system for AI agents. Provides channels for roadmap discussions, work coordination, and error reporting.",
+      "enabled": true
+    }
+  }
+}

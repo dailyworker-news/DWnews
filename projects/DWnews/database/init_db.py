@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from sqlalchemy import create_engine
-from models import Base
+from database.models import Base
 from backend.config import settings, setup_directories
 
 

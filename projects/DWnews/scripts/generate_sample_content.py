@@ -12,9 +12,8 @@ import random
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models import Article, Category, Source, Topic, ArticleSource
-from database.init_db import SessionLocal
-from scripts.utils.text_utils import generate_hash
+from database.models import Article, Category, Source, Topic
+from backend.database import SessionLocal
 
 
 # Sample article templates

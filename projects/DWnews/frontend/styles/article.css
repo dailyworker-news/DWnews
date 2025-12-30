@@ -184,6 +184,119 @@
     color: #1b5e20;
 }
 
+/* Share Section */
+.article-share-section {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--color-bg-alt);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.article-share-section h3 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.25rem;
+    color: var(--color-text);
+}
+
+.share-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.share-btn:active {
+    transform: translateY(0);
+}
+
+.share-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Platform-specific colors */
+.share-twitter {
+    background: #000000;
+}
+
+.share-twitter:hover {
+    background: #1a1a1a;
+}
+
+.share-facebook {
+    background: #1877f2;
+}
+
+.share-facebook:hover {
+    background: #0c63d4;
+}
+
+.share-linkedin {
+    background: #0077b5;
+}
+
+.share-linkedin:hover {
+    background: #005885;
+}
+
+.share-reddit {
+    background: #ff4500;
+}
+
+.share-reddit:hover {
+    background: #d93b00;
+}
+
+.share-email {
+    background: #666666;
+}
+
+.share-email:hover {
+    background: #4d4d4d;
+}
+
+.share-copy {
+    background: var(--color-secondary);
+}
+
+.share-copy:hover {
+    background: #1565c0;
+}
+
+.share-copy.copied {
+    background: #4caf50;
+}
+
+@media (max-width: 768px) {
+    .share-buttons {
+        flex-direction: column;
+    }
+
+    .share-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 /* Article Footer */
 .article-footer {
     margin-top: 3rem;

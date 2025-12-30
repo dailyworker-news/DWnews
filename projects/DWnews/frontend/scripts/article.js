@@ -170,6 +170,9 @@ function renderArticle(article) {
 
     // Show article
     articleContent.style.display = 'block';
+
+    // Setup share buttons
+    setupShareButtons(article);
 }
 
 // Format article body (convert line breaks to paragraphs)
@@ -224,4 +227,90 @@ function showError(message) {
     if (message && message !== 'Article not found') {
         errorMessage.querySelector('p').textContent = message;
     }
+}
+
+// Setup share buttons
+function setupShareButtons(article) {
+    const url = window.location.href;
+    const title = article.title;
+    const summary = article.summary || title;
+
+    // Twitter/X
+    document.getElementById('shareTwitter').addEventListener('click', () => {
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+        window.open(twitterUrl, '_blank', 'width=550,height=420');
+    });
+
+    // Facebook
+    document.getElementById('shareFacebook').addEventListener('click', () => {
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(facebookUrl, '_blank', 'width=550,height=420');
+    });
+
+    // LinkedIn
+    document.getElementById('shareLinkedIn').addEventListener('click', () => {
+        const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        window.open(linkedInUrl, '_blank', 'width=550,height=420');
+    });
+
+    // Reddit
+    document.getElementById('shareReddit').addEventListener('click', () => {
+        const redditUrl = `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+        window.open(redditUrl, '_blank', 'width=550,height=420');
+    });
+
+    // Email
+    document.getElementById('shareEmail').addEventListener('click', () => {
+        const subject = encodeURIComponent(`The Daily Worker: ${title}`);
+        const body = encodeURIComponent(`I thought you might find this article interesting:\n\n${title}\n\n${summary}\n\nRead more: ${url}`);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    });
+
+    // Copy Link
+    document.getElementById('copyLink').addEventListener('click', async () => {
+        const button = document.getElementById('copyLink');
+        const buttonText = document.getElementById('copyLinkText');
+
+        try {
+            await navigator.clipboard.writeText(url);
+
+            // Visual feedback
+            button.classList.add('copied');
+            buttonText.textContent = '✓ Copied!';
+
+            setTimeout(() => {
+                button.classList.remove('copied');
+                buttonText.textContent = 'Copy Link';
+            }, 2000);
+
+        } catch (err) {
+            console.error('Failed to copy:', err);
+
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                button.classList.add('copied');
+                buttonText.textContent = '✓ Copied!';
+
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    buttonText.textContent = 'Copy Link';
+                }, 2000);
+            } catch (err2) {
+                buttonText.textContent = 'Failed to copy';
+                setTimeout(() => {
+                    buttonText.textContent = 'Copy Link';
+                }, 2000);
+            }
+
+            document.body.removeChild(textArea);
+        }
+    });
 }

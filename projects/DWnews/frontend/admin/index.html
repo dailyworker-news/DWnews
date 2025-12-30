@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - The Daily Worker</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <h1>The Daily Worker</h1>
+                <p class="admin-subtitle">Admin Dashboard</p>
+            </div>
+            <div class="admin-user">
+                <span id="adminUsername">Admin</span>
+                <button onclick="logout()" class="btn-logout">Logout</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Sidebar -->
+            <aside class="admin-sidebar">
+                <nav class="admin-nav">
+                    <a href="#" class="nav-item active" data-filter="draft" onclick="filterArticles('draft')">
+                        <span class="nav-icon">📝</span>
+                        <span class="nav-label">Pending Review</span>
+                        <span id="count-draft" class="badge">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-filter="published" onclick="filterArticles('published')">
+                        <span class="nav-icon">✅</span>
+                        <span class="nav-label">Published</span>
+                        <span id="count-published" class="badge">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-filter="archived" onclick="filterArticles('archived')">
+                        <span class="nav-icon">🗄️</span>
+                        <span class="nav-label">Archived</span>
+                        <span id="count-archived" class="badge">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-filter="all" onclick="filterArticles('all')">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-label">All Articles</span>
+                        <span id="count-all" class="badge">0</span>
+                    </a>
+                </nav>
+
+                <div class="admin-stats">
+                    <h3>Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Today</span>
+                        <span id="stat-today" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">This Week</span>
+                        <span id="stat-week" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Reading Level</span>
+                        <span id="stat-reading" class="stat-value">-</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="admin-content">
+                <!-- Article List -->
+                <div class="article-list">
+                    <div class="list-header">
+                        <h2 id="listTitle">Pending Review</h2>
+                        <button onclick="refreshArticles()" class="btn-refresh">↻ Refresh</button>
+                    </div>
+
+                    <div id="articlesList" class="articles-grid">
+                        <div class="loading-message">Loading articles...</div>
+                    </div>
+                </div>
+
+                <!-- Article Preview (hidden by default) -->
+                <div id="articlePreview" class="article-preview" style="display: none;">
+                    <div class="preview-header">
+                        <h2>Article Preview</h2>
+                        <button onclick="closePreview()" class="btn-close">✕</button>
+                    </div>
+
+                    <div class="preview-content">
+                        <div class="preview-meta">
+                            <span id="previewCategory" class="preview-badge"></span>
+                            <span id="previewStatus" class="preview-status"></span>
+                        </div>
+
+                        <h1 id="previewTitle"></h1>
+
+                        <div class="preview-info">
+                            <div class="info-item">
+                                <strong>Reading Level:</strong>
+                                <span id="previewReadingLevel"></span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Word Count:</strong>
+                                <span id="previewWordCount"></span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Type:</strong>
+                                <span id="previewType"></span>
+                            </div>
+                        </div>
+
+                        <div id="previewImage" class="preview-image" style="display: none;">
+                            <img src="" alt="Article image">
+                            <p class="image-attribution"></p>
+                        </div>
+
+                        <div class="preview-body" id="previewBody"></div>
+
+                        <div id="previewWhyMatters" class="preview-section" style="display: none;">
+                            <h3>Why This Matters</h3>
+                            <p id="whyMattersText"></p>
+                        </div>
+
+                        <div id="previewWhatToDo" class="preview-section" style="display: none;">
+                            <h3>What You Can Do</h3>
+                            <p id="whatToDoText"></p>
+                        </div>
+
+                        <div class="preview-actions">
+                            <button onclick="approveArticle()" class="btn-approve">
+                                ✓ Approve & Publish
+                            </button>
+                            <button onclick="flagOngoing()" class="btn-ongoing" id="btnOngoing">
+                                🚩 Mark as Ongoing
+                            </button>
+                            <button onclick="archiveArticle()" class="btn-archive">
+                                🗄️ Archive
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

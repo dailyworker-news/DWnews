@@ -89,10 +89,10 @@ async def root():
     }
 
 
-# API Routes (to be added in later phases)
-# @app.include_router(articles.router, prefix="/api/articles", tags=["articles"])
-# @app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
-# @app.include_router(content.router, prefix="/api/content", tags=["content"])
+# API Routes
+from backend.routes import articles
+
+app.include_router(articles.router, prefix="/api/articles", tags=["articles"])
 
 
 if __name__ == "__main__":

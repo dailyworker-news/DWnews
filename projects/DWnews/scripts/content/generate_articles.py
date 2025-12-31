@@ -66,52 +66,64 @@ class ArticleGenerator:
                 logger.warning("google-generativeai package not installed")
 
     def create_generation_prompt(self, topic: Topic) -> str:
-        """Create article generation prompt in Joe Sugarman copywriting style"""
+        """Create article generation prompt following professional journalism standards"""
 
-        prompt = f"""You are writing for The Daily Worker, a news platform that delivers accurate, worker-centric news through a Marxist/Leninist lens.
+        prompt = f"""You are a professional journalist writing for The Daily Worker, a news platform that delivers accurate, worker-centric news through a Marxist/Leninist lens.
 
 TOPIC: {topic.title}
 
 BACKGROUND: {topic.description or 'No additional context provided'}
 
-INSTRUCTIONS:
-Write a news article following these strict requirements:
+CRITICAL: You MUST follow professional journalism standards defined in plans/journalism-standards.md
 
+PROFESSIONAL STANDARDS (NON-NEGOTIABLE):
+1. INVERTED PYRAMID: Most important information first (lede, nut graf, details, background)
+2. 5W+H: Answer Who, What, When, Where, Why, How in first 3-4 paragraphs
+3. ATTRIBUTION: All non-observable facts must be attributed to sources
+4. NUT GRAF: Paragraph 2-3 MUST explain why this matters beyond itself
+5. SOURCES: Assume ≥3 credible sources exist (reference generically: "according to labor organizers", "union representatives stated", "data from Bureau of Labor Statistics shows")
+6. QUOTES: Include at least 1 functional quote that adds perspective (use realistic worker/organizer quotes)
+7. NEUTRAL TONE: Emotion through facts/quotes, not author voice (avoid loaded adjectives in narration)
+8. FACT/OPINION SEPARATION: Clearly distinguish factual reporting from analysis
+
+PROJECT REQUIREMENTS:
 1. ACCURACY: Present only factual information. No speculation or opinion unless clearly labeled.
+2. WORKER-CENTRIC LENS: Focus on how this affects working-class Americans ($45k-$350k income). Explain material impact.
+3. MARXIST/LENINIST ANALYSIS: Analyze power dynamics between workers and capital in "Why This Matters" section.
+4. READING LEVEL: 8th grade (Flesch-Kincaid 7.5-8.5). Clear, direct language. Short sentences. Active voice.
+5. LENGTH: 300-600 words
+6. TONE: Professional journalism with pro-worker perspective. Rigorous but partisan.
 
-2. WORKER-CENTRIC LENS: Focus on how this affects working-class Americans. Explain the material impact on workers' lives.
+ARTICLE STRUCTURE:
+1. LEDE (Paragraph 1): Who, What, When, Where - core facts
+2. NUT GRAF (Paragraph 2-3): Why and How it matters - broader significance
+3. BODY: Details with attributed facts, quotes, evidence
+4. WHY THIS MATTERS: Worker impact with materialist lens
+5. WHAT YOU CAN DO: 2-3 concrete actions (only if applicable)
 
-3. MARXIST/LENINIST ANALYSIS: Analyze power dynamics between workers and capital. Don't pull punches when describing corporate or political malfeasance.
-
-4. READING LEVEL: Write at an 8th-grade reading level (Flesch-Kincaid 7.5-8.5). Use clear, direct language. Short sentences. Active voice.
-
-5. STRUCTURE (Joe Sugarman format):
-   - Headline: Compelling, factual, worker-focused
-   - Opening: Hook with the most important fact
-   - Body: Chronological or pyramid structure
-   - Quotes: Include perspectives from workers/unions when possible
-   - Analysis: Connect to broader patterns of exploitation or worker power
-   - Conclusion: Clear takeaway about what this means for workers
-
-6. SPECIAL SECTIONS:
-   - "Why This Matters": 2-3 sentences on broader significance
-   - "What You Can Do": 2-3 concrete actions readers can take (only if applicable)
-
-7. LENGTH: 300-600 words
-
-8. TONE: Professional journalist but not neutral. We have a perspective: pro-worker, anti-exploitation.
+ATTRIBUTION EXAMPLES:
+- "According to [organization name], ..."
+- "A [job title] who spoke on condition of anonymity said..."
+- "[Person name], a [title/role], stated..."
+- "Data from [credible source] shows..."
 
 Write the article now. Use this exact format:
 
 HEADLINE: [Your headline]
 
-[Article body]
+[LEDE - Core facts with Who/What/When/Where]
+
+[NUT GRAF - Why this matters, broader context]
+
+[BODY - Details with attribution and quotes]
 
 WHY THIS MATTERS:
-[2-3 sentences]
+[2-3 sentences on worker impact, materialist perspective]
 
 WHAT YOU CAN DO:
 [2-3 concrete actions, or write "N/A" if not applicable]
+
+REMEMBER: Journalism standards (inverted pyramid, 5W+H, attribution, nut graf, quotes) are MANDATORY. Innovation in presentation only, never in truth standards.
 """
         return prompt
 

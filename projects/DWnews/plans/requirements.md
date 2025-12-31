@@ -66,15 +66,32 @@ Topics MUST pass all three criteria:
 ### 3.3 Generation
 - LLM-powered article creation (user's Claude, ChatGPT, or Gemini subscriptions)
 - Specialized AI journalist agents by beat (investigative, sports, gossip, economics, tech, culture)
+- **ALL articles MUST comply with professional journalism standards** (see `journalism-standards.md`)
 - AI bias detection and copy editing
 - Human final review and approval
 
+**Journalism Standards Reference:**
+All journalist agents must follow professional standards defined in:
+- `plans/journalism-standards.md` - Professional newsroom standards (inverted pyramid, 5W+H, attribution, sources, nut graf, etc.)
+- `.claude/agents/journalist.md` - Journalist agent instructions and checklist
+
+**Key Standards:**
+- Inverted pyramid structure (most important information first)
+- 5W+H coverage (Who, What, When, Where, Why, How) in first 3-4 paragraphs
+- Attribution for all non-observable facts
+- Multiple independent sources (≥3 credible OR ≥2 academic)
+- Functional quotes that add value
+- Nut graf explaining why the event matters
+- Neutral tone with emotion conveyed through facts/quotes, not author voice
+- Clear separation of fact and opinion
+
 ### 3.4 Editorial Workflow
-1. AI generates draft
+1. AI journalist agent generates draft following journalism standards
 2. AI bias scan and initial edit
-3. Human editor reviews and approves
-4. Graphics sourcing/generation
-5. Publication
+3. Self-check against journalism standards checklist
+4. Human editor reviews and approves
+5. Graphics sourcing/generation
+6. Publication
 
 ---
 

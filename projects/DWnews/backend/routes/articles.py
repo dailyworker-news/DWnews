@@ -77,7 +77,7 @@ class ArticleUpdateRequest(BaseModel):
 def get_articles(
     status: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
-    region: Optional[str] = Query("national"),
+    region: Optional[str] = Query(None),  # Changed default from "national" to None to show all articles
     ongoing: Optional[bool] = Query(None),
     limit: int = Query(20, le=100),
     offset: int = Query(0),

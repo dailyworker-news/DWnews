@@ -70,109 +70,115 @@ async function loadArticle(articleId) {
 function renderArticle(article) {
     const articleContent = document.getElementById('articleContent');
 
-    // Update page title and meta
-    document.getElementById('pageTitle').textContent = `${article.title} - The Daily Worker`;
-    if (article.summary) {
-        document.getElementById('pageDescription').setAttribute('content', article.summary);
-    }
+    try {
+        // Update page title and meta
+        document.getElementById('pageTitle').textContent = `${article.title} - The Daily Worker`;
+        if (article.summary) {
+            document.getElementById('pageDescription').setAttribute('content', article.summary);
+        }
 
-    // Header badges
-    const categoryBadge = document.getElementById('categoryBadge');
-    categoryBadge.textContent = article.category_name || article.category;
-    categoryBadge.className = 'article-badge';
+        // Header badges
+        const categoryBadge = document.getElementById('categoryBadge');
+        categoryBadge.textContent = article.category_name || article.category;
+        categoryBadge.className = 'article-badge';
 
-    if (article.is_ongoing) {
-        document.getElementById('ongoingBadge').style.display = 'inline-block';
-    }
+        if (article.is_ongoing) {
+            document.getElementById('ongoingBadge').style.display = 'inline-block';
+        }
 
-    if (article.is_new || isNewArticle(article.published_at)) {
-        document.getElementById('newBadge').style.display = 'inline-block';
-    }
+        if (article.is_new || isNewArticle(article.published_at)) {
+            document.getElementById('newBadge').style.display = 'inline-block';
+        }
 
-    if (article.is_local) {
-        document.getElementById('localBadge').style.display = 'inline-block';
-    }
+        if (article.is_local) {
+            document.getElementById('localBadge').style.display = 'inline-block';
+        }
 
-    // Title
-    document.getElementById('articleTitle').textContent = article.title;
+        // Title
+        document.getElementById('articleTitle').textContent = article.title;
 
-    // Meta information
-    document.getElementById('articleDate').textContent = formatFullDate(article.published_at);
+        // Meta information
+        document.getElementById('articleDate').textContent = formatFullDate(article.published_at);
 
-    const readingLevelSpan = document.getElementById('articleReadingLevel');
-    if (article.reading_level) {
-        readingLevelSpan.textContent = `Reading Level: ${article.reading_level.toFixed(1)}`;
+        const readingLevelSpan = document.getElementById('articleReadingLevel');
+        if (article.reading_level) {
+            readingLevelSpan.textContent = `Reading Level: ${article.reading_level.toFixed(1)}`;
 
-        // Add color class based on reading level
-        if (article.reading_level >= 7.5 && article.reading_level <= 8.5) {
-            readingLevelSpan.classList.add('reading-level-good');
-        } else if (article.reading_level >= 7.0 && article.reading_level <= 9.0) {
-            readingLevelSpan.classList.add('reading-level-acceptable');
+            // Add color class based on reading level
+            if (article.reading_level >= 7.5 && article.reading_level <= 8.5) {
+                readingLevelSpan.classList.add('reading-level-good');
+            } else if (article.reading_level >= 7.0 && article.reading_level <= 9.0) {
+                readingLevelSpan.classList.add('reading-level-acceptable');
+            } else {
+                readingLevelSpan.classList.add('reading-level-difficult');
+            }
         } else {
-            readingLevelSpan.classList.add('reading-level-difficult');
-        }
-    } else {
-        readingLevelSpan.textContent = '';
-    }
-
-    if (article.word_count) {
-        const readTime = Math.ceil(article.word_count / 200); // Assume 200 words/min
-        document.getElementById('articleWordCount').textContent = `${article.word_count} words (~${readTime} min read)`;
-    }
-
-    // Image
-    if (article.image_url) {
-        const imageContainer = document.getElementById('articleImageContainer');
-        const image = document.getElementById('articleImage');
-        const attribution = document.getElementById('imageAttribution');
-
-        image.src = article.image_url;
-        image.alt = article.title;
-
-        if (article.image_attribution) {
-            attribution.textContent = article.image_attribution;
+            readingLevelSpan.textContent = '';
         }
 
-        imageContainer.style.display = 'block';
+        if (article.word_count) {
+            const readTime = Math.ceil(article.word_count / 200); // Assume 200 words/min
+            document.getElementById('articleWordCount').textContent = `${article.word_count} words (~${readTime} min read)`;
+        }
+
+        // Image
+        if (article.image_url) {
+            const imageContainer = document.getElementById('articleImageContainer');
+            const image = document.getElementById('articleImage');
+            const attribution = document.getElementById('imageAttribution');
+
+            image.src = article.image_url;
+            image.alt = article.title;
+
+            if (article.image_attribution) {
+                attribution.textContent = article.image_attribution;
+            }
+
+            imageContainer.style.display = 'block';
+        }
+
+        // Summary
+        if (article.summary) {
+            const summaryContainer = document.getElementById('articleSummaryContainer');
+            document.getElementById('articleSummary').textContent = article.summary;
+            summaryContainer.style.display = 'block';
+        }
+
+        // Body
+        const bodyElement = document.getElementById('articleBody');
+        bodyElement.innerHTML = formatArticleBody(article.body);
+
+        // Special sections
+        if (article.why_this_matters) {
+            const whySection = document.getElementById('whyThisMattersSection');
+            document.getElementById('whyThisMattersContent').textContent = article.why_this_matters;
+            whySection.style.display = 'block';
+        }
+
+        if (article.what_you_can_do) {
+            const whatSection = document.getElementById('whatYouCanDoSection');
+            document.getElementById('whatYouCanDoContent').textContent = article.what_you_can_do;
+            whatSection.style.display = 'block';
+        }
+
+        // Footer metadata
+        document.getElementById('footerCategory').textContent = article.category_name || article.category;
+        document.getElementById('footerReadingLevel').textContent = article.reading_level
+            ? article.reading_level.toFixed(1)
+            : 'N/A';
+        document.getElementById('footerPublished').textContent = formatFullDate(article.published_at);
+        document.getElementById('footerWordCount').textContent = article.word_count || 'N/A';
+
+        // Show article
+        articleContent.style.display = 'block';
+
+        // Setup share buttons
+        setupShareButtons(article);
+
+    } catch (error) {
+        console.error('Error rendering article:', error);
+        showError(`Failed to render article: ${error.message}`);
     }
-
-    // Summary
-    if (article.summary) {
-        const summaryContainer = document.getElementById('articleSummaryContainer');
-        document.getElementById('articleSummary').textContent = article.summary;
-        summaryContainer.style.display = 'block';
-    }
-
-    // Body
-    const bodyElement = document.getElementById('articleBody');
-    bodyElement.innerHTML = formatArticleBody(article.body);
-
-    // Special sections
-    if (article.why_this_matters) {
-        const whySection = document.getElementById('whyThisMattersSection');
-        document.getElementById('whyThisMattersContent').textContent = article.why_this_matters;
-        whySection.style.display = 'block';
-    }
-
-    if (article.what_you_can_do) {
-        const whatSection = document.getElementById('whatYouCanDoSection');
-        document.getElementById('whatToDoContent').textContent = article.what_you_can_do;
-        whatSection.style.display = 'block';
-    }
-
-    // Footer metadata
-    document.getElementById('footerCategory').textContent = article.category_name || article.category;
-    document.getElementById('footerReadingLevel').textContent = article.reading_level
-        ? article.reading_level.toFixed(1)
-        : 'N/A';
-    document.getElementById('footerPublished').textContent = formatFullDate(article.published_at);
-    document.getElementById('footerWordCount').textContent = article.word_count || 'N/A';
-
-    // Show article
-    articleContent.style.display = 'block';
-
-    // Setup share buttons
-    setupShareButtons(article);
 }
 
 // Format article body (convert line breaks to paragraphs)

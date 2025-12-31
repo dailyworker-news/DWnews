@@ -5,7 +5,7 @@ const API_BASE_URL = 'http://localhost:8000/api';
 
 // State management
 let currentPage = 1;
-let currentRegion = 'national';
+let currentRegion = 'all';  // Changed from 'national' to show all articles by default
 let currentCategory = 'all';
 const articlesPerPage = 12;
 

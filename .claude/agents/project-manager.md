@@ -167,6 +167,45 @@ When a phase finishes:
 3. Delete the phase from `roadmap.md`
 4. Review batch status—if batch complete, note any phases now unblocked
 
+#### 5. Git Commit Mode (After Batch Completion)
+
+**CRITICAL:** After completing an entire batch:
+
+1. **Stage all changes**: `git add -A`
+2. **Review staged files**: Ensure no credentials, secrets, or debug files are included
+3. **Commit with detailed message**:
+   ```bash
+   git commit -m "Complete Batch [N]: [Batch Description]
+
+   [Detailed description of what was accomplished]
+
+   Phases completed:
+   - Phase N.1: [Description]
+   - Phase N.2: [Description]
+
+   Key changes:
+   - [Change 1]
+   - [Change 2]
+
+   🤖 Generated with Claude Code (https://claude.com/claude-code)
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   ```
+4. **Push to remote**: `git push origin main` (or appropriate branch)
+5. **Verify push succeeded**: Check for errors and retry if needed
+
+**When to commit:**
+- After completing an entire batch (all phases marked complete)
+- After major milestones (e.g., testing complete, deployment ready)
+- Before long breaks or context switches
+- When user explicitly requests it
+
+**What NOT to commit:**
+- `.env.local` or any credentials files
+- `node_modules/`, `__pycache__/`, or dependency directories
+- Debug/test files not part of the project structure
+- Temporary output files in `test_output/` or similar directories
+
 ---
 
 ### Planning Output Format
@@ -246,6 +285,7 @@ When creating a new plan, output:
 4. **Parallelize aggressively**: If two phases don't depend on each other, they're in the same batch
 5. **Link complex work**: If a phase needs more than 5 tasks, create a separate plan document
 6. **Archive immediately**: The moment work completes, move it out of the active roadmap
-7. **Be specific**: Tasks should be concrete enough for an agent to execute without discovery
-8. **State assumptions**: If you're guessing about architecture or constraints, say so
-9. **Value early**: Aim to deliver working functionality before Batch 3 unless technically impossible
+7. **Commit and push**: After completing each batch, commit all changes to git and push to remote
+8. **Be specific**: Tasks should be concrete enough for an agent to execute without discovery
+9. **State assumptions**: If you're guessing about architecture or constraints, say so
+10. **Value early**: Aim to deliver working functionality before Batch 3 unless technically impossible

@@ -2,7 +2,7 @@
 
 An AI-powered news platform delivering accurate, worker-centric news through a Marxist/Leninist lens. Quality over quantity, no punches pulled.
 
-**Current Status:** ✅ Batch 4 Complete - Ready for Testing & Production Prep
+**Current Status:** ✅ Batches 4-5 Complete - Testing Infrastructure Ready
 
 ## Project Overview
 
@@ -460,7 +460,11 @@ TBD
 
 ---
 
-**Version:** 4.0 (Batch 4 Complete)
-**Last Updated:** 2025-12-29
-**Status:** ✅ Local development complete, ready for production prep
-**Next Milestone:** Legal pages and cloud deployment planning
+**Version:** 5.0 (Batches 4-5 Complete)
+**Last Updated:** 2025-12-31
+**Status:** ✅ Testing infrastructure ready, automated journalism pipeline designed
+**Next Milestone:** API credentials setup and first live article test
+
+---
+
+Daily Worker newspaper publishes worker relevant news impacting local, national and international issues. Supporting a scientific and materialist assessment and reflection of labor issues, technology, politics, economics, current affairs, art and sport.

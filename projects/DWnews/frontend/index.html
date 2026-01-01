@@ -4,30 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Daily Worker - Working-Class News</title>
-    <link rel="stylesheet" href="styles/main.css?v=3">
+    <!-- Google Fonts: Playfair Display (masthead/headlines) and Merriweather (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css?v=5">
 </head>
 <body>
-    <header class="site-header">
+    <!-- Newspaper Masthead -->
+    <header class="newspaper-masthead">
         <div class="container">
-            <h1 class="site-title">The Daily Worker</h1>
-            <p class="site-tagline">Accurate, Worker-Centric News That Doesn't Pull Punches</p>
+            <!-- Top Bar: Edition, Search, Subscribe -->
+            <div class="masthead-top">
+                <span class="edition-info">Vol. 102, No. 1</span>
+                <div class="masthead-search">
+                    <form action="/search" method="GET">
+                        <input type="search" name="q" placeholder="Search archives..." class="search-input">
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
+                </div>
+                <a href="#subscribe" class="subscribe-btn">
+                    <span class="price-display">50¢ PER DAY</span>
+                    <span class="subscribe-text">Subscribe Now</span>
+                </a>
+            </div>
 
-            <nav class="main-nav">
-                <a href="/" class="nav-link active" data-category="all">Home</a>
+            <!-- Main Title -->
+            <div class="masthead-title">
+                <h1>THE DAILY WORKER</h1>
+                <p class="masthead-tagline">Working-Class News That Doesn't Pull Punches</p>
+            </div>
+
+            <!-- Date Line -->
+            <div class="masthead-date">
+                <time id="currentDate"></time>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="masthead-nav">
+                <a href="/" class="nav-link active" data-category="all">Latest</a>
+                <span class="nav-sep">|</span>
                 <a href="#" class="nav-link" data-category="labor">Labor</a>
-                <a href="#" class="nav-link" data-category="tech">Tech</a>
+                <span class="nav-sep">|</span>
                 <a href="#" class="nav-link" data-category="politics">Politics</a>
+                <span class="nav-sep">|</span>
                 <a href="#" class="nav-link" data-category="economics">Economics</a>
+                <span class="nav-sep">|</span>
+                <a href="#" class="nav-link" data-category="tech">Tech</a>
+                <span class="nav-sep">|</span>
                 <a href="#" class="nav-link" data-category="current-affairs">Current Affairs</a>
-                <a href="#" class="nav-link" data-category="art-culture">Art & Culture</a>
-                <a href="#" class="nav-link" data-category="sport">Sport</a>
+                <span class="nav-sep">|</span>
+                <a href="#" class="nav-link" data-category="art-culture">Arts & Culture</a>
+                <span class="nav-sep">|</span>
+                <a href="#" class="nav-link" data-category="sport">Sports</a>
+                <span class="nav-sep">|</span>
                 <a href="#" class="nav-link" data-category="good-news">Good News</a>
             </nav>
 
-            <div class="region-selector">
-                <label for="regionSelect">View:</label>
+            <!-- Region Filter -->
+            <div class="region-filter">
+                <label for="regionSelect">Edition:</label>
                 <select id="regionSelect">
-                    <option value="all" selected>All</option>
+                    <option value="all" selected>All Regions</option>
                     <option value="national">National</option>
                     <option value="local">Local</option>
                 </select>
@@ -35,48 +73,87 @@
         </div>
     </header>
 
-    <main class="site-main container">
-        <!-- Ongoing Stories Section -->
-        <section class="ongoing-section" id="ongoingSection" style="display: none;">
-            <h2 class="section-title">
-                <span class="section-icon">🚩</span>
-                Ongoing Stories
-            </h2>
-            <div id="ongoingGrid" class="ongoing-grid"></div>
-        </section>
+    <!-- Main Content Area -->
+    <main class="newspaper-content container">
+        <div class="newspaper-grid">
+            <!-- Left: Main Content (3 columns) -->
+            <div class="main-content">
+                <!-- Major Headline (Daily Lead Story) -->
+                <section id="majorHeadlineSection" class="major-headline-section" style="display: none;">
+                    <!-- Will be populated by JavaScript with first article -->
+                </section>
 
-        <!-- Latest Stories Section -->
-        <section class="articles-section">
-            <h2 class="section-title">
-                <span class="section-icon">✨</span>
-                Latest Stories
-            </h2>
-            <div id="articlesGrid" class="articles-grid">
-                <p class="loading-message">Loading articles...</p>
+                <!-- Secondary Stories (3-column grid) -->
+                <section class="stories-section">
+                    <div id="articlesGrid" class="newspaper-stories-grid">
+                        <p class="loading-message">Loading today's stories...</p>
+                    </div>
+                </section>
+
+                <!-- Pagination -->
+                <div id="pagination" class="pagination" style="display: none;">
+                    <button id="prevPage" class="btn-page">← Previous</button>
+                    <span id="pageInfo" class="page-info"></span>
+                    <button id="nextPage" class="btn-page">Next →</button>
+                </div>
             </div>
-        </section>
 
-        <!-- Pagination -->
-        <div id="pagination" class="pagination" style="display: none;">
-            <button id="prevPage" class="btn-page">← Previous</button>
-            <span id="pageInfo" class="page-info"></span>
-            <button id="nextPage" class="btn-page">Next →</button>
+            <!-- Right: Sidebar -->
+            <aside class="newspaper-sidebar">
+                <!-- Subscription Widget -->
+                <div class="subscription-widget">
+                    <div class="subscription-price">
+                        <span class="price-large">50¢</span>
+                        <span class="price-period">PER DAY</span>
+                    </div>
+                    <p class="subscription-detail">Billed as $15.00/month</p>
+                    <button class="subscribe-btn-large" onclick="alert('Subscription feature coming soon!')">Subscribe Now</button>
+                    <p class="subscription-tagline">Support worker-centric journalism</p>
+                </div>
+
+                <!-- Ongoing Stories -->
+                <div id="ongoingSection" class="ongoing-sidebar" style="display: none;">
+                    <h3 class="sidebar-title">Ongoing Coverage</h3>
+                    <div id="ongoingList" class="ongoing-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Archive Access -->
+                <div class="archive-widget">
+                    <h3 class="sidebar-title">Older Editions</h3>
+                    <ul class="archive-list" id="archiveList">
+                        <!-- Will be populated by JavaScript with recent dates -->
+                    </ul>
+                    <a href="#archives" class="archive-browse-all" onclick="alert('Archive browsing feature coming soon!')">Browse All Archives →</a>
+                </div>
+
+                <!-- Advertisement Space -->
+                <div class="advertisement">
+                    <p class="ad-label">Advertisement</p>
+                    <div class="ad-placeholder">
+                        <p>300 × 250</p>
+                        <p>Ad Space Available</p>
+                    </div>
+                </div>
+            </aside>
         </div>
     </main>
 
-    <footer class="site-footer">
+    <!-- Footer -->
+    <footer class="newspaper-footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>The Daily Worker</h3>
-                    <p>Accurate, worker-centric news that doesn't pull punches.</p>
+                    <p>Working-class news that doesn't pull punches. Published daily since 1924.</p>
                     <p class="footer-tagline">Quality over quantity. Always.</p>
                 </div>
 
                 <div class="footer-section">
                     <h3>Categories</h3>
                     <nav class="footer-nav">
-                        <a href="#" data-category="labor">Labor</a>
+                        <a href="#" data-category="labor">Labor Organizing</a>
                         <a href="#" data-category="politics">Politics</a>
                         <a href="#" data-category="economics">Economics</a>
                         <a href="#" data-category="good-news">Good News</a>
@@ -93,10 +170,12 @@
                 </div>
             </div>
 
-            <p class="copyright">&copy; 2025 The Daily Worker. All rights reserved.</p>
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2025 The Daily Worker. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
-    <script src="scripts/main.js?v=3"></script>
+    <script src="scripts/main.js?v=5"></script>
 </body>
 </html>

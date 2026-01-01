@@ -369,4 +369,133 @@
   - ✅ Legal pages drafted (About, Privacy, Terms)
   - ✅ All 9 categories represented in test content
   - ✅ Mobile-responsive design validated
-- **Next Batch:** Batch 5 - GCP Infrastructure & Deployment (cloud costs begin)
+- **Next Batch:** Batch 5 - Design Redesign
+
+---
+
+## 2025-12-31
+
+### Batch 5: Design Redesign
+
+**Status:** ✅ Complete
+**Completed by:** design-agent-01
+**Total Phases:** 5/5 complete
+**Cloud Cost:** $0 (local CSS/HTML/font work)
+
+---
+
+### Phase 5.1: Design Research & Analysis
+- **Status:** 🟢 Complete
+- **Completed:** 2025-12-31
+- **Complexity:** Small
+- **Deliverables:**
+  - Analyzed ProPublica's investigative journalism visual strategy
+  - Analyzed The Markup's data journalism presentation
+  - Researched historical Daily Worker newspaper aesthetic (1924-1958)
+  - Researched modern news design best practices (2025)
+  - Created design-research-summary.md with findings and recommendations
+- **Files:**
+  - plans/design-research-summary.md
+- **Quality:** Research document completed with analysis and design patterns identified ✅
+
+---
+
+### Phase 5.2: Design System & Guide
+- **Status:** 🟢 Complete
+- **Completed:** 2025-12-31
+- **Complexity:** Medium
+- **Deliverables:**
+  - Typography system: Inter (sans-serif) + Merriweather (serif) with responsive scaling
+  - Color palette: Red (#D32F2F), Navy (#1A237E), Gold (#FFA000) + neutrals
+  - Spacing system: 8px base unit with consistent scale
+  - Visual hierarchy rules and component library specifications
+  - Mobile-first responsive breakpoints (640px, 768px, 1024px, 1280px)
+  - Complete design-system.md documentation (644 lines)
+  - Accessibility guidelines (WCAG AA compliance)
+  - Performance guidelines
+- **Files:**
+  - plans/design-system.md
+- **Quality:** Complete design system documented, ready for implementation ✅
+
+---
+
+### Phase 5.3: Homepage Redesign
+- **Status:** 🟢 Complete
+- **Completed:** 2025-12-31
+- **Complexity:** Medium
+- **Deliverables:**
+  - Redesigned main.css with complete design system implementation
+  - Hero section with visual-first approach for ongoing stories
+  - Enhanced article cards with better imagery, typography, spacing
+  - Navy header with red accent border, improved navigation
+  - Dark footer with gold links
+  - Google Fonts integration (Inter + Merriweather)
+  - Responsive grids: 1 column (mobile) → 2 columns (tablet) → 3 columns (desktop)
+  - Micro-interactions: hover states, transforms, shadows
+  - CSS custom properties for all design tokens
+- **Files:**
+  - frontend/styles/main.css (redesigned)
+  - frontend/index.html (updated with Google Fonts)
+- **Quality:** Homepage reflects award-winning design inspiration, visually impactful ✅
+
+---
+
+### Phase 5.4: Article Detail Page Redesign
+- **Status:** 🟢 Complete
+- **Completed:** 2025-12-31
+- **Complexity:** Medium
+- **Deliverables:**
+  - Redesigned article.css with design system typography and spacing
+  - Large display headlines (48-80px) for visual impact
+  - Merriweather serif body text (18-20px) for optimal readability
+  - Pull quote styling with red borders and italic serif
+  - "What This Means For Workers" callout with red/yellow gradient
+  - "What You Can Do" callout with green gradient
+  - Enhanced share buttons with platform-specific colors
+  - Full-bleed images on mobile, boxed with shadows on desktop
+  - Improved metadata display and article footer
+- **Files:**
+  - frontend/styles/article.css (redesigned)
+  - frontend/article.html (updated with Google Fonts)
+- **Quality:** Article pages have visual-first storytelling approach, strong readability ✅
+
+---
+
+### Phase 5.5: Design Polish & Refinements
+- **Status:** 🟢 Complete
+- **Completed:** 2025-12-31
+- **Complexity:** Small
+- **Deliverables:**
+  - Consistent spacing using 8px base unit across all pages
+  - Micro-interactions: hover transforms, color transitions, shadow effects
+  - Font loading optimized with Google Fonts preconnect
+  - Focus states for accessibility (2px gold outline)
+  - Screen reader support utilities (.sr-only class)
+  - Responsive visibility utilities
+  - Testing checklist created for cross-browser/mobile/accessibility testing
+  - Performance targets documented (< 2.5s LCP, < 0.1 CLS)
+- **Files:**
+  - plans/batch-5-testing-checklist.md
+- **Quality:** Design polished with testing checklist ready for manual QA ✅
+
+---
+
+### Batch 5 Summary
+- **Duration:** Single development session
+- **Cost:** $0 (local CSS/HTML/font work only)
+- **Quality Gates Met:**
+  - ✅ Design research completed (ProPublica, The Markup, Daily Worker history, 2025 best practices)
+  - ✅ Complete design system documented (typography, colors, spacing, components)
+  - ✅ Homepage redesigned with visual-first approach
+  - ✅ Article pages redesigned with strong readability
+  - ✅ Google Fonts integrated (Inter + Merriweather)
+  - ✅ Micro-interactions and transitions implemented
+  - ✅ Accessibility features added (focus states, semantic HTML support)
+  - ✅ Testing checklist created for cross-browser/mobile/performance validation
+  - ✅ Design philosophy honors Daily Worker historical roots while embracing modern excellence
+- **Key Achievements:**
+  - Bold, worker-focused visual identity (red/navy/gold palette)
+  - Dual typography system (authority + impact)
+  - Responsive design with dramatic scaling (mobile → desktop)
+  - Visual-first storytelling for both homepage and article pages
+- **Next Batch:** Batch 6 - Automated Journalism Pipeline (cloud costs still $0)

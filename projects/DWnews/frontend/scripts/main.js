@@ -9,9 +9,62 @@ let currentRegion = 'all';  // Changed from 'national' to show all articles by d
 let currentCategory = 'all';
 const articlesPerPage = 12;
 
+// Set current date in masthead
+function setCurrentDate() {
+    const dateElement = document.getElementById('currentDate');
+    if (!dateElement) return;
+
+    const today = new Date();
+    const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    };
+    dateElement.textContent = today.toLocaleDateString('en-US', options);
+}
+
+// Populate archive dates (last 7 days)
+function populateArchiveDates() {
+    const archiveList = document.getElementById('archiveList');
+    if (!archiveList) return;
+
+    const dates = [];
+    const today = new Date();
+
+    for (let i = 1; i <= 7; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        dates.push(date);
+    }
+
+    archiveList.innerHTML = dates.map(date => {
+        const formattedDate = date.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const dateParam = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        return `
+            <li>
+                <a href="?date=${dateParam}" class="archive-date">
+                    ${formattedDate}
+                </a>
+            </li>
+        `;
+    }).join('');
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     console.log('The Daily Worker - Initializing');
+
+    // Set current date in masthead
+    setCurrentDate();
+
+    // Populate archive dates
+    populateArchiveDates();
 
     // Load state from URL first
     loadStateFromUrl();
@@ -32,10 +85,10 @@ async function loadContent() {
     await loadLatestStories();
 }
 
-// Load ongoing stories (separate section)
+// Load ongoing stories (sidebar section)
 async function loadOngoingStories() {
     const ongoingSection = document.getElementById('ongoingSection');
-    const ongoingGrid = document.getElementById('ongoingGrid');
+    const ongoingList = document.getElementById('ongoingList');
 
     try {
         // Fetch ongoing stories (always show all ongoing, regardless of region/category for now)
@@ -67,33 +120,25 @@ async function loadOngoingStories() {
     }
 }
 
-// Render ongoing stories to their special section
+// Render ongoing stories to sidebar (compact list format)
 function renderOngoingStories(articles) {
-    const ongoingGrid = document.getElementById('ongoingGrid');
+    const ongoingList = document.getElementById('ongoingList');
 
-    ongoingGrid.innerHTML = articles.map(article => `
-        <article class="article-card ongoing-story">
-            ${article.image_url ? `
-                <img src="${article.image_url}" alt="${article.title}" loading="lazy">
-            ` : ''}
-            <div class="article-content">
-                <span class="article-badge badge-ongoing">🚩 Ongoing</span>
-                ${article.is_local ? '<span class="article-badge badge-local">Local</span>' : ''}
-
-                <p class="article-category">${article.category_name || article.category}</p>
-                <h3 class="article-title">
-                    <a href="article.html?id=${article.id}">${article.title}</a>
-                </h3>
-                ${article.summary ? `<p class="article-summary">${article.summary}</p>` : ''}
-                <p class="article-date">${formatDate(article.published_at)}</p>
-            </div>
-        </article>
+    ongoingList.innerHTML = articles.map(article => `
+        <div class="ongoing-item">
+            <p class="ongoing-category">${article.category_name || article.category}</p>
+            <h4 class="ongoing-title">
+                <a href="article.html?id=${article.id}">${article.title}</a>
+            </h4>
+            <p class="ongoing-date">${formatDate(article.published_at)}</p>
+        </div>
     `).join('');
 }
 
 // Load latest stories (main grid, paginated)
 async function loadLatestStories() {
     const articlesGrid = document.getElementById('articlesGrid');
+    const majorHeadlineSection = document.getElementById('majorHeadlineSection');
     articlesGrid.innerHTML = '<p class="loading-message">Loading articles...</p>';
 
     try {
@@ -124,11 +169,20 @@ async function loadLatestStories() {
 
         if (articles.length === 0) {
             articlesGrid.innerHTML = '<p class="loading-message">No articles found. Try a different filter!</p>';
+            if (majorHeadlineSection) majorHeadlineSection.style.display = 'none';
             updatePagination(false);
             return;
         }
 
-        renderLatestStories(articles);
+        // On first page, show first article as major headline
+        if (currentPage === 1 && articles.length > 0) {
+            renderMajorHeadline(articles[0]);
+            renderLatestStories(articles.slice(1)); // Show remaining articles in grid
+        } else {
+            if (majorHeadlineSection) majorHeadlineSection.style.display = 'none';
+            renderLatestStories(articles);
+        }
+
         updatePagination(articles.length === articlesPerPage);
 
     } catch (error) {
@@ -138,28 +192,60 @@ async function loadLatestStories() {
                 Unable to load articles. Make sure the backend is running at ${API_BASE_URL}
             </p>
         `;
+        if (majorHeadlineSection) majorHeadlineSection.style.display = 'none';
         updatePagination(false);
     }
 }
 
-// Render latest stories to main grid
+// Render major headline (first article on page 1)
+function renderMajorHeadline(article) {
+    const majorHeadlineSection = document.getElementById('majorHeadlineSection');
+    if (!majorHeadlineSection) return;
+
+    majorHeadlineSection.style.display = 'block';
+    majorHeadlineSection.innerHTML = `
+        <article class="major-headline">
+            ${article.image_url ? `
+                <div class="major-headline-image">
+                    <img src="${article.image_url}" alt="${article.title}" loading="eager">
+                </div>
+            ` : ''}
+            <div class="major-headline-content">
+                <p class="major-headline-category">${article.category_name || article.category}</p>
+                <h2 class="major-headline-title">
+                    <a href="article.html?id=${article.id}">${article.title}</a>
+                </h2>
+                ${article.summary ? `<p class="major-headline-summary">${article.summary}</p>` : ''}
+                <p class="major-headline-meta">
+                    ${formatDate(article.published_at)}
+                    ${article.is_local ? ' • <span class="badge-local">Local</span>' : ''}
+                </p>
+            </div>
+        </article>
+    `;
+}
+
+// Render latest stories to main grid (newspaper-style cards)
 function renderLatestStories(articles) {
     const articlesGrid = document.getElementById('articlesGrid');
 
     articlesGrid.innerHTML = articles.map(article => `
-        <article class="article-card">
+        <article class="newspaper-story-card">
             ${article.image_url ? `
-                <img src="${article.image_url}" alt="${article.title}" loading="lazy">
+                <div class="story-image">
+                    <img src="${article.image_url}" alt="${article.title}" loading="lazy">
+                </div>
             ` : ''}
-            <div class="article-content">
-                ${isNewArticle(article.published_at) ? '<span class="article-badge badge-new">✨ New</span>' : ''}
-                ${article.is_local ? '<span class="article-badge badge-local">Local</span>' : ''}
-
-                <p class="article-category">${article.category_name || article.category}</p>
-                <h3 class="article-title">
+            <div class="story-content">
+                <p class="story-category">${article.category_name || article.category}</p>
+                <h3 class="story-headline">
                     <a href="article.html?id=${article.id}">${article.title}</a>
                 </h3>
-                <p class="article-date">${formatDate(article.published_at)}</p>
+                ${article.summary ? `<p class="story-summary">${article.summary}</p>` : ''}
+                <p class="story-meta">
+                    ${formatDate(article.published_at)}
+                    ${article.is_local ? ' • <span class="badge-local">Local</span>' : ''}
+                </p>
             </div>
         </article>
     `).join('');

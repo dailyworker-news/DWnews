@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Article Direct</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .success { color: green; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Article Loading Test</h1>
+    <div id="status"></div>
+    <div id="content"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        const statusDiv = document.getElementById('status');
+        const contentDiv = document.getElementById('content');
+        
+        // Get article ID from URL or default to 1
+        const params = new URLSearchParams(window.location.search);
+        const articleId = params.get('id') || '1';
+        
+        statusDiv.innerHTML = `<p>Testing Article ID: ${articleId}</p>`;
+        
+        async function testArticle() {
+            try {
+                statusDiv.innerHTML += '<p class="warning">Fetching article...</p>';
+                
+                const response = await fetch(`${API_BASE_URL}/articles/${articleId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                statusDiv.innerHTML += '<p class="success">✓ Fetch successful</p>';
+                
+                const article = await response.json();
+                statusDiv.innerHTML += '<p class="success">✓ JSON parsed</p>';
+                
+                // Display article
+                contentDiv.innerHTML = `
+                    <div class="section">
+                        <h2>${article.title}</h2>
+                        <p><strong>Author:</strong> ${article.author}</p>
+                        <p><strong>Category:</strong> ${article.category_name}</p>
+                        <p><strong>Reading Level:</strong> ${article.reading_level}</p>
+                        <p><strong>Word Count:</strong> ${article.word_count}</p>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Body</h3>
+                        <div>${formatBody(article.body)}</div>
+                    </div>
+                    
+                    ${article.why_this_matters ? `
+                        <div class="section">
+                            <h3>💡 Why This Matters</h3>
+                            <p>${article.why_this_matters}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${article.what_you_can_do ? `
+                        <div class="section">
+                            <h3>✊ What You Can Do</h3>
+                            <p>${article.what_you_can_do}</p>
+                        </div>
+                    ` : ''}
+                `;
+                
+                statusDiv.innerHTML += '<p class="success">✓ Article rendered successfully!</p>';
+                
+            } catch (error) {
+                statusDiv.innerHTML += `<p class="error">✗ Error: ${error.message}</p>`;
+                statusDiv.innerHTML += `<pre class="error">${error.stack}</pre>`;
+            }
+        }
+        
+        function formatBody(body) {
+            if (!body) return '';
+            const paragraphs = body.split('\n\n').filter(p => p.trim());
+            return paragraphs.map(p => {
+                const content = p.trim().replace(/\n/g, '<br>');
+                return `<p>${content}</p>`;
+            }).join('');
+        }
+        
+        testArticle();
+    </script>
+</body>
+</html>

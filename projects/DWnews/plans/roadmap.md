@@ -74,23 +74,30 @@ Lean MVP for The Daily Worker: AI-powered news platform taking influence from ma
 
 ---
 
-## ✅ Batch 5: COMPLETED (2025-12-31)
+## ✅ Batch 5: COMPLETED (2026-01-01)
 **See:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md`
 
-**All 5 phases complete:**
+**All 6 phases complete:**
 - ✅ Phase 5.1: Design Research & Analysis (ProPublica, The Markup, Daily Worker history, 2025 best practices)
 - ✅ Phase 5.2: Design System & Guide (typography, colors, spacing, components)
 - ✅ Phase 5.3: Homepage Redesign (visual-first with Inter + Merriweather)
 - ✅ Phase 5.4: Article Detail Page Redesign (large headlines, serif body, pull quotes)
 - ✅ Phase 5.5: Design Polish & Refinements (micro-interactions, accessibility, testing checklist)
+- ✅ Phase 5.6: Traditional Newspaper Redesign v3.0 (Playfair Display, black/white/yellow, multi-column grid, subscription widget)
 
-**Key Deliverables:**
+**Final Deliverables:**
 - Design research summary document
 - Complete design system documentation (644 lines)
-- Redesigned homepage CSS with bold visual hierarchy
-- Redesigned article page CSS with optimal readability
-- Google Fonts integration (Inter + Merriweather)
-- Testing checklist for cross-browser/mobile/accessibility validation
+- **v3.0 Traditional Newspaper Design:**
+  - Playfair Display + Merriweather typography (classic newspaper serif)
+  - Black/white/yellow color scheme (heritage aesthetic)
+  - Multi-column grid with sidebar layout
+  - Major daily headline feature (72px+ headlines)
+  - Subscription widget (50¢/day pricing)
+  - Archive access messaging
+  - Ongoing stories in sidebar with yellow accents
+  - Complete article page styling with newspaper feel
+  - Responsive design maintaining traditional aesthetic on mobile
 
 ---
 

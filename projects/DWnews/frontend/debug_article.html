@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Article Page</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Article API Diagnostic</h1>
+    <div id="diagnostic"></div>
+    
+    <script>
+        const diagnostic = document.getElementById('diagnostic');
+        const API_BASE_URL = 'http://localhost:8000/api';
+        
+        // Get article ID from URL
+        const params = new URLSearchParams(window.location.search);
+        const articleId = params.get('id') || '1';
+        
+        diagnostic.innerHTML += `<p>Testing article ID: ${articleId}</p>`;
+        diagnostic.innerHTML += `<p>API URL: ${API_BASE_URL}/articles/${articleId}</p>`;
+        
+        fetch(`${API_BASE_URL}/articles/${articleId}`)
+            .then(response => {
+                diagnostic.innerHTML += `<p class="success">✓ Response status: ${response.status} ${response.statusText}</p>`;
+                return response.json();
+            })
+            .then(article => {
+                diagnostic.innerHTML += `<p class="success">✓ Article fetched successfully</p>`;
+                diagnostic.innerHTML += `<h2>Article Data:</h2>`;
+                diagnostic.innerHTML += `<pre>${JSON.stringify(article, null, 2)}</pre>`;
+                
+                // Test element access
+                diagnostic.innerHTML += `<h2>Element Test:</h2>`;
+                const elements = [
+                    'pageTitle', 'categoryBadge', 'articleTitle', 'articleDate',
+                    'articleReadingLevel', 'articleWordCount', 'articleBody',
+                    'whyThisMattersContent', 'whatYouCanDoContent',
+                    'footerCategory', 'footerReadingLevel', 'footerPublished', 'footerWordCount'
+                ];
+                
+                elements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        diagnostic.innerHTML += `<p class="success">✓ Found element: ${id}</p>`;
+                    } else {
+                        diagnostic.innerHTML += `<p class="error">✗ Missing element: ${id}</p>`;
+                    }
+                });
+            })
+            .catch(error => {
+                diagnostic.innerHTML += `<p class="error">✗ Error: ${error.message}</p>`;
+                diagnostic.innerHTML += `<pre>${error.stack}</pre>`;
+            });
+    </script>
+    
+    <!-- Dummy elements for testing -->
+    <div style="display:none;">
+        <div id="pageTitle"></div>
+        <div id="categoryBadge"></div>
+        <div id="articleTitle"></div>
+        <div id="articleDate"></div>
+        <div id="articleReadingLevel"></div>
+        <div id="articleWordCount"></div>
+        <div id="articleBody"></div>
+        <div id="whyThisMattersContent"></div>
+        <div id="whatYouCanDoContent"></div>
+        <div id="footerCategory"></div>
+        <div id="footerReadingLevel"></div>
+        <div id="footerPublished"></div>
+        <div id="footerWordCount"></div>
+    </div>
+</body>
+</html>

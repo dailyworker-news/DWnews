@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Article Load</title>
+</head>
+<body>
+    <h1>Testing Article API</h1>
+    <div id="result"></div>
+    <script>
+        fetch('http://localhost:8000/api/articles/1')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(err => {
+                document.getElementById('result').innerHTML = '<p style="color:red">Error: ' + err.message + '</p>';
+            });
+    </script>
+</body>
+</html>

@@ -32,16 +32,18 @@ Lean MVP for The Daily Worker: AI-powered news platform taking influence from ma
 
 **Development Approach:**
 1. Batches 1-4: Build and test everything locally (zero cost) ✅
-2. Batch 5: Design redesign with visual-first approach
-3. Batch 6: Article content improvements (TBD based on user feedback)
-4. Batches 7-8: Deploy to GCP only after local validation
-5. Batch 9: Production testing and launch
+2. Batch 5: Design redesign with visual-first approach ✅
+3. Batch 6: Automated journalism pipeline (still zero cost)
+4. Batch 7: Subscription system (local testing, Stripe integration)
+5. Batches 8-9: Deploy to GCP only after local validation
+6. Batch 10: Production testing and launch
 
 **Target Costs:**
 - Development: Under $1,000 total
-- Local Development: $0 (Batches 1-6)
-- Cloud Costs: Actual costs reported when services begin (Batches 7-9)
+- Local Development: $0 (Batches 1-7, except Stripe test transactions)
+- Cloud Costs: Actual costs reported when services begin (Batches 8-10)
 - Monthly OpEx Target: Under $100/month after launch
+- Revenue Target: 100 subscribers = $1,500/month gross, $1,455/month net
 
 ---
 
@@ -72,81 +74,23 @@ Lean MVP for The Daily Worker: AI-powered news platform taking influence from ma
 
 ---
 
-## Batch 5: Design Redesign
+## ✅ Batch 5: COMPLETED (2025-12-31)
+**See:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md`
 
-**Dependencies:** MVP functional locally (Batches 1-4 complete)
-**Parallel:** 5.1-5.2 simultaneous, then 5.3-5.5 simultaneous
-**Purpose:** Transform functional design into visual-first storytelling experience inspired by award-winning news sites while paying homage to original Daily Worker newspaper aesthetic
+**All 5 phases complete:**
+- ✅ Phase 5.1: Design Research & Analysis (ProPublica, The Markup, Daily Worker history, 2025 best practices)
+- ✅ Phase 5.2: Design System & Guide (typography, colors, spacing, components)
+- ✅ Phase 5.3: Homepage Redesign (visual-first with Inter + Merriweather)
+- ✅ Phase 5.4: Article Detail Page Redesign (large headlines, serif body, pull quotes)
+- ✅ Phase 5.5: Design Polish & Refinements (micro-interactions, accessibility, testing checklist)
 
-### Phase 5.1: Design Research & Analysis
-- **Status:** ⚪ Not Started
-- **Complexity:** S
-- **Tasks:**
-  - [ ] Analyze The Washington Post homepage and article layouts (screenshot + analysis)
-  - [ ] Analyze ProPublica's visual storytelling approach (screenshot + analysis)
-  - [ ] Analyze The Telegraph's modern design elements (screenshot + analysis)
-  - [ ] Analyze The Markup's data journalism presentation (screenshot + analysis)
-  - [ ] Research historical Daily Worker newspaper aesthetic (typography, layout, voice)
-  - [ ] Document key design patterns: typography, spacing, color, visual hierarchy
-  - [ ] Create findings document: "Design Research Summary"
-- **Done When:** Research document completed with screenshots, analysis, and design patterns identified
-
-### Phase 5.2: Design System & Guide
-- **Status:** ⚪ Not Started
-- **Complexity:** M
-- **Tasks:**
-  - [ ] Define typography system (headers, body, quotes, captions)
-  - [ ] Create color palette (inspired by Daily Worker + modern news design)
-  - [ ] Define spacing and grid system
-  - [ ] Document visual hierarchy rules
-  - [ ] Create component library (cards, buttons, navigation, article elements)
-  - [ ] Define mobile-first responsive breakpoints
-  - [ ] Create design-system.md documentation
-- **Done When:** Complete design system documented, ready for implementation
-
-### Phase 5.3: Homepage Redesign
-- **Status:** 🔴 Blocked
-- **Depends On:** Phase 5.2
-- **Complexity:** M
-- **Tasks:**
-  - [ ] Redesign hero section with visual-first approach
-  - [ ] Implement ongoing stories section with stronger visual prominence
-  - [ ] Redesign article cards with better imagery, typography, and spacing
-  - [ ] Improve category and region filtering UI
-  - [ ] Add visual storytelling elements (pull quotes, imagery, data viz foundations)
-  - [ ] Implement design system typography and colors
-  - [ ] Mobile-responsive refinements
-  - [ ] Update index.html with new design
-- **Done When:** Homepage reflects award-winning design inspiration, visually impactful
-
-### Phase 5.4: Article Detail Page Redesign
-- **Status:** 🔴 Blocked
-- **Depends On:** Phase 5.2
-- **Complexity:** M
-- **Tasks:**
-  - [ ] Redesign article header with stronger visual impact
-  - [ ] Improve body typography for better readability
-  - [ ] Add pull quotes styling
-  - [ ] Redesign metadata display (category, region, reading level, etc.)
-  - [ ] Improve image presentation and captions
-  - [ ] Add "What This Means For Workers" visual callout section
-  - [ ] Redesign share buttons with better visual integration
-  - [ ] Update article.html with new design
-- **Done When:** Article pages have visual-first storytelling approach, strong readability
-
-### Phase 5.5: Design Polish & Refinements
-- **Status:** 🔴 Blocked
-- **Depends On:** Phase 5.3, Phase 5.4
-- **Complexity:** S
-- **Tasks:**
-  - [ ] Refine spacing and alignment across all pages
-  - [ ] Add micro-interactions and transitions
-  - [ ] Optimize font loading and performance
-  - [ ] Cross-browser testing (Chrome, Firefox, Safari)
-  - [ ] Mobile device testing (iOS, Android)
-  - [ ] Accessibility review (contrast, focus states, ARIA)
-  - [ ] Performance optimization (CSS minification, critical CSS)
-- **Done When:** Design polished, accessible, performant across all devices and browsers
+**Key Deliverables:**
+- Design research summary document
+- Complete design system documentation (644 lines)
+- Redesigned homepage CSS with bold visual hierarchy
+- Redesigned article page CSS with optimal readability
+- Google Fonts integration (Inter + Merriweather)
+- Testing checklist for cross-browser/mobile/accessibility validation
 
 ---
 
@@ -289,13 +233,127 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 
 ---
 
-## Batch 7: GCP Infrastructure & Deployment
+## Batch 7: Subscription System
 
-**Dependencies:** MVP validated locally with improved design and content
-**Parallel:** 7.1-7.4 simultaneous, then 7.5
+**Dependencies:** Automated journalism pipeline complete (Batch 6)
+**Parallel:** 7.1-7.2 simultaneous, then 7.3-7.4 simultaneous, then 7.5-7.6 sequential
+**Purpose:** Implement subscription-based revenue system at 50 cents per day ($15/month)
+
+**Overview:**
+Implements subscription functionality to enable revenue generation. Users pay $15/month (50 cents per day) for premium access. Includes payment processing via Stripe, subscriber authentication and access control, subscriber dashboard, and subscription management features.
+
+**Business Model:**
+- Free tier: Limited article access (3 articles/month or article previews)
+- Subscriber tier: $15/month unlimited access
+- Payment processing: Stripe (2.9% + 30 cents per transaction)
+- Target revenue: 100 subscribers = $1,500/month gross, $1,455/month net
+
+### Phase 7.1: Database Schema for Subscriptions
+- **Status:** Not Started
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Create `subscriptions` table (user_id, stripe_subscription_id, status, plan_type, current_period_start, current_period_end, cancel_at_period_end)
+  - [ ] Create `subscription_plans` table (plan_name, price_cents, billing_interval, features_json)
+  - [ ] Create `payment_methods` table (user_id, stripe_payment_method_id, card_brand, last4, is_default)
+  - [ ] Create `invoices` table (user_id, stripe_invoice_id, amount_cents, status, paid_at, invoice_url)
+  - [ ] Create `subscription_events` table (audit log: subscription_id, event_type, event_data_json, created_at)
+  - [ ] Add columns to `users`: subscription_status, subscriber_since, free_article_count, last_article_reset
+  - [ ] Add column to `articles`: is_premium (boolean, default false for public articles)
+  - [ ] Test schema migrations locally
+- **Done When:** All subscription tables created, migrations tested, ready for Stripe integration
+
+### Phase 7.2: Stripe Payment Integration
+- **Status:** Not Started
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Set up Stripe account and obtain API keys (test mode and production mode)
+  - [ ] Integrate Stripe SDK (backend: stripe library for Node.js/Python)
+  - [ ] Implement Stripe Checkout session creation endpoint (POST /api/subscribe)
+  - [ ] Implement webhook endpoint for Stripe events (POST /api/webhooks/stripe)
+  - [ ] Handle webhook events: checkout.session.completed, invoice.paid, invoice.payment_failed, customer.subscription.updated, customer.subscription.deleted
+  - [ ] Implement payment method update flow (Stripe Customer Portal or custom UI)
+  - [ ] Test complete payment flow locally with Stripe test cards
+  - [ ] Store webhook signature verification (environment variable)
+- **Done When:** Users can subscribe via Stripe Checkout, webhooks update database, test payments successful
+
+### Phase 7.3: Subscriber Authentication & Access Control
+- **Status:** Blocked
+- **Depends On:** Phase 7.1, Phase 7.2
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Implement user registration flow (email, password, create Stripe customer)
+  - [ ] Add subscription status checks to article access endpoints
+  - [ ] Implement free tier logic (3 articles/month for non-subscribers, reset monthly)
+  - [ ] Add middleware for premium article access (check subscription_status='active')
+  - [ ] Implement article preview mode (first 2 paragraphs for non-subscribers)
+  - [ ] Add paywall UI component (display on premium articles for non-subscribers)
+  - [ ] Update session management to include subscription status
+  - [ ] Test access control: free user limits, subscriber unlimited access, expired subscription handling
+- **Done When:** Subscribers access all content, free users limited to 3 articles/month or previews
+
+### Phase 7.4: Subscriber Dashboard
+- **Status:** Blocked
+- **Depends On:** Phase 7.1, Phase 7.2
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Build subscriber dashboard page (/account/subscription)
+  - [ ] Display current subscription status (active, canceled, past_due, trial)
+  - [ ] Display billing information (next billing date, amount, payment method)
+  - [ ] Display invoice history (download links to Stripe invoice PDFs)
+  - [ ] Add link to update payment method (Stripe Customer Portal or custom form)
+  - [ ] Show subscription start date and renewal date
+  - [ ] Display cancellation option with confirmation dialog
+  - [ ] Test dashboard with various subscription states
+- **Done When:** Subscribers can view subscription details, payment history, and billing information
+
+### Phase 7.5: Subscription Management
+- **Status:** Blocked
+- **Depends On:** Phase 7.3, Phase 7.4
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Implement subscription cancellation flow (cancel at period end, immediate cancellation options)
+  - [ ] Implement subscription pause feature (optional: allow pausing for 1-3 months)
+  - [ ] Implement subscription reactivation (resubscribe if canceled)
+  - [ ] Implement payment method update (Stripe Customer Portal integration)
+  - [ ] Add email notifications for subscription events (subscribed, canceled, payment failed, renewal reminder)
+  - [ ] Implement grace period for failed payments (3-day grace before access revoked)
+  - [ ] Test cancellation, pause, reactivation, and payment update flows
+- **Done When:** Users can cancel, pause, reactivate subscriptions, update payment methods
+
+### Phase 7.6: Email Notifications & Testing
+- **Status:** Blocked
+- **Depends On:** Phase 7.5
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Set up SendGrid or similar email service (free tier: 100 emails/day)
+  - [ ] Create email templates: subscription confirmation, payment receipt, payment failed, renewal reminder (7 days before), cancellation confirmation
+  - [ ] Implement email sending functions for each subscription event
+  - [ ] Add email notification triggers in webhook handlers
+  - [ ] Test all email templates with test data
+  - [ ] Test end-to-end subscription flow: sign up → subscribe → receive confirmation → access content → cancel → receive cancellation email
+  - [ ] Verify free tier limits reset correctly (monthly cron job or on-access check)
+  - [ ] Document subscription workflows for customer support
+- **Done When:** All subscription emails send correctly, complete subscription lifecycle tested
+
+**Batch 7 Success Criteria:**
+- [ ] Users can subscribe for $15/month via Stripe Checkout
+- [ ] Subscribers have unlimited article access, free users limited to 3 articles/month or previews
+- [ ] Subscriber dashboard displays subscription status, billing info, and invoice history
+- [ ] Users can cancel, pause, reactivate subscriptions
+- [ ] Email notifications sent for all subscription events
+- [ ] Stripe webhooks correctly update database
+- [ ] Grace period for failed payments functional (3-day access retention)
+- [ ] Ready for production deployment with subscription features
+
+---
+
+## Batch 8: GCP Infrastructure & Deployment
+
+**Dependencies:** Subscription system complete (Batch 7), MVP validated locally with improved design and content
+**Parallel:** 8.1-8.4 simultaneous, then 8.5
 **Purpose:** Deploy validated application to cloud
 
-### Phase 7.1: GCP Project Setup
+### Phase 8.1: GCP Project Setup
 - **Complexity:** Low
 - **Tasks:**
   - [ ] GCP project creation with free tier resources
@@ -305,7 +363,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Provide real-world cost estimates before execution
 - **Done When:** GCP project ready, billing monitored
 
-### Phase 7.2: Cloud Database Setup
+### Phase 8.2: Cloud Database Setup
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Cloud SQL free tier OR Supabase/PlanetScale
@@ -316,7 +374,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Provide real-world cost estimates before execution
 - **Done When:** Cloud database operational, migration tested
 
-### Phase 7.3: Cloud Storage & CDN
+### Phase 8.3: Cloud Storage & CDN
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Configure Cloud Storage for images
@@ -326,7 +384,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Provide real-world cost estimates before execution
 - **Done When:** Images accessible via CDN
 
-### Phase 7.4: Security & Secrets
+### Phase 8.4: Security & Secrets
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Secret Manager for credentials
@@ -338,7 +396,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Provide real-world cost estimates before execution
 - **Done When:** Security baseline established
 
-### Phase 7.5: Application Deployment
+### Phase 8.5: Application Deployment
 - **Complexity:** Medium
 - **Tasks:**
   - [ ] Deploy to Cloud Run (serverless) OR Compute Engine (small instance)
@@ -352,12 +410,12 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 
 ---
 
-## Batch 8: Cloud Operations Setup
+## Batch 9: Cloud Operations Setup
 
-**Dependencies:** Application deployed to GCP
+**Dependencies:** Application deployed to GCP (Batch 8)
 **Parallel:** All phases simultaneous
 
-### Phase 8.1: CI/CD Pipeline
+### Phase 9.1: CI/CD Pipeline
 - **Complexity:** Low
 - **Tasks:**
   - [ ] GitHub Actions → deploy to GCP
@@ -367,7 +425,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** $0
 - **Done When:** Git push triggers deployment to GCP
 
-### Phase 8.2: Monitoring & Alerting
+### Phase 9.2: Monitoring & Alerting
 - **Complexity:** Low
 - **Tasks:**
   - [ ] GCP Monitoring/Logging (free tier)
@@ -378,7 +436,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Provide real-world cost estimates before execution
 - **Done When:** Uptime monitored, errors logged, costs tracked
 
-### Phase 8.3: Scheduled Jobs
+### Phase 9.3: Scheduled Jobs
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Cloud Scheduler for content discovery
@@ -388,7 +446,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Provide real-world cost estimates before execution
 - **Done When:** Automated discovery runs daily
 
-### Phase 8.4: Performance Optimization
+### Phase 9.4: Performance Optimization
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Image optimization, lazy loading
@@ -401,13 +459,13 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 
 ---
 
-## Batch 9: Production Testing & Launch
+## Batch 10: Production Testing & Launch
 
-**Dependencies:** Cloud infrastructure operational
-**Parallel:** 9.1-9.3 simultaneous, then 9.4
-**Sequential:** 9.4 must complete before 9.5
+**Dependencies:** Cloud infrastructure operational (Batch 9)
+**Parallel:** 10.1-10.3 simultaneous, then 10.4
+**Sequential:** 10.4 must complete before 10.5
 
-### Phase 9.1: Production Testing
+### Phase 10.1: Production Testing
 - **Complexity:** Low
 - **Tasks:**
   - [ ] End-to-end testing on GCP
@@ -419,7 +477,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** $0
 - **Done When:** All features work on production, no critical bugs
 
-### Phase 9.2: Production Security Scan
+### Phase 10.2: Production Security Scan
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Security scan on production URLs
@@ -430,7 +488,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** $0
 - **Done When:** No critical vulnerabilities in production
 
-### Phase 9.3: Social Media Setup
+### Phase 10.3: Social Media Setup
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Create accounts: Facebook, X/Twitter, Reddit
@@ -440,7 +498,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** $0
 - **Done When:** Social accounts ready, posting workflow documented
 
-### Phase 9.4: Soft Launch
+### Phase 10.4: Soft Launch
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Launch to small audience (friends, community)
@@ -451,7 +509,7 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - **Cost:** Track actual costs during soft launch
 - **Done When:** First 50-100 readers reached, site stable
 
-### Phase 9.5: Iterate on Feedback
+### Phase 10.5: Iterate on Feedback
 - **Complexity:** Low
 - **Tasks:**
   - [ ] Gather user feedback
@@ -515,12 +573,14 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - [x] **Complete end-to-end testing passed locally** ✅ Batch 4.1
 - [x] **Security scan clean** ✅ Batch 4.2
 - [x] **Legal pages drafted** ✅ Batch 4.5
-- [ ] **Design redesigned with visual-first approach** (Batch 5 in progress)
-- [ ] **Article content improved based on user feedback** (Batch 6 pending)
-- [ ] **Ready to begin cloud costs** (after Batches 5-6 complete)
+- [x] **Design redesigned with visual-first approach** ✅ Batch 5
+- [ ] **Automated journalism pipeline implemented** (Batch 6 in progress)
+- [ ] **Subscription system implemented** (Batch 7)
+- [ ] **Ready to begin cloud costs** (after Batch 7 complete)
 
-**Production Launch (Batch 9):**
+**Production Launch (Batch 10):**
 - [ ] Application running on GCP
+- [ ] Subscription system operational (Stripe processing payments)
 - [ ] Satisfactory article quality (accurate, worker-centric, doesn't pull punches)
 - [ ] Quality over quantity: 3-10 articles daily, scaling with readership
 - [ ] Broad category coverage: minimum 1 national + 1 local + 1 other category
@@ -545,17 +605,19 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 
 ## Cost Summary
 
-**Local Development (Batches 1-6):** $0
+**Local Development (Batches 1-7):** $0 (except minimal Stripe test transactions)
 - All development and testing done locally
 - Batches 1-4: Complete ✅
-- Batch 5: Design redesign (local CSS/HTML/JS work)
-- Batch 6: Article content improvements (local content work)
+- Batch 5: Design redesign (local CSS/HTML/JS work) ✅
+- Batch 6: Automated journalism pipeline (local agent work)
+- Batch 7: Subscription system (Stripe integration, local testing)
 - No cloud services required
 - Uses existing LLM subscriptions (Claude/ChatGPT/Gemini)
 - Uses free API tiers (Twitter, Reddit, RSS feeds)
+- Stripe test mode (no real charges during development)
 
-**Cloud Deployment (Batches 7-9):** Real-world costs TBD
-- Costs begin only when GCP deployment starts (Batch 7)
+**Cloud Deployment (Batches 8-10):** Real-world costs TBD
+- Costs begin only when GCP deployment starts (Batch 8)
 - Cost estimates will be provided before each cloud service is activated
 - Actual costs tracked and reported during soft launch
 - Target: < $100/month after launch
@@ -598,15 +660,16 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 **Batch 2 (Local Content):** 4 agents ✅ COMPLETE
 **Batch 3 (Local Portal):** 5 agents ✅ COMPLETE
 **Batch 4 (Local Testing):** 5 agents ✅ COMPLETE
-**Batch 5 (Design Redesign):** 2-3 agents (research, design system, implementation)
-**Batch 6 (Content Improvements):** TBD based on user feedback
-**Batch 7 (GCP Deploy):** 5 agents (GCP setup, cloud DB, storage/CDN, security, deployment)
-**Batch 8 (Cloud Ops):** 4 agents (CI/CD, monitoring, scheduling, performance)
-**Batch 9 (Production):** 5 agents (production testing, security scan, social, soft launch, iteration)
+**Batch 5 (Design Redesign):** 2-3 agents (research, design system, implementation) ✅
+**Batch 6 (Automated Journalism):** 6 agents (signal intake, evaluation, verification, journalist, editorial, monitoring)
+**Batch 7 (Subscriptions):** 3-4 agents (database, Stripe integration, access control, dashboard, notifications)
+**Batch 8 (GCP Deploy):** 5 agents (GCP setup, cloud DB, storage/CDN, security, deployment)
+**Batch 9 (Cloud Ops):** 4 agents (CI/CD, monitoring, scheduling, performance)
+**Batch 10 (Production):** 5 agents (production testing, security scan, social, soft launch, iteration)
 
-**Peak: 5 concurrent agents**
-**Zero Cloud Costs: Batches 1-6**
-**Cloud Costs Begin: Batch 7**
+**Peak: 6 concurrent agents (Batch 6)**
+**Zero Cloud Costs: Batches 1-7**
+**Cloud Costs Begin: Batch 8**
 
 ---
 
@@ -616,18 +679,56 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 2. ✅ Build and test content pipeline locally (Batch 2) COMPLETE
 3. ✅ Build and test web portal locally (Batch 3) COMPLETE
 4. ✅ Validate complete MVP works locally (Batch 4) COMPLETE
-5. **CURRENT:** Design redesign for visual-first storytelling (Batch 5)
-6. **NEXT:** Article content improvements based on user feedback (Batch 6)
-7. Deploy to GCP (Batch 7)
-8. Cloud operations setup (Batch 8)
-9. Production testing and soft launch (Batch 9)
+5. ✅ Design redesign for visual-first storytelling (Batch 5) COMPLETE
+6. **CURRENT:** Automated Journalism Pipeline (Batch 6)
+7. **NEXT:** Subscription System (Batch 7)
+8. Deploy to GCP (Batch 8 - cloud costs begin)
+9. Cloud operations setup (Batch 9)
+10. Production testing and soft launch (Batch 10)
 
 ---
 
 **Roadmap Owner:** Agent-Driven PM
-**Version:** 3.0
-**Last Updated:** 2025-12-31
+**Version:** 3.1
+**Last Updated:** 2026-01-01
 **Philosophy:** Marxist/Leninist influenced, accurate, worker-centric news that doesn't pull punches. LOCAL-FIRST: Prove utility locally before spending on cloud. Scale when justified.
+
+---
+
+## Key Changes in Version 3.1 (2026-01-01)
+
+**What Changed:**
+- Added Batch 7: Subscription System (Stripe payment processing, $15/month subscription model)
+- Renumbered previous Batches 7-9 to Batches 8-10
+- Updated development sequence to include subscription implementation before cloud deployment
+- Added revenue model: 100 subscribers = $1,500/month gross, $1,455/month net
+
+**Why:**
+- Revenue generation capability needed before production launch
+- Subscription model enables sustainable operations (offset cloud costs)
+- Free tier (3 articles/month) allows content discovery before paywall
+- Stripe integration provides professional payment processing
+- Testing subscription flow locally before cloud deployment reduces risk
+
+**Subscription Features:**
+1. Database schema for subscriptions, payment methods, invoices (Phase 7.1)
+2. Stripe payment integration with webhook handling (Phase 7.2)
+3. Subscriber authentication and access control (Phase 7.3)
+4. Subscriber dashboard for billing management (Phase 7.4)
+5. Subscription management: cancel, pause, reactivate (Phase 7.5)
+6. Email notifications for subscription events (Phase 7.6)
+
+**Development Sequence:**
+1. ✅ Batch 1: Local dev environment, database, version control (COMPLETE)
+2. ✅ Batch 2: Local content pipeline (COMPLETE)
+3. ✅ Batch 3: Local web portal and admin interface (COMPLETE)
+4. ✅ Batch 4: Complete local testing and validation (COMPLETE)
+5. ✅ Batch 5: Design redesign for visual-first storytelling (COMPLETE)
+6. **→ Batch 6: Automated journalism pipeline (CURRENT)**
+7. Batch 7: Subscription system (Stripe, access control, billing)
+8. Batch 8: GCP infrastructure and cloud deployment (costs begin here)
+9. Batch 9: Cloud operations (CI/CD, monitoring, automation)
+10. Batch 10: Production testing and soft launch
 
 ---
 
@@ -652,8 +753,8 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 2. ✅ Batch 2: Local content pipeline (COMPLETE)
 3. ✅ Batch 3: Local web portal and admin interface (COMPLETE)
 4. ✅ Batch 4: Complete local testing and validation (COMPLETE)
-5. **→ Batch 5: Design redesign for visual-first storytelling (CURRENT)**
-6. Batch 6: Article content improvements based on user feedback
+5. ✅ Batch 5: Design redesign for visual-first storytelling (COMPLETE)
+6. Batch 6: Automated journalism pipeline
 7. Batch 7: GCP infrastructure and cloud deployment (costs begin here)
 8. Batch 8: Cloud operations (CI/CD, monitoring, automation)
 9. Batch 9: Production testing and soft launch
@@ -674,4 +775,9 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 - Added design redesign batch based on user feedback
 - Added article content improvement batch (pending user feedback)
 - Renumbered cloud deployment to Batches 7-9
+
+**Version 3.1 (2026-01-01):**
+- Added Batch 7: Subscription System
+- Renumbered cloud deployment to Batches 8-10
+- Added revenue model and subscription features
 

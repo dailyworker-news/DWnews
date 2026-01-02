@@ -122,12 +122,16 @@ class EnhancedJournalistAgent:
             reading_level = self.readability_checker.check_reading_level(article_text)
             logger.info(f"Reading level: {reading_level:.1f}")
 
+            # Get verification level from source plan or topic
+            verification_level = source_plan.get('verification_level', topic.verification_status or 'unverified')
+
             # Run self-audit
             audit_result = self.self_audit.audit_article(
                 article_text,
                 verified_facts,
                 source_plan,
-                reading_level
+                reading_level,
+                verification_level
             )
 
             logger.info(f"Self-audit score: {audit_result.score:.0f}% ({sum(audit_result.checklist.values())}/10 passed)")

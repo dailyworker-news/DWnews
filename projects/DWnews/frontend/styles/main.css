@@ -822,7 +822,168 @@ body {
 }
 
 /* ========================================
-   12. Utility Classes
+   12. Timeline Layout (Phase 7.3.1)
+   ======================================== */
+
+/* Timeline Date Separators */
+.timeline-date-separator {
+  grid-column: 1 / -1;
+  margin: var(--space-xl) 0 var(--space-lg) 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 3px solid var(--color-black);
+}
+
+.timeline-date-separator.locked {
+  border-bottom-color: var(--color-gray-light);
+}
+
+.timeline-date-label {
+  font-family: var(--font-headline);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-black);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.timeline-date-separator.locked .timeline-date-label {
+  color: var(--color-gray);
+}
+
+.lock-icon {
+  font-size: 24px;
+  opacity: 0.7;
+}
+
+/* Relative Timestamps */
+.story-timestamp {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-gray);
+  font-weight: 600;
+}
+
+/* Archive Upgrade Prompt */
+.archive-upgrade-prompt {
+  grid-column: 1 / -1;
+  background: var(--color-yellow-light);
+  border: 3px solid var(--color-yellow);
+  border-radius: 0;
+  padding: var(--space-2xl);
+  margin: var(--space-lg) 0;
+  text-align: center;
+}
+
+.upgrade-prompt-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.lock-icon-large {
+  font-size: 64px;
+  display: block;
+  margin-bottom: var(--space-md);
+  opacity: 0.6;
+}
+
+.archive-upgrade-prompt h4 {
+  font-family: var(--font-headline);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  color: var(--color-black);
+}
+
+.archive-upgrade-prompt p {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: var(--space-sm);
+  color: var(--color-gray-dark);
+}
+
+.archive-upgrade-prompt .subscribe-btn-large {
+  margin-top: var(--space-lg);
+  max-width: 300px;
+}
+
+/* Load More Button */
+.load-more-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin: var(--space-2xl) 0;
+  padding-top: var(--space-xl);
+  border-top: 2px solid var(--color-gray-light);
+}
+
+.load-more-btn {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--color-white);
+  color: var(--color-black);
+  border: 3px solid var(--color-black);
+  padding: 16px 48px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.05em;
+}
+
+.load-more-btn:hover:not(:disabled) {
+  background: var(--color-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-gray-lighter);
+  border-color: var(--color-gray-light);
+}
+
+/* Mobile Timeline Adjustments */
+@media (max-width: 768px) {
+  .timeline-date-label {
+    font-size: 22px;
+  }
+
+  .lock-icon-large {
+    font-size: 48px;
+  }
+
+  .archive-upgrade-prompt h4 {
+    font-size: 22px;
+  }
+
+  .archive-upgrade-prompt p {
+    font-size: 14px;
+  }
+
+  .load-more-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Badge Styles */
+.badge-local {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--color-yellow);
+  color: var(--color-black);
+  padding: 3px 6px;
+  border-radius: 0;
+  display: inline-block;
+}
+
+/* ========================================
+   13. Utility Classes
    ======================================== */
 
 .loading-message {

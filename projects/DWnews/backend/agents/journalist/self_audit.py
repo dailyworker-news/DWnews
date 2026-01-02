@@ -54,7 +54,8 @@ class SelfAudit:
         article_text: str,
         verified_facts: Dict[str, Any],
         source_plan: Dict[str, Any],
-        reading_level: float
+        reading_level: float,
+        verification_level: str = "verified"
     ) -> AuditResult:
         """
         Run complete 10-point self-audit on article.
@@ -64,6 +65,7 @@ class SelfAudit:
             verified_facts: JSON dict from topics.verified_facts
             source_plan: JSON dict from topics.source_plan
             reading_level: Calculated Flesch-Kincaid score
+            verification_level: Verification level (unverified/verified/certified)
 
         Returns:
             AuditResult with pass/fail for each criterion
@@ -72,12 +74,16 @@ class SelfAudit:
         details = {}
 
         # 1. Factual Accuracy
-        result, detail = self._check_factual_accuracy(article_text, verified_facts)
+        result, detail = self._check_factual_accuracy(
+            article_text, verified_facts, verification_level
+        )
         checklist["factual_accuracy"] = result
         details["factual_accuracy"] = detail
 
         # 2. Source Attribution
-        result, detail = self._check_source_attribution(article_text, source_plan)
+        result, detail = self._check_source_attribution(
+            article_text, source_plan, verification_level
+        )
         checklist["source_attribution"] = result
         details["source_attribution"] = detail
 
@@ -136,9 +142,21 @@ class SelfAudit:
     def _check_factual_accuracy(
         self,
         article_text: str,
-        verified_facts: Dict[str, Any]
+        verified_facts: Dict[str, Any],
+        verification_level: str = "verified"
     ) -> tuple[bool, str]:
-        """Check that all facts are sourced from verified_facts"""
+        """
+        Check that all facts are sourced from verified_facts.
+
+        Verification level adjustments:
+        - UNVERIFIED: Pass with disclaimer (no verified facts expected)
+        - VERIFIED: Require 50% high-confidence fact coverage
+        - CERTIFIED: Require 80% high-confidence fact coverage
+        """
+        # For UNVERIFIED articles, skip fact verification requirement
+        if verification_level.lower() == "unverified":
+            return True, "Unverified article: fact verification skipped (disclaimer included)"
+
         if not verified_facts or "facts" not in verified_facts:
             return False, "No verified facts available"
 
@@ -152,7 +170,6 @@ class SelfAudit:
             return False, "No high-confidence facts available"
 
         # Check that article mentions key facts
-        # Look for at least 50% of high-confidence facts mentioned
         mentioned_count = 0
         for fact in high_confidence_facts:
             fact_text = fact.get("fact", "").lower()
@@ -161,17 +178,35 @@ class SelfAudit:
 
         coverage = mentioned_count / len(high_confidence_facts) if high_confidence_facts else 0
 
-        if coverage >= 0.5:
-            return True, f"Good fact coverage: {mentioned_count}/{len(high_confidence_facts)} high-confidence facts"
+        # Set threshold based on verification level
+        if verification_level.lower() == "certified":
+            threshold = 0.8  # 80% for certified
         else:
-            return False, f"Low fact coverage: only {mentioned_count}/{len(high_confidence_facts)} high-confidence facts mentioned"
+            threshold = 0.5  # 50% for verified
+
+        if coverage >= threshold:
+            return True, f"Good fact coverage: {mentioned_count}/{len(high_confidence_facts)} high-confidence facts ({coverage*100:.0f}%)"
+        else:
+            return False, f"Low fact coverage: only {mentioned_count}/{len(high_confidence_facts)} high-confidence facts mentioned ({coverage*100:.0f}%, need {threshold*100:.0f}%)"
 
     def _check_source_attribution(
         self,
         article_text: str,
-        source_plan: Dict[str, Any]
+        source_plan: Dict[str, Any],
+        verification_level: str = "verified"
     ) -> tuple[bool, str]:
-        """Check that claims are properly attributed using source_plan"""
+        """
+        Check that claims are properly attributed using source_plan.
+
+        Verification level adjustments:
+        - UNVERIFIED: Pass with disclaimer (no primary sources expected)
+        - VERIFIED: Require 80% primary source citation
+        - CERTIFIED: Require 100% primary source citation
+        """
+        # For UNVERIFIED articles, skip source attribution requirement
+        if verification_level.lower() == "unverified":
+            return True, "Unverified article: source attribution skipped (disclaimer included)"
+
         if not source_plan or "sources" not in source_plan:
             return False, "No source plan available"
 
@@ -188,10 +223,18 @@ class SelfAudit:
             if source_name and source_name in article_text.lower():
                 cited_count += 1
 
-        if cited_count >= len(primary_sources) * 0.8:  # 80% of primary sources cited
-            return True, f"Good attribution: {cited_count}/{len(primary_sources)} primary sources cited"
+        # Set threshold based on verification level
+        if verification_level.lower() == "certified":
+            threshold = 1.0  # 100% for certified
         else:
-            return False, f"Weak attribution: only {cited_count}/{len(primary_sources)} primary sources cited"
+            threshold = 0.8  # 80% for verified
+
+        citation_rate = cited_count / len(primary_sources) if primary_sources else 0
+
+        if citation_rate >= threshold:
+            return True, f"Good attribution: {cited_count}/{len(primary_sources)} primary sources cited ({citation_rate*100:.0f}%)"
+        else:
+            return False, f"Weak attribution: only {cited_count}/{len(primary_sources)} primary sources cited ({citation_rate*100:.0f}%, need {threshold*100:.0f}%)"
 
     def _check_reading_level(self, reading_level: float) -> tuple[bool, str]:
         """Check reading level is between 7.5-8.5 Flesch-Kincaid"""

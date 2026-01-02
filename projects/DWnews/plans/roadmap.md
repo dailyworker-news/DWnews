@@ -699,21 +699,73 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 - **Status:** Blocked
 - **Depends On:** Phase 7.1, Phase 7.2
 - **Complexity:** M
+- **Updated:** 2026-01-01 (Business Analyst recommendations incorporated)
 - **Tasks:**
   - [ ] Implement user registration flow (email, password, create Stripe customer)
   - [ ] Add subscription status checks to article access endpoints
-  - [ ] Implement free tier logic (3 articles/month for non-subscribers, reset monthly)
+  - [ ] **UPDATED:** Implement auth-based article limits (require sign-up to track consumption)
+  - [ ] **UPDATED:** A/B test framework for article limits (Test: 2/day vs 5/day vs 3/week vs no limit)
+  - [ ] **UPDATED:** Track article consumption per authenticated user (database table: user_article_reads)
   - [ ] Add middleware for premium article access (check subscription_status='active')
   - [ ] Implement article preview mode (first 2 paragraphs for non-subscribers)
-  - [ ] Add paywall UI component (display on premium articles for non-subscribers)
-  - [ ] Update session management to include subscription status
+  - [ ] Add paywall UI component with upgrade prompt (avoid blocking popup - use inline CTA)
+  - [ ] Update session management to include subscription status and article count
+  - [ ] **REMOVED:** IP-based blocking (replaced with auth-based tracking per Business Analyst recommendation)
   - [ ] Test access control: free user limits, subscriber unlimited access, expired subscription handling
-- **Done When:** Subscribers access all content, free users limited to 3 articles/month or previews
+- **Done When:** Subscribers access all content, free users limited by auth-based tracking (optimal limit determined by A/B test)
+- **Business Analyst Notes:**
+  - **Rejected:** IP-based blocking (easily bypassed with VPNs, privacy risks, high operational cost)
+  - **Recommended:** Auth-based limits provide better enforcement and GDPR/CCPA compliance
+  - **A/B Test:** Validate optimal article limit before finalizing (don't assume 2/day is optimal)
+  - **UX:** Avoid blocking popups - use inline upgrade prompts for better conversion
 
-### Phase 7.4: Subscriber Dashboard
-- **Status:** Blocked
-- **Depends On:** Phase 7.1, Phase 7.2
+### Phase 7.3.1: Chronological Timeline Layout (Frontend Enhancement)
+- **Status:** 🟢 Complete
+- **Completed:** 2026-01-01
+- **Depends On:** Phase 7.1 ✅ (database schema ready)
 - **Complexity:** M
+- **Priority:** High (User-requested feature, improves UX and monetization)
+- **Tasks:**
+  - [x] Update homepage to display articles in reverse chronological order (newest first)
+  - [x] Implement time-based archive filtering (default: 5 days for free tier, 10 days for subscribers)
+  - [x] Add "Load More" pagination for older articles (push down the timeline)
+  - [x] Add visual date separators (e.g., "Today", "Yesterday", "3 days ago")
+  - [x] Update article card UI to show relative timestamps (e.g., "2 hours ago", "Yesterday at 3pm")
+  - [x] Implement subscriber-only archive access indicator (show locked icon for 6-10 day old articles to free users)
+  - [x] Add upgrade prompt when free users reach 5-day archive limit
+  - [x] Test timeline with various subscription tiers (Free: 5 days, Basic: 10 days, Premium: full archive)
+  - [x] Mobile responsiveness testing (timeline scrolls smoothly)
+  - [x] Performance optimization (lazy loading, virtual scrolling for long timelines)
+- **Done When:** Homepage displays chronological timeline, 5-day vs 10-day archive differentiation works, upgrade prompts functional
+- **Deliverables:**
+  - Updated frontend JavaScript: `/frontend/scripts/main.js` (timeline rendering, date grouping, archive filtering)
+  - Updated CSS: `/frontend/styles/main.css` (date separators, upgrade prompts, load more button, mobile responsiveness)
+  - Updated HTML: `/frontend/index.html` (subscription tier selector for testing)
+  - Test script: `/scripts/test_timeline_layout.py` (automated testing of timeline features)
+  - **Timeline Features:**
+    - Reverse chronological article display (newest first)
+    - Visual date separators (Today, Yesterday, X days ago)
+    - Relative timestamps on all articles (e.g., "2 hours ago", "Yesterday at 3pm")
+    - Archive access control based on subscription tier (Free: 5 days, Basic: 10 days, Premium: unlimited)
+    - Locked content indicators (🔒 icon + grayed out date separators)
+    - Inline upgrade prompts when users reach archive limit
+    - "Load More" button for infinite scroll pagination
+    - Lazy loading for images (major headline: eager, all others: lazy)
+    - Fully responsive design (mobile optimized)
+  - **Testing:**
+    - Subscription tier switcher in UI for testing different tiers
+    - Automated test suite validates ordering, filtering, pagination
+    - Mobile responsiveness confirmed via CSS media queries
+- **Business Analyst Notes:**
+  - Archive length differentiation is weak alone - pair with sports/local personalization
+  - Consider "full archive access" for subscribers instead of just 10 days (stronger value prop)
+  - Use inline upgrade prompts, not blocking popups ✅ IMPLEMENTED
+
+### Phase 7.4: Subscriber Dashboard & User Preferences
+- **Status:** ⚪ Not Started
+- **Depends On:** Phase 7.1 ✅, Phase 7.2
+- **Complexity:** M
+- **Updated:** 2026-01-01 (Added sports and local news preferences)
 - **Tasks:**
   - [ ] Build subscriber dashboard page (/account/subscription)
   - [ ] Display current subscription status (active, canceled, past_due, trial)
@@ -722,8 +774,17 @@ Implements subscription functionality to enable revenue generation. Users pay $1
   - [ ] Add link to update payment method (Stripe Customer Portal or custom form)
   - [ ] Show subscription start date and renewal date
   - [ ] Display cancellation option with confirmation dialog
-  - [ ] Test dashboard with various subscription states
-- **Done When:** Subscribers can view subscription details, payment history, and billing information
+  - [ ] **NEW:** Add user preferences section (sports leagues, local news region)
+  - [ ] **NEW:** Sports preference UI (Basic tier: select 1 league, Premium tier: unlimited leagues)
+  - [ ] **NEW:** Local news preference UI (city/region selection, override IP-inferred location)
+  - [ ] **NEW:** Save preferences to user_sports_preferences and users.local_region
+  - [ ] Test dashboard with various subscription states (Free, Basic, Premium)
+  - [ ] Test preference updates (sports league changes, local region changes)
+- **Done When:** Subscribers can view/manage subscription, configure sports and local news preferences
+- **Business Analyst Notes:**
+  - Sports/local personalization = VRIO resource (high strategic value)
+  - This is the key differentiator - prioritize UX quality
+  - Consider onboarding flow to capture preferences during signup
 
 ### Phase 7.5: Subscription Management
 - **Status:** Blocked
@@ -779,15 +840,43 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 - UK Premier League (starting point via API-Football free tier or BBC Sport RSS)
 - Expandable to: NBA, NFL, MLB, NHL, MLS, La Liga, Bundesliga, Serie A
 
-**Batch 7 Success Criteria:**
-- [ ] Users can subscribe for $15/month via Stripe Checkout
-- [ ] Subscribers have unlimited article access, free users limited to 3 articles/month or previews
-- [ ] Subscriber dashboard displays subscription status, billing info, and invoice history
+### Phase 7.8: User Profiles & Commenting (DEFERRED TO POST-LAUNCH)
+- **Status:** 🔴 Blocked (Deferred)
+- **Depends On:** Batch 7 complete, subscriber base >200 (per Business Analyst recommendation)
+- **Complexity:** M
+- **Priority:** Low (defer until community engagement validated)
+- **Tasks:**
+  - [ ] Build user profile system (username, avatar, bio, join date)
+  - [ ] Implement commenting infrastructure (article_comments table, threading support)
+  - [ ] Build comment UI (post, reply, edit, delete)
+  - [ ] Implement moderation tools (flag, hide, ban users)
+  - [ ] Add LLM-based auto-moderation (content filtering for spam, abuse)
+  - [ ] Build moderation dashboard for manual review
+  - [ ] Implement upvote/downvote system (Reddit-style community moderation)
+  - [ ] Add email notifications for comment replies
+  - [ ] Test commenting with subscriber accounts only (no commenting for free tier)
+  - [ ] Monitor moderation labor hours (assess cost vs. engagement benefit)
+- **Done When:** Subscribers can comment on articles, moderation system functional, labor cost acceptable
+- **Business Analyst Notes:**
+  - **DEFER** until subscriber base >200 (moderation labor risk)
+  - High moderation labor (hours/day) conflicts with lean operations (<$100/month cost target)
+  - Community features create network effects (retention driver) but need scale to justify investment
+  - Consider automated moderation (LLM-based) to reduce human labor
+  - Monitor engagement metrics before heavy investment: comments per article, time spent in comments
+
+**Batch 7 Success Criteria (Updated 2026-01-01):**
+- [ ] Users can subscribe for $15/month (Basic) or $25/month (Premium) via Stripe Checkout
+- [ ] **UPDATED:** Subscribers have unlimited article access, free users limited by auth-based tracking (optimal limit from A/B test)
+- [ ] **UPDATED:** Chronological timeline displays 5-day archive (free) vs 10-day archive (subscribers)
+- [ ] Subscriber dashboard displays subscription status, billing info, invoice history, sports/local preferences
 - [ ] Users can cancel, pause, reactivate subscriptions
 - [ ] Email notifications sent for all subscription events
 - [ ] Stripe webhooks correctly update database
 - [ ] Grace period for failed payments functional (3-day access retention)
-- [ ] Sports subscription configuration functional (tier-based access, user preferences, UK Premier League results)
+- [ ] Sports subscription configuration functional (Basic: 1 league, Premium: unlimited leagues)
+- [ ] Local news personalization functional (IP-inferred + user override)
+- [ ] User profiles created (foundation for future commenting when >200 subscribers)
+- [ ] A/B test results analyzed (optimal article limit identified)
 - [ ] Ready for production deployment with subscription features
 
 ---

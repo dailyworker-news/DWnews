@@ -61,6 +61,12 @@ app.add_middleware(
 # Mount static files (images)
 # app.mount("/static", StaticFiles(directory=settings.local_image_storage), name="static")
 
+# Mount frontend directory
+import os
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/frontend", StaticFiles(directory=frontend_path, html=True), name="frontend")
+
 
 # Health check endpoint
 @app.get("/api/health")

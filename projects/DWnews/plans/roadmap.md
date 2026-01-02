@@ -360,80 +360,98 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 ## Batch 6.9: Investigatory Journalist Agent
 
 **Dependencies:** Batch 6 complete (3-tier verification system operational)
-**Parallel:** Phase 6.9.1-6.9.2 simultaneous, then 6.9.3-6.9.4 sequential
+**Sequential Phases:** 6.9.1 (complete) → 6.9.2 → 6.9.3 → 6.9.4
 **Purpose:** Implement investigatory journalism capabilities for Unverified articles requiring deep investigation
-**Status:** Not Started
+**Status:** Phase 1 Complete, Phases 2-4 Not Started
 
 **Overview:**
 Implements specialized investigatory journalism agent to handle Unverified articles (verification score 0-49) that require deeper research and investigation. This agent acts as a second-pass researcher that attempts to elevate Unverified articles to Verified or Certified status through additional investigation techniques.
 
+**4-Phase Development Approach:**
+1. **Phase 1 (MVP - Complete):** Core investigation engine with multi-engine search, origin tracing, cross-reference validation
+2. **Phase 2:** Social media investigation (Twitter API v2, Reddit API, social credibility scoring, timeline construction)
+3. **Phase 3:** Deep context research (historical events, key actor profiling, local news aggregation, geographic context)
+4. **Phase 4:** Advanced analysis (claim extraction, automated fact-checking, contradiction detection, bias analysis)
+
 **Key Capabilities:**
-- Deep web research beyond standard verification
-- Public records investigation (FOIA requests, court documents, regulatory filings)
-- Expert source identification and outreach
-- Follow-up investigation plans for ongoing stories
-- Transparent disclosure when verification remains limited
+- Multi-engine web search (Google, DuckDuckGo, Bing) ✅ Phase 1
+- Social media investigation (Twitter, Reddit) - Phase 2
+- Historical event research and precedent finding - Phase 3
+- Key actor profiling (organizations, people) - Phase 3
+- Claim extraction and automated fact-checking - Phase 4
+- Contradiction detection and bias analysis - Phase 4
+- Transparent disclosure when verification remains limited ✅ Phase 1
 
-### Phase 6.9.1: Core Investigation Engine
+### Phase 6.9.1: Core Investigation Engine (Phase 1 MVP) ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
+
+### Phase 6.9.2: Social Media Investigation (Phase 2)
 - **Status:** ⚪ Not Started
+- **Depends On:** Phase 6.9.1 ✅
 - **Complexity:** M
 - **Tasks:**
-  - [ ] Build deep research module (academic databases, specialized search, archive.org)
-  - [ ] Implement public records searcher (PACER, state court systems, SEC EDGAR, FOIA portals)
-  - [ ] Build expert identification system (university directories, professional associations, LinkedIn)
-  - [ ] Create source outreach templates (email, contact forms, interview requests)
-  - [ ] Implement investigation plan generator (next steps for unresolved questions)
-  - [ ] Store investigation results in database (investigation_logs table)
-  - [ ] Test with real Unverified articles
-- **Done When:** Agent conducts deep investigation and identifies additional sources or verification paths
+  - [ ] Integrate Twitter API v2 extended search (hashtag tracking, original tweets, verified accounts)
+  - [ ] Integrate Reddit API extended search (subreddit searches, discussion threads, eyewitness accounts)
+  - [ ] Implement social source credibility scoring (account age, karma, verification status)
+  - [ ] Build timeline construction from social mentions (chronological event tracking)
+  - [ ] Implement eyewitness account identification (filter for firsthand reports)
+  - [ ] Add social media evidence to source_plan (JSON storage)
+  - [ ] Create SocialSource data model (platform, author, credibility, engagement_metrics)
+  - [ ] Test with labor events having known Twitter/Reddit activity
+- **Done When:** Agent finds and scores social media evidence, identifies eyewitness accounts, builds event timelines
 
-### Phase 6.9.2: Source Elevation Engine
-- **Status:** ⚪ Not Started
+### Phase 6.9.3: Deep Context Research (Phase 3)
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.9.1 ✅, Phase 6.9.2
 - **Complexity:** M
 - **Tasks:**
-  - [ ] Build re-verification system (run Verification Agent again with new sources)
-  - [ ] Implement verification score improvement tracking (before/after investigation)
-  - [ ] Add investigation notes to article metadata
-  - [ ] Create "Investigation in Progress" badge for frontend
-  - [ ] Build automatic re-submission to Editorial Coordinator when elevated to Verified/Certified
-  - [ ] Test score elevation with multiple article types
-- **Done When:** Unverified articles can be elevated to Verified/Certified through investigation
+  - [ ] Build historical event research (find precedents, similar past events)
+  - [ ] Implement key actor profiling (organizations, people, track records)
+  - [ ] Create local news source aggregation (geographic-specific sources)
+  - [ ] Implement geographic context gathering (regional political/economic factors)
+  - [ ] Build related event clustering (identify patterns across events)
+  - [ ] Create ContextResearcher module with 3 research methods
+  - [ ] Add context_richness scoring (0-100 scale)
+  - [ ] Test with complex multi-faceted events (multiple actors, locations)
+- **Done When:** Agent provides comprehensive historical and geographic context, profiles key actors
 
-### Phase 6.9.3: Editorial Integration
+### Phase 6.9.4: Advanced Analysis (Phase 4)
 - **Status:** 🔴 Blocked
-- **Depends On:** Phase 6.9.1, Phase 6.9.2
-- **Complexity:** S
+- **Depends On:** Phase 6.9.1 ✅, Phase 6.9.2 ✅, Phase 6.9.3 ✅
+- **Complexity:** M
 - **Tasks:**
-  - [ ] Add "Request Investigation" button to editorial review interface
-  - [ ] Build investigation queue management
-  - [ ] Add investigation status display to admin dashboard
-  - [ ] Create email notifications for investigation completion
-  - [ ] Implement manual investigation task assignment
-  - [ ] Test complete editorial workflow with investigation
-- **Done When:** Editors can request investigation on Unverified articles and track progress
-
-### Phase 6.9.4: Testing & Deployment
-- **Status:** 🔴 Blocked
-- **Depends On:** Phase 6.9.3
-- **Complexity:** S
-- **Tasks:**
-  - [ ] Test end-to-end: Unverified → Investigation → Verified/Certified
-  - [ ] Test investigation failure path (remains Unverified with disclosure)
-  - [ ] Validate public records access (PACER credentials, FOIA submission)
-  - [ ] Test expert outreach workflow
-  - [ ] Verify investigation notes display correctly
-  - [ ] Document investigation procedures for editorial team
-  - [ ] Create troubleshooting guide for investigation failures
-- **Done When:** Full investigation workflow tested, documented, ready for production
+  - [ ] Implement claim extraction using LLM (identify verifiable factual claims)
+  - [ ] Build automated fact-checking per claim (search for evidence)
+  - [ ] Implement contradiction detection (flag conflicting information)
+  - [ ] Build bias analysis of sources (detect political/corporate bias)
+  - [ ] Implement confidence scoring for recommendations (0-100 scale)
+  - [ ] Create human review flagging system (contradictions, serious allegations)
+  - [ ] Add verified_claims and disputed_claims to InvestigationResult
+  - [ ] Test with disputed events having contradictory reporting
+- **Done When:** Agent extracts claims, fact-checks each, detects contradictions, flags for human review when needed
 
 **Batch 6.9 Success Criteria:**
-- [ ] Investigatory Agent conducts deep research on Unverified articles
-- [ ] ≥30% of Unverified articles elevated to Verified or Certified
-- [ ] Investigation process transparent to editorial team
-- [ ] Public records integration functional
-- [ ] Expert source outreach tested
-- [ ] Investigation notes stored and displayed
-- [ ] Ready for production use
+- [x] **Phase 1 Complete:** Core investigation engine with multi-engine search (MVP with mock data)
+- [x] **Phase 1 Complete:** Investigation workflow functional and tested
+- [x] **Phase 1 Complete:** Database schema for investigation tracking implemented
+- [x] **Phase 1 Complete:** Origin tracing and cross-reference validation working
+- [ ] **Phase 2:** Social media investigation integrated (Twitter API v2, Reddit API)
+- [ ] **Phase 2:** Social source credibility scoring operational
+- [ ] **Phase 2:** Timeline construction from social mentions working
+- [ ] **Phase 2:** Eyewitness account identification functional
+- [ ] **Phase 3:** Historical event research finds precedents
+- [ ] **Phase 3:** Key actor profiling provides organization/people context
+- [ ] **Phase 3:** Local news source aggregation by geography
+- [ ] **Phase 3:** Context richness scoring implemented (0-100)
+- [ ] **Phase 4:** Claim extraction using LLM operational
+- [ ] **Phase 4:** Automated fact-checking validates each claim
+- [ ] **Phase 4:** Contradiction detection flags conflicting information
+- [ ] **Phase 4:** Human review flagging for serious cases
+- [ ] **Overall Goal:** ≥30% of Unverified articles elevated to Verified or Certified
+- [ ] **Overall Goal:** Investigation time 2-5 minutes per topic
+- [ ] **Overall Goal:** Origin identification accuracy >80%
+- [ ] **Overall Goal:** Cost per investigation <$0.50
+- [ ] **Overall Goal:** Ready for production use
 
 ---
 

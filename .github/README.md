@@ -40,7 +40,20 @@ This directory contains automated workflows for continuous integration and deplo
 
 **Status:** ![CI Pipeline](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml/badge.svg)
 
-### 4. Dependency Updates (`dependency-update.yml`)
+### 4. Frontend Tests (`frontend-tests.yml`)
+**Trigger:** Push/PR to main/develop (frontend changes)
+
+**What it does:**
+- Runs 50+ frontend tests (unit, integration, E2E)
+- Tests on Node 18.x and 20.x
+- Multi-browser E2E tests (Chromium, Firefox, WebKit)
+- Linting and formatting checks (ESLint, Prettier)
+- Build validation
+- Uploads coverage reports
+
+**Status:** ![Frontend Tests](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/frontend-tests.yml/badge.svg)
+
+### 5. Dependency Updates (`dependency-update.yml`)
 **Trigger:** Weekly (Mondays at 9 AM UTC) or manual
 
 **What it does:**
@@ -51,27 +64,126 @@ This directory contains automated workflows for continuous integration and deplo
 
 **Status:** ![Dependency Updates](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/dependency-update.yml/badge.svg)
 
+---
+
+## Deployment Workflows
+
+### 6. Deploy to Staging (`deploy-staging.yml`)
+**Trigger:** Push to `develop` branch (automatic) or manual
+
+**What it does:**
+- Security checks and secret scanning
+- Runs full test suite (99+ tests)
+- Builds Docker image and pushes to GCR
+- Scans image for vulnerabilities
+- Runs database migrations via Cloud SQL Proxy
+- Deploys to GCP Cloud Run (staging environment)
+- Performs health checks and smoke tests
+- Creates failure notification if deployment fails
+
+**Environment:** `dailyworker-staging` (GCP)
+
+**Status:** ![Deploy Staging](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-staging.yml/badge.svg)
+
+### 7. Deploy to Production (`deploy-production.yml`)
+**Trigger:** Manual only (requires "DEPLOY" confirmation)
+
+**What it does:**
+- Pre-deployment security validation
+- Runs full test suite
+- Builds production-optimized Docker image
+- Creates database backup before migration
+- Runs database migrations
+- Deploys new revision to Cloud Run (0% traffic initially)
+- Tests new revision thoroughly
+- Gradual traffic migration: 10% → 50% → 100%
+- Monitors deployment for 5 minutes
+- **Automatic rollback** if any step fails
+- Post-deployment verification
+
+**Environment:** `dailyworker-production` (GCP)
+
+**Safety Features:**
+- ✅ Manual approval required
+- ✅ Pre-deployment database backup
+- ✅ Zero-downtime blue-green deployment
+- ✅ Gradual traffic rollout with monitoring
+- ✅ Automatic rollback on failure
+
+**Status:** ![Deploy Production](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-production.yml/badge.svg)
+
+### 8. Manual Rollback (`manual-rollback.yml`)
+**Trigger:** Manual only (emergency rollback)
+
+**What it does:**
+- Validates rollback confirmation
+- Creates pre-rollback database backup (production)
+- Rolls back to previous or specified revision
+- Verifies health of rolled-back revision
+- Monitors for 2 minutes
+- Creates notification issue
+
+**Use cases:**
+- Emergency rollback after deployment
+- Revert to known-good revision
+- Recover from failed deployment
+
+**Status:** ![Manual Rollback](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/manual-rollback.yml/badge.svg)
+
 ## Workflow Architecture
 
+### CI/CD Pipeline
+
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    CI Pipeline (ci.yml)                  │
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌────────────────┐  ┌────────────────┐               │
-│  │ Backend Tests  │  │ Code Quality   │               │
-│  │ (3 Python vers)│  │ (Lint/Format)  │               │
-│  └────────────────┘  └────────────────┘               │
-│                                                          │
-│  ┌────────────────┐  ┌────────────────┐               │
-│  │ Security Scan  │  │  Build Check   │               │
-│  │   (Safety)     │  │ (Imports/DB)   │               │
-│  └────────────────┘  └────────────────┘               │
-│                                                          │
-│             ┌────────────────┐                          │
-│             │  Status Check  │                          │
-│             └────────────────┘                          │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    CI Pipeline (ci.yml)                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────┐ │
+│  │ Backend Tests  │  │Frontend Tests  │  │Code Quality  │ │
+│  │ (3 Python vers)│  │(2 Node vers)   │  │(Lint/Format) │ │
+│  └────────────────┘  └────────────────┘  └──────────────┘ │
+│                                                              │
+│  ┌────────────────┐  ┌────────────────┐                    │
+│  │ Security Scan  │  │  Build Check   │                    │
+│  │   (Safety)     │  │ (Imports/DB)   │                    │
+│  └────────────────┘  └────────────────┘                    │
+│                                                              │
+│             ┌────────────────┐                              │
+│             │  Status Check  │                              │
+│             └────────────────┘                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Deployment Pipeline
+
+```
+Git Repository
+    │
+    ├─── develop branch ──→ Auto Deploy to Staging
+    │                        │
+    │                        ├─ Security Scan
+    │                        ├─ Run Tests (99+)
+    │                        ├─ Build Docker Image
+    │                        ├─ Migrate Database
+    │                        ├─ Deploy to Cloud Run
+    │                        └─ Health Checks
+    │
+    └─── main branch ──→ Manual Deploy to Production
+                          (Requires "DEPLOY" confirmation)
+                          │
+                          ├─ Security Validation
+                          ├─ Full Test Suite
+                          ├─ Build Prod Image
+                          ├─ Database Backup
+                          ├─ Migrate Database
+                          ├─ Deploy (0% traffic)
+                          ├─ Test New Revision
+                          ├─ Gradual Rollout:
+                          │   • 10% traffic → monitor
+                          │   • 50% traffic → monitor
+                          │   • 100% traffic → monitor
+                          └─ Auto Rollback (on failure)
 ```
 
 ## Configuration
@@ -95,9 +207,35 @@ This directory contains automated workflows for continuous integration and deplo
 
 Configure these in GitHub Settings > Secrets and variables > Actions:
 
+### CI/CD Secrets
+
 | Secret | Purpose | Required |
 |--------|---------|----------|
 | `CODECOV_TOKEN` | Upload coverage to Codecov | Optional |
+
+### Deployment Secrets (GCP)
+
+**Staging:**
+| Secret | Purpose | Required |
+|--------|---------|----------|
+| `GCP_STAGING_PROJECT_ID` | GCP project ID | Yes |
+| `GCP_STAGING_SA_KEY` | Service account key (JSON) | Yes |
+| `GCP_STAGING_SERVICE_ACCOUNT` | App service account email | Yes |
+| `GCP_STAGING_DB_CONNECTION` | Cloud SQL connection name | Yes |
+| `GCP_STAGING_DB_INSTANCE` | Cloud SQL instance name | Yes |
+| `GCP_STAGING_DATABASE_URL` | PostgreSQL connection string | Yes |
+
+**Production:**
+| Secret | Purpose | Required |
+|--------|---------|----------|
+| `GCP_PRODUCTION_PROJECT_ID` | GCP project ID | Yes |
+| `GCP_PRODUCTION_SA_KEY` | Service account key (JSON) | Yes |
+| `GCP_PRODUCTION_SERVICE_ACCOUNT` | App service account email | Yes |
+| `GCP_PRODUCTION_DB_CONNECTION` | Cloud SQL connection name | Yes |
+| `GCP_PRODUCTION_DB_INSTANCE` | Cloud SQL instance name | Yes |
+| `GCP_PRODUCTION_DATABASE_URL` | PostgreSQL connection string | Yes |
+
+**Setup Instructions:** See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for complete setup instructions.
 
 ## Branch Protection Rules
 
@@ -183,14 +321,23 @@ To add a new workflow:
 Add to your README.md:
 
 ```markdown
-[![Backend Tests](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/backend-tests.yml)
-[![Code Quality](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/code-quality.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/code-quality.yml)
 [![CI Pipeline](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml)
+[![Backend Tests](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/backend-tests.yml)
+[![Frontend Tests](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/frontend-tests.yml)
+[![Deploy Staging](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-staging.yml)
+[![Deploy Production](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-production.yml)
 ```
+
+## Documentation
+
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Complete deployment setup and procedures
+- **[GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)** - GitHub Actions configuration guide
+- **[WORKFLOWS_SUMMARY.md](WORKFLOWS_SUMMARY.md)** - Detailed workflow specifications
 
 ## Support
 
 For issues with GitHub Actions:
 - Check [GitHub Actions documentation](https://docs.github.com/en/actions)
 - Review workflow logs for detailed errors
+- See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for deployment troubleshooting
 - Open an issue in this repository

@@ -1,0 +1,300 @@
+name: Manual Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      revision:
+        description: 'Revision name to rollback to (leave empty for previous)'
+        required: false
+        type: string
+      confirmation:
+        description: 'Type environment name to confirm rollback'
+        required: true
+        type: string
+
+jobs:
+  validate:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.validate.outputs.environment }}
+      project_id: ${{ steps.validate.outputs.project_id }}
+      service_name: ${{ steps.validate.outputs.service_name }}
+
+    steps:
+      - name: Validate confirmation
+        id: validate
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "${{ github.event.inputs.environment }}" ]; then
+            echo "❌ Confirmation failed"
+            echo "You must type the environment name to confirm rollback"
+            exit 1
+          fi
+
+          # Set environment-specific variables
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "project_id=dailyworker-prod" >> $GITHUB_OUTPUT
+            echo "service_name=dailyworker-production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "project_id=dailyworker-staging" >> $GITHUB_OUTPUT
+            echo "service_name=dailyworker-staging" >> $GITHUB_OUTPUT
+          fi
+
+          echo "✅ Rollback confirmed for ${{ github.event.inputs.environment }}"
+
+  pre-rollback-backup:
+    name: Create Pre-Rollback Backup
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event.inputs.environment == 'production'
+
+    steps:
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ needs.validate.outputs.project_id }}
+          service_account_key: ${{ secrets.GCP_PRODUCTION_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Create database backup
+        run: |
+          echo "💾 Creating pre-rollback database backup..."
+
+          gcloud sql backups create \
+            --instance=${{ secrets.GCP_PRODUCTION_DB_INSTANCE }} \
+            --description="Pre-rollback backup $(date +%Y%m%d-%H%M%S)" \
+            --project=${{ needs.validate.outputs.project_id }}
+
+          echo "✅ Backup created"
+
+  rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: [validate, pre-rollback-backup]
+    if: always() && needs.validate.result == 'success'
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+
+    steps:
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ needs.validate.outputs.project_id }}
+          service_account_key: ${{ secrets[format('GCP_{0}_SA_KEY', needs.validate.outputs.environment == 'production' && 'PRODUCTION' || 'STAGING')] }}
+          export_default_credentials: true
+
+      - name: List recent revisions
+        id: list-revisions
+        run: |
+          echo "📋 Recent revisions:"
+          gcloud run revisions list \
+            --service=${{ needs.validate.outputs.service_name }} \
+            --platform=managed \
+            --region=us-central1 \
+            --project=${{ needs.validate.outputs.project_id }} \
+            --limit=5 \
+            --format="table(name,status.conditions[0].status,metadata.creationTimestamp)"
+
+      - name: Determine rollback target
+        id: target
+        run: |
+          if [ -n "${{ github.event.inputs.revision }}" ]; then
+            TARGET_REVISION="${{ github.event.inputs.revision }}"
+            echo "🎯 Rolling back to specified revision: ${TARGET_REVISION}"
+          else
+            # Get current revision
+            CURRENT=$(gcloud run services describe ${{ needs.validate.outputs.service_name }} \
+              --platform=managed \
+              --region=us-central1 \
+              --project=${{ needs.validate.outputs.project_id }} \
+              --format='value(status.traffic[0].revisionName)')
+
+            echo "Current revision: ${CURRENT}"
+
+            # Get previous revision
+            TARGET_REVISION=$(gcloud run revisions list \
+              --service=${{ needs.validate.outputs.service_name }} \
+              --platform=managed \
+              --region=us-central1 \
+              --project=${{ needs.validate.outputs.project_id }} \
+              --format='value(name)' \
+              --limit=10 | grep -v "^${CURRENT}$" | head -n 1)
+
+            echo "🎯 Rolling back to previous revision: ${TARGET_REVISION}"
+          fi
+
+          if [ -z "${TARGET_REVISION}" ]; then
+            echo "❌ Could not determine rollback target"
+            exit 1
+          fi
+
+          echo "target_revision=${TARGET_REVISION}" >> $GITHUB_OUTPUT
+
+      - name: Verify target revision exists
+        run: |
+          echo "🔍 Verifying target revision exists..."
+
+          gcloud run revisions describe ${{ steps.target.outputs.target_revision }} \
+            --platform=managed \
+            --region=us-central1 \
+            --project=${{ needs.validate.outputs.project_id }} \
+            --format='value(metadata.name)' || {
+              echo "❌ Target revision not found"
+              exit 1
+            }
+
+          echo "✅ Target revision exists"
+
+      - name: Execute rollback
+        id: rollback
+        run: |
+          echo "⏮️  Executing rollback..."
+          echo "Service: ${{ needs.validate.outputs.service_name }}"
+          echo "Target: ${{ steps.target.outputs.target_revision }}"
+
+          gcloud run services update-traffic ${{ needs.validate.outputs.service_name }} \
+            --to-revisions=${{ steps.target.outputs.target_revision }}=100 \
+            --platform=managed \
+            --region=us-central1 \
+            --project=${{ needs.validate.outputs.project_id }}
+
+          # Get service URL
+          SERVICE_URL=$(gcloud run services describe ${{ needs.validate.outputs.service_name }} \
+            --platform=managed \
+            --region=us-central1 \
+            --project=${{ needs.validate.outputs.project_id }} \
+            --format='value(status.url)')
+
+          echo "service_url=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "✅ Traffic shifted to ${{ steps.target.outputs.target_revision }}"
+
+      - name: Verify rollback
+        run: |
+          echo "🏥 Verifying rollback health..."
+          SERVICE_URL="${{ steps.rollback.outputs.service_url }}"
+
+          # Wait for traffic shift to complete
+          sleep 10
+
+          # Health check
+          for i in {1..5}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${SERVICE_URL}/api/health)
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "✅ Health check passed (attempt $i/5)"
+              break
+            else
+              echo "⚠️  Health check failed (attempt $i/5): HTTP $HTTP_CODE"
+              if [ $i -eq 5 ]; then
+                echo "❌ Rollback verification failed"
+                exit 1
+              fi
+              sleep 10
+            fi
+          done
+
+      - name: Monitor for 2 minutes
+        run: |
+          echo "📊 Monitoring for 2 minutes..."
+          SERVICE_URL="${{ steps.rollback.outputs.service_url }}"
+
+          for i in {1..4}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${SERVICE_URL}/api/health)
+
+            if [ "$HTTP_CODE" -ne 200 ]; then
+              echo "❌ Health check failed during monitoring: HTTP $HTTP_CODE"
+              exit 1
+            fi
+
+            echo "Health check $i/4: OK"
+            sleep 30
+          done
+
+          echo "✅ Rollback successful and stable"
+
+      - name: Rollback summary
+        run: |
+          echo "## ⏮️  Rollback Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ needs.validate.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Service:** ${{ needs.validate.outputs.service_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Rolled back to:** ${{ steps.target.outputs.target_revision }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Service URL:** ${{ steps.rollback.outputs.service_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Verification" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Revision exists and is healthy" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Traffic shifted to 100%" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Health checks passing" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 2-minute monitoring complete" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Create Rollback Notification
+    runs-on: ubuntu-latest
+    needs: [validate, rollback]
+    if: always()
+
+    steps:
+      - name: Create rollback issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const environment = '${{ needs.validate.outputs.environment }}';
+            const success = '${{ needs.rollback.result }}' === 'success';
+            const title = success
+              ? `Rollback completed: ${environment}`
+              : `Rollback failed: ${environment}`;
+            const status = success ? '✅ Success' : '❌ Failed';
+
+            const body = `# Rollback ${status}
+
+            **Environment:** ${environment}
+            **Triggered by:** @${context.actor}
+            **Workflow run:** ${context.payload.repository.html_url}/actions/runs/${context.runId}
+
+            ${success ? '## Details\n\nRollback completed successfully. Service is healthy and serving traffic from the previous revision.' : '## Action Required\n\nRollback failed. Immediate investigation required.'}
+
+            ## Next Steps
+            ${success ? '- Investigate root cause of the issue that required rollback\n- Update monitoring to catch similar issues earlier\n- Document incident in runbook' : '- Check Cloud Run logs for errors\n- Verify database connectivity\n- Consider manual intervention via gcloud CLI'}
+            `;
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['rollback', environment, success ? 'resolved' : 'urgent']
+            });
+
+  check-logs:
+    name: Check Recent Errors
+    runs-on: ubuntu-latest
+    needs: [validate, rollback]
+    if: needs.rollback.result == 'success'
+
+    steps:
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ needs.validate.outputs.project_id }}
+          service_account_key: ${{ secrets[format('GCP_{0}_SA_KEY', needs.validate.outputs.environment == 'production' && 'PRODUCTION' || 'STAGING')] }}
+          export_default_credentials: true
+
+      - name: Query recent errors
+        run: |
+          echo "📊 Checking for recent errors..."
+
+          gcloud logging read \
+            "resource.type=cloud_run_revision AND severity>=ERROR" \
+            --limit=10 \
+            --format=json \
+            --freshness=10m \
+            --project=${{ needs.validate.outputs.project_id }} || echo "No recent errors found"

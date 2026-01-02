@@ -516,7 +516,7 @@ Addresses critical issue where all articles currently share the same placeholder
 - <5% using placeholders
 
 ### Phase 6.11: Image Sourcing & Generation Agent
-- **Status:** ⚪ Not Started
+- **Status:** 🟡 In Progress (tdd-dev-image-sourcing)
 - **Depends On:** Phase 6.5 ✅ (Enhanced Journalist Agent)
 - **Complexity:** M
 - **Effort:** ~1000-1500 lines of code, 3-5 days

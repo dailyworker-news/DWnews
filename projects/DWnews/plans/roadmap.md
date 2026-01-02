@@ -1225,23 +1225,9 @@ Implements subscription functionality to enable revenue generation. Users pay $1
   - Self-service billing reduces support burden
   - Customer Portal integration simplifies payment management
 
-### Phase 7.5: Subscription Management
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 7.3 ✅, Phase 7.4 ✅
-- **Complexity:** S
-- **Tasks:**
-  - [ ] Implement subscription cancellation flow (cancel at period end, immediate cancellation options)
-  - [ ] Implement subscription pause feature (optional: allow pausing for 1-3 months)
-  - [ ] Implement subscription reactivation (resubscribe if canceled)
-  - [ ] Implement payment method update (Stripe Customer Portal integration)
-  - [ ] Add email notifications for subscription events (subscribed, canceled, payment failed, renewal reminder)
-  - [ ] Implement grace period for failed payments (3-day grace before access revoked)
-  - [ ] Test cancellation, pause, reactivation, and payment update flows
-- **Done When:** Users can cancel, pause, reactivate subscriptions, update payment methods
-
 ### Phase 7.6: Email Notifications & Testing
-- **Status:** Blocked
-- **Depends On:** Phase 7.5
+- **Status:** ⚪ Not Started
+- **Depends On:** Phase 7.5 ✅
 - **Complexity:** S
 - **Tasks:**
   - [ ] Set up SendGrid or similar email service (free tier: 100 emails/day)

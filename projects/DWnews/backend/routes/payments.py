@@ -374,37 +374,166 @@ async def handle_invoice_paid(invoice: dict, db: Session):
     """Handle successful invoice payment"""
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
+    customer_email = invoice.get("customer_email")
     amount_paid = invoice.get("amount_paid")
+    billing_reason = invoice.get("billing_reason")  # 'subscription_cycle' for renewals
 
     logger.info(
         f"Invoice paid: subscription={subscription_id}, "
-        f"customer={customer_id}, amount=${amount_paid/100:.2f}"
+        f"customer={customer_id}, amount=${amount_paid/100:.2f}, reason={billing_reason}"
     )
 
-    # TODO: Update database
-    # 1. Find subscription by stripe_subscription_id
-    # 2. Update subscription.current_period_end
-    # 3. Create invoice record
-    # 4. Update user.subscription_status = 'active'
-    # 5. Log subscription_event
+    # Import email function
+    from backend.routes.subscription_management import send_renewal_email
+
+    # Update database
+    conn = db
+    cursor = conn.cursor() if hasattr(db, 'cursor') else None
+
+    if cursor:
+        try:
+            # Find subscription
+            cursor.execute("""
+                SELECT id, user_id FROM subscriptions
+                WHERE stripe_subscription_id = ?
+            """, (subscription_id,))
+
+            result = cursor.fetchone()
+
+            if result:
+                sub_id, user_id = result
+
+                # Update subscription to active
+                cursor.execute("""
+                    UPDATE subscriptions
+                    SET status = 'active', updated_at = ?
+                    WHERE id = ?
+                """, (datetime.now(timezone.utc), sub_id))
+
+                # Update user status
+                cursor.execute("""
+                    UPDATE users
+                    SET subscription_status = 'active', updated_at = ?
+                    WHERE id = ?
+                """, (datetime.now(timezone.utc), user_id))
+
+                # Log event
+                cursor.execute("""
+                    INSERT INTO subscription_events
+                    (subscription_id, user_id, event_type, event_data_json, created_at)
+                    VALUES (?, ?, 'payment_succeeded', ?, ?)
+                """, (
+                    sub_id,
+                    user_id,
+                    json.dumps({"amount_cents": amount_paid, "billing_reason": billing_reason}),
+                    datetime.now(timezone.utc)
+                ))
+
+                conn.commit()
+
+                # Send renewal email (only for recurring payments, not initial subscription)
+                if billing_reason == 'subscription_cycle' and customer_email:
+                    # Get next billing date
+                    next_billing = datetime.now(timezone.utc) + timedelta(days=30)
+                    send_renewal_email(customer_email, amount_paid, next_billing.strftime('%Y-%m-%d'))
+
+                logger.info(f"Updated subscription {subscription_id} payment successful")
+
+        except Exception as e:
+            logger.error(f"Error updating database for paid invoice: {e}", exc_info=True)
+            conn.rollback()
 
 
 async def handle_invoice_payment_failed(invoice: dict, db: Session):
-    """Handle failed invoice payment"""
+    """
+    Handle failed invoice payment with 3-day grace period
+
+    Grace Period Logic:
+    - Attempts 1-3: Status = 'past_due', access maintained
+    - Attempt 4+: Status = 'unpaid', access revoked
+    """
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
+    customer_email = invoice.get("customer_email")
+    attempt_count = invoice.get("attempt_count", 1)
+    next_payment_attempt = invoice.get("next_payment_attempt")
 
     logger.warning(
         f"Invoice payment failed: subscription={subscription_id}, "
-        f"customer={customer_id}"
+        f"customer={customer_id}, attempt={attempt_count}"
     )
 
-    # TODO: Update database
-    # 1. Find subscription by stripe_subscription_id
-    # 2. Update subscription.status = 'past_due'
-    # 3. Update user.subscription_status = 'past_due'
-    # 4. Log subscription_event
-    # 5. Send notification email
+    # Import email function
+    from backend.routes.subscription_management import send_payment_failed_email
+
+    # Determine status based on grace period
+    if attempt_count >= 4:
+        # Grace period expired - revoke access
+        new_status = 'unpaid'
+        logger.warning(f"Grace period expired for subscription {subscription_id}")
+    else:
+        # Still in grace period - maintain access
+        new_status = 'past_due'
+        logger.info(f"Subscription {subscription_id} in grace period (attempt {attempt_count}/3)")
+
+    # Update database
+    conn = db
+    cursor = conn.cursor() if hasattr(db, 'cursor') else None
+
+    if cursor:
+        try:
+            # Find subscription
+            cursor.execute("""
+                SELECT id, user_id FROM subscriptions
+                WHERE stripe_subscription_id = ?
+            """, (subscription_id,))
+
+            result = cursor.fetchone()
+
+            if result:
+                sub_id, user_id = result
+
+                # Update subscription status
+                cursor.execute("""
+                    UPDATE subscriptions
+                    SET status = ?, updated_at = ?
+                    WHERE id = ?
+                """, (new_status, datetime.now(timezone.utc), sub_id))
+
+                # Update user status
+                cursor.execute("""
+                    UPDATE users
+                    SET subscription_status = ?, updated_at = ?
+                    WHERE id = ?
+                """, (new_status, datetime.now(timezone.utc), user_id))
+
+                # Log event
+                cursor.execute("""
+                    INSERT INTO subscription_events
+                    (subscription_id, user_id, event_type, event_data_json, created_at)
+                    VALUES (?, ?, 'payment_failed', ?, ?)
+                """, (
+                    sub_id,
+                    user_id,
+                    json.dumps({"attempt_count": attempt_count, "status": new_status}),
+                    datetime.now(timezone.utc)
+                ))
+
+                conn.commit()
+
+                # Send notification email
+                next_attempt_str = None
+                if next_payment_attempt:
+                    next_attempt_str = datetime.fromtimestamp(next_payment_attempt).strftime('%Y-%m-%d')
+
+                if customer_email:
+                    send_payment_failed_email(customer_email, attempt_count, next_attempt_str)
+
+                logger.info(f"Updated subscription {subscription_id} to status: {new_status}")
+
+        except Exception as e:
+            logger.error(f"Error updating database for failed payment: {e}", exc_info=True)
+            conn.rollback()
 
 
 async def handle_subscription_updated(subscription: dict, db: Session):

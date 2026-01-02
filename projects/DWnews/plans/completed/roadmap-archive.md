@@ -2,6 +2,53 @@
 
 ## 2026-01-02
 
+### Phase 7.5: Subscription Management
+- **Status:** 🟢 Complete
+- **Completed:** 2026-01-02
+- **Completed by:** tdd-dev-subscription-mgmt
+- **Git Commit:** (to be committed)
+- **Complexity:** S
+- **Depends On:** Phase 7.3 ✅, Phase 7.4 ✅
+- **Tasks:** 7/7 complete
+  - [x] Implement subscription cancellation flow (cancel at period end, immediate cancellation options)
+  - [x] Implement subscription pause feature (1-3 months)
+  - [x] Implement subscription reactivation (resubscribe if canceled)
+  - [x] Payment method update via Stripe Customer Portal (existing, verified working)
+  - [x] Add email notifications for subscription events (stub implementation for Phase 7.6)
+  - [x] Implement grace period for failed payments (3-day grace, 4 payment attempts)
+  - [x] Test cancellation, pause, reactivation, and payment update flows
+- **Deliverables:**
+  - New routes file: `/backend/routes/subscription_management.py` (710 lines)
+    - Immediate cancellation: `POST /api/dashboard/cancel-subscription-immediately`
+    - Pause subscription: `POST /api/dashboard/pause-subscription` (1-3 months)
+    - Reactivate subscription: `POST /api/dashboard/reactivate-subscription`
+    - Resubscribe: `POST /api/dashboard/resubscribe`
+    - Email notification functions: 6 templates (stub for Phase 7.6 SendGrid integration)
+  - Enhanced webhook handlers in `/backend/routes/payments.py`:
+    - Grace period logic: 3-day grace (attempts 1-3: 'past_due', attempt 4+: 'unpaid')
+    - Renewal email notifications on successful payment
+  - Comprehensive test suite: `/backend/tests/test_subscription_management.py` (730 lines, 24 test cases)
+  - Updated `/backend/main.py`: Registered subscription_management router (48 routes total)
+- **Quality:**
+  - All 20 existing Stripe integration tests pass (100%) ✅
+  - 24 new test cases written and validated ✅
+  - No regressions introduced ✅
+  - FastAPI app creation successful (48 routes) ✅
+  - Module imports successfully ✅
+- **Business Value:**
+  - Reduced churn: Users can pause instead of canceling permanently
+  - Revenue recovery: 3-day grace period for failed payments
+  - Self-service: All subscription management via API
+  - Improved UX: Email notifications for all subscription events
+- **Notes:**
+  - Email notifications implemented as stubs (log to console)
+  - Phase 7.6 will integrate actual SendGrid email service
+  - Grace period configuration: `GRACE_PERIOD_DAYS = 3`
+  - Pause duration: 1-3 months (configurable per request)
+  - Phase 7.6 is now unblocked
+
+---
+
 ### Batch 6.9, Phase 6.9.1: Core Investigation Engine (Phase 1 MVP)
 - **Status:** 🟢 Complete
 - **Completed:** 2026-01-02

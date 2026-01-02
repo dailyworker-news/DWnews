@@ -11,8 +11,8 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root to path (go up from backend/agents/ to project root)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from database.models import Topic, Article, ArticleRevision, Category
 from backend.config import settings
@@ -174,15 +174,23 @@ class EnhancedJournalistAgent:
         return article
 
     def _load_verified_topic(self, topic_id: int) -> Optional[Topic]:
-        """Load topic from database and validate it's verified"""
+        """Load topic from database and validate verification status"""
         topic = self.db.query(Topic).filter_by(id=topic_id).first()
 
         if not topic:
             return None
 
-        if topic.verification_status != "verified":
-            logger.warning(f"Topic {topic_id} is not verified (status={topic.verification_status})")
+        # Accept any verification level except 'failed'
+        accepted_statuses = ['verified', 'certified', 'unverified']
+
+        if topic.verification_status not in accepted_statuses:
+            logger.warning(f"Topic {topic_id} has unacceptable verification status: {topic.verification_status}")
             return None
+
+        if topic.verification_status == 'unverified':
+            logger.info(f"Topic {topic_id} is UNVERIFIED - will include disclaimer in article")
+        elif topic.verification_status == 'certified':
+            logger.info(f"Topic {topic_id} is CERTIFIED - thoroughly researched")
 
         return topic
 
@@ -234,6 +242,16 @@ class EnhancedJournalistAgent:
             verified_facts,
             source_plan
         )
+
+        # Add verification disclosure to prompt
+        verification_note = source_plan.get('verification_note', '')
+        verification_level = source_plan.get('verification_level', 'unverified')
+
+        if verification_note:
+            prompt += f"\n\nVERIFICATION DISCLOSURE (REQUIRED):\n"
+            prompt += f"This article has verification level: {verification_level.upper()}\n"
+            prompt += f"You MUST include this disclosure at the end of the article:\n\n"
+            prompt += f"---\n**Verification Note:** {verification_note}\n---\n"
 
         # Add feedback if regenerating
         if previous_feedback:
@@ -300,6 +318,10 @@ class EnhancedJournalistAgent:
         why_this_matters = self._extract_section(article_text, "Why This Matters")
         what_you_can_do = self._extract_section(article_text, "What You Can Do")
 
+        # Get verification info from topic
+        verification_level = topic.verification_status or 'unverified'
+        source_count = topic.source_count or 0
+
         # Create article
         article = Article(
             title=title,
@@ -318,7 +340,7 @@ class EnhancedJournalistAgent:
             status='draft',  # For editorial review
             bias_scan_report=bias_report.to_json(),
             self_audit_passed=audit_result.passed,
-            editorial_notes=f"Generated from topic_id={topic.id}. Audit score: {audit_result.score:.0f}%",
+            editorial_notes=f"Generated from topic_id={topic.id}. Audit score: {audit_result.score:.0f}%. Verification: {verification_level.upper()} ({source_count} sources)",
             created_at=datetime.utcnow()
         )
 

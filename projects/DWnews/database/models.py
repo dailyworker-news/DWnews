@@ -212,7 +212,7 @@ class Topic(Base):
 
     __table_args__ = (
         CheckConstraint("status IN ('discovered', 'filtered', 'approved', 'rejected', 'generated')"),
-        CheckConstraint("verification_status IN ('pending', 'in_progress', 'verified', 'partial', 'failed')"),
+        CheckConstraint("verification_status IN ('pending', 'in_progress', 'verified', 'partial', 'failed', 'unverified', 'certified')"),
     )
 
     def __repr__(self):

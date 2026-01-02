@@ -84,10 +84,9 @@ class VerificationAgent:
             print(f"   Found {len(sources)} potential sources")
 
             if not sources:
-                print("   No sources found!")
-                topic.verification_status = 'failed'
-                self.session.commit()
-                return False
+                print("   No sources found - will proceed as UNVERIFIED")
+                # Don't fail immediately - let 3-tier system handle it
+                sources = []  # Empty list for ranking
 
             # Step 2: Rank sources by credibility
             print("\n2. Ranking sources by credibility...")
@@ -103,14 +102,22 @@ class VerificationAgent:
 
             print(f"   Credible sources (Tier 1-2): {validation['credible_sources_count']}")
             print(f"   Academic citations: {validation['academic_sources_count']}")
-            print(f"   Meets threshold: {'YES' if validation['meets_threshold'] else 'NO'}")
 
-            if not validation['meets_threshold']:
-                print("\n   Insufficient sources for verification")
-                topic.verification_status = 'insufficient_sources'
-                self.session.commit()
-                return False
+            # NEW: 3-tier verification system (unverified/verified/certified)
+            credible_count = validation['credible_sources_count']
+            academic_count = validation['academic_sources_count']
 
+            if credible_count >= 6 or academic_count >= 3:
+                verification_level = 'certified'
+                print(f"   Verification level: CERTIFIED (thorough research)")
+            elif credible_count >= 1:
+                verification_level = 'verified'
+                print(f"   Verification level: VERIFIED ({credible_count} sources)")
+            else:
+                verification_level = 'unverified'
+                print(f"   Verification level: UNVERIFIED (proceed with disclaimer)")
+
+            # Always proceed - don't block on insufficient sources
             # Step 4: Extract and verify facts
             print("\n4. Extracting and verifying facts...")
             verified_facts = self._extract_and_verify_facts(topic, ranked_sources)
@@ -119,11 +126,15 @@ class VerificationAgent:
             print("\n5. Creating attribution plan...")
             source_plan = self._create_source_plan(ranked_sources, validated=validation)
 
+            # Add verification level to source plan
+            source_plan['verification_level'] = verification_level.upper()
+            source_plan['verification_note'] = self._get_verification_note(verification_level, credible_count)
+
             # Step 6: Store results
             print("\n6. Storing verification results...")
             topic.verified_facts = json.dumps(verified_facts, indent=2)
             topic.source_plan = json.dumps(source_plan, indent=2)
-            topic.verification_status = 'verified'
+            topic.verification_status = verification_level  # Changed: use tier instead of binary
             topic.source_count = len([s for s in ranked_sources if s.credibility_tier <= 2])
             topic.academic_citation_count = validation['academic_sources_count']
 
@@ -162,8 +173,9 @@ class VerificationAgent:
         print(f"\nFound {len(topics)} topics to verify")
         print("=" * 60)
 
+        certified_count = 0
         verified_count = 0
-        insufficient_count = 0
+        unverified_count = 0
         failed_count = 0
 
         for i, topic in enumerate(topics, 1):
@@ -172,19 +184,27 @@ class VerificationAgent:
             success = self.verify_topic(topic.id)
 
             if success:
-                if topic.verification_status == 'verified':
+                # Count by verification level (all proceed, just different disclosure)
+                if topic.verification_status == 'certified':
+                    certified_count += 1
+                elif topic.verification_status == 'verified':
                     verified_count += 1
-                elif topic.verification_status == 'insufficient_sources':
-                    insufficient_count += 1
+                elif topic.verification_status == 'unverified':
+                    unverified_count += 1
             else:
                 failed_count += 1
 
+        total_successful = certified_count + verified_count + unverified_count
+
         return {
             'total_processed': len(topics),
+            'successful': total_successful,  # All non-failed are successful
+            'certified': certified_count,
             'verified': verified_count,
-            'insufficient_sources': insufficient_count,
+            'unverified': unverified_count,
             'failed': failed_count,
-            'success_rate': round((verified_count / len(topics) * 100), 2) if topics else 0
+            'avg_sources': sum([t.source_count or 0 for t in topics]) / len(topics) if topics else 0,
+            'success_rate': round((total_successful / len(topics) * 100), 2) if topics else 0
         }
 
     def _identify_sources(self, topic: Topic) -> List[Source]:
@@ -420,6 +440,24 @@ class VerificationAgent:
                 'threshold_met_by': validated.get('threshold_met_by')
             }
         }
+
+    def _get_verification_note(self, level: str, source_count: int) -> str:
+        """
+        Get verification disclaimer note based on verification level
+
+        Args:
+            level: Verification level (unverified, verified, certified)
+            source_count: Number of credible sources found
+
+        Returns:
+            Disclaimer text to display with article
+        """
+        if level == 'certified':
+            return f"This article has been thoroughly researched and verified against {source_count}+ credible sources including academic citations."
+        elif level == 'verified':
+            return f"This article has been verified against {source_count} credible source{'s' if source_count != 1 else ''}. Citations are provided below."
+        else:
+            return "This article could not be independently verified through our standard fact-checking process. We're publishing it because we believe it's newsworthy, but readers should exercise additional caution. If you have information about this story, please contact our editorial team."
 
     def get_verification_stats(self) -> Dict:
         """

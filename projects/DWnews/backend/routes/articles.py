@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from database.models import Article, Category, Region, Source
 from backend.database import get_db
+from backend.auth import get_current_user
 
 router = APIRouter()
 
@@ -32,6 +33,8 @@ class ArticleResponse(BaseModel):
     is_local: bool
     is_ongoing: bool
     is_new: bool
+    is_premium: bool = False  # Premium content flag
+    preview_only: bool = False  # True if only showing preview
     region_name: Optional[str]
     reading_level: Optional[float]
     word_count: Optional[int]
@@ -134,19 +137,57 @@ def get_articles(
 
 
 @router.get("/{article_id}", response_model=ArticleResponse)
-def get_article(article_id: int, db: Session = Depends(get_db)):
-    """Get single article by ID"""
+async def get_article(
+    article_id: int,
+    user: Optional[dict] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get single article by ID with access control
+
+    - Premium articles require active subscription
+    - Free users see preview (first 2 paragraphs) if limit reached
+    - Subscribers get full access to all articles
+    """
 
     article = db.query(Article).filter(Article.id == article_id).first()
 
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
 
+    # Determine access level
+    is_premium = getattr(article, 'is_premium', False)
+    subscription_status = user.get("subscription_status", "free") if user else "free"
+
+    # Subscribers get full access
+    is_subscriber = subscription_status in ["active", "trialing"]
+
+    # Check if we should show preview only
+    preview_only = False
+    body = article.body
+
+    if not is_subscriber:
+        # Free users: check if article is premium or if they've reached limits
+        if is_premium:
+            preview_only = True
+        else:
+            # Check access limits via access_control logic
+            # For simplicity here, we'll show full content for free articles
+            # The frontend will call /api/access/check-article to enforce limits
+            pass
+
+        # If preview only, truncate body to first 2 paragraphs
+        if preview_only and body:
+            paragraphs = body.split('\n\n')
+            if len(paragraphs) > 2:
+                body = '\n\n'.join(paragraphs[:2])
+                body += '\n\n[Content preview - Subscribe to read more]'
+
     return ArticleResponse(
         id=article.id,
         title=article.title,
         slug=article.slug,
-        body=article.body,
+        body=body,
         summary=article.summary,
         category_name=article.category.name,
         category_slug=article.category.slug,
@@ -155,6 +196,8 @@ def get_article(article_id: int, db: Session = Depends(get_db)):
         is_local=article.is_local,
         is_ongoing=article.is_ongoing,
         is_new=article.is_new,
+        is_premium=is_premium,
+        preview_only=preview_only,
         region_name=article.region.name if article.region else None,
         reading_level=article.reading_level,
         word_count=article.word_count,

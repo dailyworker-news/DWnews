@@ -191,7 +191,19 @@ function renderArticle(article) {
 function formatArticleBody(body) {
     if (!body) return '';
 
-    // Split by double line breaks to create paragraphs
+    // Use marked.js to parse markdown if available
+    if (typeof marked !== 'undefined') {
+        // Configure marked for safe rendering
+        marked.setOptions({
+            breaks: true,  // Convert \n to <br>
+            gfm: true,     // GitHub Flavored Markdown
+            sanitize: false // We trust our own content
+        });
+
+        return marked.parse(body);
+    }
+
+    // Fallback: Simple paragraph splitting if marked.js not loaded
     const paragraphs = body.split('\n\n').filter(p => p.trim());
 
     return paragraphs.map(p => {

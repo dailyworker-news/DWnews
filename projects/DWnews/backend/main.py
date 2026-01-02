@@ -96,10 +96,11 @@ async def root():
 
 
 # API Routes
-from backend.routes import articles, editorial
+from backend.routes import articles, editorial, payments
 
 app.include_router(articles.router, prefix="/api/articles", tags=["articles"])
 app.include_router(editorial.router, prefix="/api/editorial", tags=["editorial"])
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 
 
 if __name__ == "__main__":

@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     admin_password: str = Field(default="changeme", alias="ADMIN_PASSWORD")
     secret_key: str = Field(default="insecure-dev-key", alias="SECRET_KEY")
 
+    # Stripe Payment Integration
+    stripe_publishable_key: Optional[str] = Field(default=None, alias="STRIPE_PUBLISHABLE_KEY")
+    stripe_secret_key: Optional[str] = Field(default=None, alias="STRIPE_SECRET_KEY")
+    stripe_webhook_secret: Optional[str] = Field(default=None, alias="STRIPE_WEBHOOK_SECRET")
+
     # Content Settings
     min_reading_level: float = Field(default=7.5, alias="MIN_READING_LEVEL")
     max_reading_level: float = Field(default=8.5, alias="MAX_READING_LEVEL")

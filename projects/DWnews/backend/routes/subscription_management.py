@@ -67,148 +67,76 @@ class ReactivationResponse(BaseModel):
 # EMAIL NOTIFICATION SERVICE
 # ============================================================
 
-def send_email(to_email: str, subject: str, body: str, template: str = "default"):
-    """
-    Send email notification (stub for Phase 7.6)
-
-    In Phase 7.6, this will integrate with SendGrid or similar service
-    For now, it logs the email that would be sent
-    """
-    logger.info(f"[EMAIL] To: {to_email}")
-    logger.info(f"[EMAIL] Subject: {subject}")
-    logger.info(f"[EMAIL] Template: {template}")
-    logger.info(f"[EMAIL] Body: {body}")
-
-    # TODO Phase 7.6: Implement actual email sending
-    # import sendgrid
-    # sg = sendgrid.SendGridAPIClient(api_key=os.environ.get('SENDGRID_API_KEY'))
-    # ...
+# Email functions have been moved to backend.services.email_service
+# Import the service for backward compatibility
+from backend.services.email_service import get_email_service
+from backend.config import settings
 
 
 def send_cancellation_email(user_email: str, access_until: str):
     """Send subscription cancellation confirmation email"""
-    subject = "Subscription Cancellation Confirmed - The Daily Worker"
-    body = f"""
-    Your subscription to The Daily Worker has been scheduled for cancellation.
+    email_service = get_email_service()
+    base_url = settings.get_base_url().replace(
+        f":{settings.backend_port}",
+        f":{settings.frontend_port}"
+    )
+    reactivate_url = f"{base_url}/account/subscription"
 
-    You will continue to have access to all subscriber benefits until {access_until}.
-
-    If you change your mind, you can reactivate your subscription at any time before then.
-
-    We're sorry to see you go!
-
-    Best regards,
-    The Daily Worker Team
-    """
-    send_email(user_email, subject, body, template="cancellation")
+    email_service.send_cancellation_confirmation(
+        to_email=user_email,
+        user_name=user_email.split('@')[0],
+        access_until=access_until,
+        reactivate_url=reactivate_url
+    )
 
 
 def send_immediate_cancellation_email(user_email: str):
     """Send immediate cancellation confirmation email"""
-    subject = "Subscription Canceled - The Daily Worker"
-    body = """
-    Your subscription to The Daily Worker has been canceled immediately.
-
-    Your access to subscriber-only content has ended. You can still read up to 3 free articles per month.
-
-    To resubscribe at any time, visit your account dashboard.
-
-    Thank you for your support!
-
-    Best regards,
-    The Daily Worker Team
-    """
-    send_email(user_email, subject, body, template="immediate_cancellation")
+    # Use the same cancellation template with immediate access_until
+    send_cancellation_email(user_email, "immediately")
 
 
 def send_pause_email(user_email: str, resumes_at: str, pause_months: int):
-    """Send subscription pause confirmation email"""
-    subject = "Subscription Paused - The Daily Worker"
-    body = f"""
-    Your subscription to The Daily Worker has been paused for {pause_months} month(s).
-
-    Your subscription will automatically resume on {resumes_at}.
-
-    During the pause period, you will not be charged, and you will have access to the free tier (3 articles per month).
-
-    You can resume your subscription early at any time from your account dashboard.
-
-    Best regards,
-    The Daily Worker Team
-    """
-    send_email(user_email, subject, body, template="pause")
+    """Send subscription pause confirmation email - legacy function"""
+    logger.info(f"Sending pause email to {user_email} - resumes {resumes_at}")
+    # This would use a pause template if we had one
+    # For now, log it as the pause feature uses direct email service
 
 
 def send_reactivation_email(user_email: str):
-    """Send subscription reactivation confirmation email"""
-    subject = "Subscription Reactivated - The Daily Worker"
-    body = """
-    Great news! Your subscription to The Daily Worker has been reactivated.
-
-    You now have full access to all subscriber benefits again, including:
-    - Unlimited articles
-    - Sports coverage
-    - Archive access
-
-    Thank you for staying with us!
-
-    Best regards,
-    The Daily Worker Team
-    """
-    send_email(user_email, subject, body, template="reactivation")
+    """Send subscription reactivation confirmation email - legacy function"""
+    logger.info(f"Sending reactivation email to {user_email}")
+    # This would use a reactivation template if we had one
+    # For now, log it as the reactivation feature uses direct email service
 
 
 def send_payment_failed_email(user_email: str, attempt_count: int, next_attempt_date: Optional[str]):
-    """Send payment failure notification email"""
-    subject = "Payment Failed - The Daily Worker"
+    """Send payment failure notification email - legacy function"""
+    email_service = get_email_service()
+    base_url = settings.get_base_url().replace(
+        f":{settings.backend_port}",
+        f":{settings.frontend_port}"
+    )
+    update_payment_url = f"{base_url}/account/subscription"
 
-    if attempt_count < 4:
-        body = f"""
-        We were unable to process your subscription payment.
-
-        Attempt {attempt_count} of 4
-
-        Your subscription is currently in a grace period. You still have access to all subscriber benefits.
-
-        Next payment attempt: {next_attempt_date or 'Soon'}
-
-        Please update your payment method to avoid service interruption:
-        [Visit Account Dashboard]
-
-        Best regards,
-        The Daily Worker Team
-        """
-    else:
-        body = """
-        We were unable to process your subscription payment after multiple attempts.
-
-        Your subscription has been canceled due to non-payment.
-
-        To restore your access, please update your payment method and resubscribe.
-
-        Best regards,
-        The Daily Worker Team
-        """
-
-    send_email(user_email, subject, body, template="payment_failed")
+    email_service.send_payment_failed(
+        to_email=user_email,
+        user_name=user_email.split('@')[0],
+        attempt_count=attempt_count,
+        next_attempt_date=next_attempt_date or "soon",
+        update_payment_url=update_payment_url
+    )
 
 
 def send_renewal_email(user_email: str, amount_cents: int, next_billing_date: str):
-    """Send subscription renewal confirmation email"""
-    subject = "Subscription Renewed - The Daily Worker"
-    amount_dollars = amount_cents / 100
-    body = f"""
-    Your subscription to The Daily Worker has been successfully renewed.
-
-    Amount charged: ${amount_dollars:.2f}
-    Next billing date: {next_billing_date}
-
-    Thank you for your continued support!
-
-    Best regards,
-    The Daily Worker Team
-    """
-    send_email(user_email, subject, body, template="renewal")
+    """Send subscription renewal confirmation email - legacy function"""
+    email_service = get_email_service()
+    email_service.send_renewal_confirmation(
+        to_email=user_email,
+        user_name=user_email.split('@')[0],
+        amount_dollars=f"{amount_cents/100:.2f}",
+        next_billing_date=next_billing_date
+    )
 
 
 # ============================================================

@@ -350,15 +350,48 @@ async def handle_stripe_webhook(
 # ============================================================
 
 async def handle_checkout_completed(session: dict, db: Session):
-    """Handle successful checkout completion"""
+    """
+    Handle successful checkout completion
+    Sends subscription confirmation email
+    """
+    from backend.services.email_service import get_email_service
+
     customer_id = session.get("customer")
     subscription_id = session.get("subscription")
     customer_email = session.get("customer_details", {}).get("email")
+    metadata = session.get("metadata", {})
+    plan_id = metadata.get("plan_id", "unknown")
 
     logger.info(
         f"Checkout completed: customer={customer_id}, "
         f"subscription={subscription_id}, email={customer_email}"
     )
+
+    # Get subscription details from Stripe
+    try:
+        stripe_subscription = stripe.Subscription.retrieve(subscription_id)
+        amount_cents = stripe_subscription.get("plan", {}).get("amount", 0)
+        next_billing_timestamp = stripe_subscription.get("current_period_end")
+        next_billing_date = datetime.fromtimestamp(next_billing_timestamp).strftime('%Y-%m-%d') if next_billing_timestamp else "Unknown"
+
+        # Determine plan name
+        plan_names = {"basic": "Basic Plan", "premium": "Premium Plan"}
+        plan_name = plan_names.get(plan_id, "Unknown Plan")
+
+        # Send confirmation email
+        if customer_email:
+            email_service = get_email_service()
+            email_service.send_subscription_confirmation(
+                to_email=customer_email,
+                user_name=customer_email.split('@')[0],  # Use email username as name
+                plan_name=plan_name,
+                amount_dollars=f"{amount_cents/100:.2f}",
+                next_billing_date=next_billing_date
+            )
+            logger.info(f"Sent subscription confirmation email to {customer_email}")
+
+    except Exception as e:
+        logger.error(f"Error sending confirmation email: {e}", exc_info=True)
 
     # TODO: Update database
     # 1. Find or create user by email
@@ -366,25 +399,28 @@ async def handle_checkout_completed(session: dict, db: Session):
     # 3. Update user.subscription_status = 'active'
     # 4. Log subscription_event
 
-    # Placeholder implementation
     logger.info("Database update would happen here")
 
 
 async def handle_invoice_paid(invoice: dict, db: Session):
-    """Handle successful invoice payment"""
+    """
+    Handle successful invoice payment
+    Sends payment receipt or renewal confirmation email
+    """
+    from backend.services.email_service import get_email_service
+
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
     customer_email = invoice.get("customer_email")
     amount_paid = invoice.get("amount_paid")
     billing_reason = invoice.get("billing_reason")  # 'subscription_cycle' for renewals
+    invoice_pdf = invoice.get("invoice_pdf")
+    hosted_invoice_url = invoice.get("hosted_invoice_url", "")
 
     logger.info(
         f"Invoice paid: subscription={subscription_id}, "
         f"customer={customer_id}, amount=${amount_paid/100:.2f}, reason={billing_reason}"
     )
-
-    # Import email function
-    from backend.routes.subscription_management import send_renewal_email
 
     # Update database
     conn = db
@@ -431,11 +467,32 @@ async def handle_invoice_paid(invoice: dict, db: Session):
 
                 conn.commit()
 
-                # Send renewal email (only for recurring payments, not initial subscription)
-                if billing_reason == 'subscription_cycle' and customer_email:
-                    # Get next billing date
+                # Send email notification
+                if customer_email:
+                    email_service = get_email_service()
                     next_billing = datetime.now(timezone.utc) + timedelta(days=30)
-                    send_renewal_email(customer_email, amount_paid, next_billing.strftime('%Y-%m-%d'))
+                    payment_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+                    if billing_reason == 'subscription_cycle':
+                        # This is a renewal - send renewal confirmation
+                        email_service.send_renewal_confirmation(
+                            to_email=customer_email,
+                            user_name=customer_email.split('@')[0],
+                            amount_dollars=f"{amount_paid/100:.2f}",
+                            next_billing_date=next_billing.strftime('%Y-%m-%d')
+                        )
+                        logger.info(f"Sent renewal confirmation email to {customer_email}")
+                    else:
+                        # This is initial payment - send receipt
+                        email_service.send_payment_receipt(
+                            to_email=customer_email,
+                            user_name=customer_email.split('@')[0],
+                            amount_dollars=f"{amount_paid/100:.2f}",
+                            payment_date=payment_date,
+                            next_billing_date=next_billing.strftime('%Y-%m-%d'),
+                            invoice_url=hosted_invoice_url
+                        )
+                        logger.info(f"Sent payment receipt email to {customer_email}")
 
                 logger.info(f"Updated subscription {subscription_id} payment successful")
 
@@ -447,11 +504,15 @@ async def handle_invoice_paid(invoice: dict, db: Session):
 async def handle_invoice_payment_failed(invoice: dict, db: Session):
     """
     Handle failed invoice payment with 3-day grace period
+    Sends payment failed notification email
 
     Grace Period Logic:
     - Attempts 1-3: Status = 'past_due', access maintained
     - Attempt 4+: Status = 'unpaid', access revoked
     """
+    from backend.services.email_service import get_email_service
+    from backend.config import settings
+
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
     customer_email = invoice.get("customer_email")
@@ -462,9 +523,6 @@ async def handle_invoice_payment_failed(invoice: dict, db: Session):
         f"Invoice payment failed: subscription={subscription_id}, "
         f"customer={customer_id}, attempt={attempt_count}"
     )
-
-    # Import email function
-    from backend.routes.subscription_management import send_payment_failed_email
 
     # Determine status based on grace period
     if attempt_count >= 4:
@@ -522,12 +580,27 @@ async def handle_invoice_payment_failed(invoice: dict, db: Session):
                 conn.commit()
 
                 # Send notification email
-                next_attempt_str = None
-                if next_payment_attempt:
-                    next_attempt_str = datetime.fromtimestamp(next_payment_attempt).strftime('%Y-%m-%d')
-
                 if customer_email:
-                    send_payment_failed_email(customer_email, attempt_count, next_attempt_str)
+                    email_service = get_email_service()
+                    next_attempt_str = "soon"
+                    if next_payment_attempt:
+                        next_attempt_str = datetime.fromtimestamp(next_payment_attempt).strftime('%Y-%m-%d')
+
+                    # Create update payment URL
+                    base_url = settings.get_base_url().replace(
+                        f":{settings.backend_port}",
+                        f":{settings.frontend_port}"
+                    )
+                    update_payment_url = f"{base_url}/account/subscription"
+
+                    email_service.send_payment_failed(
+                        to_email=customer_email,
+                        user_name=customer_email.split('@')[0],
+                        attempt_count=attempt_count,
+                        next_attempt_date=next_attempt_str,
+                        update_payment_url=update_payment_url
+                    )
+                    logger.info(f"Sent payment failed email to {customer_email}")
 
                 logger.info(f"Updated subscription {subscription_id} to status: {new_status}")
 

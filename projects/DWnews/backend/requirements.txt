@@ -42,6 +42,9 @@ google-generativeai==0.3.2  # Google Gemini API
 # Payment Processing
 stripe==7.10.0          # Stripe SDK for Python
 
+# Email Service
+sendgrid==6.11.0        # SendGrid email API (free tier: 100 emails/day)
+
 # Content Processing
 beautifulsoup4==4.12.3
 lxml==5.1.0

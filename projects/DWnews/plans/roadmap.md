@@ -486,6 +486,109 @@ Implements specialized investigatory journalism agent to handle Unverified artic
 
 ---
 
+## Batch 6.10: Multi-Editor User Management
+
+**Dependencies:** Batch 6 complete (Editorial Workflow Integration Phase 6.6)
+**Parallel:** 6.10.1-6.10.2 simultaneous, then 6.10.3
+**Purpose:** Implement multi-user authentication and category-based assignment for editorial oversight
+**Priority:** High (blocks scaling editorial operations with multiple human editors)
+
+**Overview:**
+The current editorial system lacks multi-user support. The admin portal at `/frontend/admin/` has no authentication, and the `assigned_editor` field is just a string. This phase implements a complete user management system with role-based access control, category-based assignment, and secure authentication to enable scaling editorial oversight with multiple human editors.
+
+**Current State:**
+- Editorial API routes exist (approve, request revision, reject) ✅
+- Admin review interface displays quality metrics ✅
+- Editorial workflow logic in Enhanced Journalist Agent ✅
+- Article status field with editorial states ✅
+
+**Missing Components:**
+- `users` table for editor accounts
+- `editorial_queue` table for tracking article assignments
+- Authentication system (login/logout, JWT tokens, password hashing)
+- User management interface (create/edit/delete editor accounts)
+- Assignment system (assign articles to specific editors by category)
+- Multi-editor support (different editors for Labor, Politics, Economics, etc.)
+
+### Phase 6.10.1: Database Schema & Authentication Backend
+- **Status:** ⚪ Not Started
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Create `users` table (email, password_hash, role, preferred_state_id, created_at, last_login)
+  - [ ] Create `editorial_queue` table (article_id, status, assigned_editor_id, category_preference, priority, created_at, updated_at)
+  - [ ] Add indexes for performance (users.email, editorial_queue.assigned_editor_id, editorial_queue.status)
+  - [ ] Implement authentication backend (FastAPI OAuth2/JWT, bcrypt password hashing)
+  - [ ] Build authentication API endpoints (POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me)
+  - [ ] Implement JWT token generation and validation middleware
+  - [ ] Add session management with secure cookies (HttpOnly, Secure, SameSite)
+  - [ ] Test authentication flow locally (login, token refresh, logout)
+- **Done When:** Database tables created, authentication API functional, JWT tokens working
+- **Deliverables:**
+  - Migration SQL: `/database/migrations/004_user_management.sql`
+  - Migration runner: `/database/migrations/run_migration_004.py`
+  - Authentication module: `/backend/auth/auth.py` (JWT generation, password hashing, token validation)
+  - Auth API routes: `/backend/routes/auth.py` (login, logout, me endpoints)
+  - SQLAlchemy models: Updated with User model
+  - Test suite: `/scripts/test_authentication.py`
+
+### Phase 6.10.2: User Management API & Admin Interface
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.10.1
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Build user management API endpoints (CRUD: create, read, update, delete editors)
+  - [ ] Implement role-based access control (admin vs. editor permissions)
+  - [ ] Add category assignment endpoints (assign editors to categories: Labor, Politics, etc.)
+  - [ ] Build login UI for admin portal (login form, session management, logout button)
+  - [ ] Build user management interface (list editors, create/edit/delete forms)
+  - [ ] Add category preference UI (checkboxes for each category per editor)
+  - [ ] Implement admin-only access restrictions (require admin role for user management)
+  - [ ] Test user CRUD operations and role enforcement
+- **Done When:** Admins can create/edit/delete editor accounts, assign categories, all role restrictions working
+- **Deliverables:**
+  - User management API: `/backend/routes/users.py` (CRUD endpoints, role checks)
+  - Login page: `/frontend/admin/login.html` (authentication form)
+  - User management UI: `/frontend/admin/users.html` (editor management interface)
+  - JavaScript: `/frontend/admin/scripts/users.js` (user management logic)
+  - CSS updates: `/frontend/admin/styles/users.css`
+  - Test suite: `/scripts/test_user_management.py`
+
+### Phase 6.10.3: Category-Based Assignment & Editorial Queue
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.10.1, Phase 6.10.2
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Implement category-based assignment algorithm (match article category to editor preferences)
+  - [ ] Build assignment API endpoints (GET /api/editorial/queue, POST /api/editorial/assign)
+  - [ ] Update editorial_queue with automatic assignment on article creation
+  - [ ] Add manual reassignment capability (admin can reassign articles)
+  - [ ] Update admin portal to filter by assigned articles (editors see only their assignments)
+  - [ ] Implement workload balancing (distribute articles evenly across editors in same category)
+  - [ ] Add assignment notifications (email alerts when article assigned)
+  - [ ] Test multi-editor concurrent review workflow (2+ editors working simultaneously)
+- **Done When:** Articles automatically assigned by category, editors see only their queue, workload balanced
+- **Deliverables:**
+  - Assignment algorithm: `/backend/agents/assignment_engine.py` (category matching, workload balancing)
+  - Assignment API: `/backend/routes/assignment.py` (queue, assign, reassign endpoints)
+  - Updated review interface: `/frontend/admin/review-article.html` (filter by assigned editor)
+  - Email notifications: Updated `/backend/agents/email_notifications.py` (assignment alerts)
+  - Test suite: `/scripts/test_assignment_workflow.py` (multi-editor concurrency tests)
+  - Documentation: `/docs/MULTI_EDITOR_SETUP.md` (setup guide for editorial team)
+
+**Batch 6.10 Success Criteria:**
+- [ ] Multiple editor accounts with role-based access (admin vs. editor)
+- [ ] Secure authentication with JWT tokens and password hashing
+- [ ] Category-based assignment (Labor editor, Politics editor, etc.)
+- [ ] Editorial queue management (editors see only assigned articles)
+- [ ] Admin portal requires authentication (no anonymous access)
+- [ ] Workload balancing across editors in same category
+- [ ] Multi-editor concurrent review tested and functional
+- [ ] Email notifications for article assignments
+- [ ] Complete user management interface (create/edit/delete editors)
+- [ ] Ready for production use with multiple human editors
+
+---
+
 ## ✅ Batch 6.5: COMPLETED (2026-01-01)
 **See:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md`
 
@@ -1229,14 +1332,15 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 7. ✅ Testing Infrastructure & CI/CD (Batch 6.5) COMPLETE
 8. ✅ Deployment Pipeline (Batch 6.5) COMPLETE - **ON HOLD**
 9. ✅ 3-Tier Verification System (Batch 6 enhancement) COMPLETE
-10. **NEXT:** Investigatory Journalist Agent (Batch 6.9)
-11. **PARALLEL:** Local testing completion (functional + end-user testing)
-12. **PARALLEL:** Security configuration setup (CLOUD_SECURITY_CONFIG.md)
-13. **PARALLEL:** Subscription System (Batch 7 - can proceed with security setup)
-14. Set up new GCP account with proper security controls
-15. Deploy to GCP (Batch 8 - cloud costs begin, ONLY after security complete)
-16. Cloud operations setup (Batch 9)
-17. Production testing and soft launch (Batch 10)
+10. ✅ Investigatory Journalist Agent (Batch 6.9) COMPLETE
+11. **NEXT:** Multi-Editor User Management (Batch 6.10)
+12. **PARALLEL:** Local testing completion (functional + end-user testing)
+13. **PARALLEL:** Security configuration setup (CLOUD_SECURITY_CONFIG.md)
+14. **PARALLEL:** Subscription System (Batch 7 - can proceed with security setup and user management)
+15. Set up new GCP account with proper security controls
+16. Deploy to GCP (Batch 8 - cloud costs begin, ONLY after security complete)
+17. Cloud operations setup (Batch 9)
+18. Production testing and soft launch (Batch 10)
 
 **Key Blockers Before Production:**
 - Complete all functional tests locally

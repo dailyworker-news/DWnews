@@ -146,6 +146,37 @@
   border-color: var(--article-gray-200);
 }
 
+/* Verification Badges */
+.badge-verification {
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-verification .badge-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.badge-verified-certified {
+  background: #22c55e;
+  color: var(--article-white);
+  border-color: #16a34a;
+}
+
+.badge-verified-yes {
+  background: #3b82f6;
+  color: var(--article-white);
+  border-color: #2563eb;
+}
+
+.badge-verified-no {
+  background: #f59e0b;
+  color: var(--article-white);
+  border-color: #d97706;
+}
+
 /* Article Page Title - Newspaper Headline Style */
 .article-page-title {
   font-family: 'Playfair Display', serif;

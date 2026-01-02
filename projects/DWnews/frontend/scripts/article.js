@@ -94,6 +94,9 @@ function renderArticle(article) {
             document.getElementById('localBadge').style.display = 'inline-block';
         }
 
+        // Verification badge
+        displayVerificationBadge(article);
+
         // Title
         document.getElementById('articleTitle').textContent = article.title;
 
@@ -196,6 +199,61 @@ function formatArticleBody(body) {
         const content = p.trim().replace(/\n/g, '<br>');
         return `<p>${content}</p>`;
     }).join('');
+}
+
+// Display verification badge based on editorial notes
+function displayVerificationBadge(article) {
+    const verificationBadge = document.getElementById('verificationBadge');
+
+    // Extract verification info from editorial_notes
+    if (!article.editorial_notes) {
+        return; // No verification info
+    }
+
+    const notes = article.editorial_notes.toLowerCase();
+    let verificationLevel = null;
+    let sourceCount = 0;
+
+    // Parse verification level from editorial notes
+    if (notes.includes('verification: certified')) {
+        verificationLevel = 'certified';
+        const match = notes.match(/verification: certified \((\d+) sources\)/);
+        if (match) sourceCount = parseInt(match[1]);
+    } else if (notes.includes('verification: verified')) {
+        verificationLevel = 'verified';
+        const match = notes.match(/verification: verified \((\d+) sources\)/);
+        if (match) sourceCount = parseInt(match[1]);
+    } else if (notes.includes('verification: unverified')) {
+        verificationLevel = 'unverified';
+        sourceCount = 0;
+    }
+
+    if (!verificationLevel) {
+        return; // No verification info found
+    }
+
+    // Set badge content and class
+    verificationBadge.className = 'article-badge badge-verification';
+
+    switch(verificationLevel) {
+        case 'certified':
+            verificationBadge.classList.add('badge-verified-certified');
+            verificationBadge.innerHTML = `<span class="badge-icon">✓✓</span> Certified (${sourceCount}+ sources)`;
+            verificationBadge.title = 'This article has been thoroughly researched and verified against multiple credible sources';
+            break;
+        case 'verified':
+            verificationBadge.classList.add('badge-verified-yes');
+            verificationBadge.innerHTML = `<span class="badge-icon">✓</span> Verified (${sourceCount} source${sourceCount !== 1 ? 's' : ''})`;
+            verificationBadge.title = `This article has been verified against ${sourceCount} credible source${sourceCount !== 1 ? 's' : ''}`;
+            break;
+        case 'unverified':
+            verificationBadge.classList.add('badge-verified-no');
+            verificationBadge.innerHTML = `<span class="badge-icon">⚠</span> Unverified`;
+            verificationBadge.title = 'This article could not be independently verified. Exercise additional caution.';
+            break;
+    }
+
+    verificationBadge.style.display = 'inline-block';
 }
 
 // Check if article is new (within 24 hours)

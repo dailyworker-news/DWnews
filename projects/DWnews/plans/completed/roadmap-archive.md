@@ -1,5 +1,32 @@
 # Completed Work
 
+## 2026-01-02
+
+### Batch 6.9, Phase 6.9.1: Core Investigation Engine (Phase 1 MVP)
+- **Status:** 🟢 Complete
+- **Completed:** 2026-01-02
+- **Completed by:** investigatory-agent-01
+- **Git Commit:** 930db5d
+- **Complexity:** M
+- **Tasks:** 7/7 complete
+- **Deliverables:**
+  - Main agent: `/backend/agents/investigatory_journalist_agent.py` (645 lines)
+  - Multi-engine search framework (5 search engines: Academic, Public Records, Expert, Media Archive, Specialized)
+  - Origin tracing implementation (verifies claims back to original sources)
+  - Cross-reference validation (compares findings across multiple sources)
+  - Verification upgrade logic (attempts to elevate Unverified → Verified/Certified)
+  - Database schema: Added 4 fields to topics table (investigation_status, investigation_findings, investigation_started_at, investigation_completed_at)
+  - Test suite: Validated with unverified topic, successfully generated investigation plan
+  - Phase 1 MVP: Mock search engines for testing (Phase 2 will integrate real WebSearch)
+- **Quality:** Investigation workflow functional, tested successfully, ready for Phase 2 ✅
+- **Notes:**
+  - Tested successfully on unverified topic
+  - All investigation engines operational
+  - Database integration complete
+  - Phase 2 (Source Elevation Engine with real WebSearch) is next
+
+---
+
 ## 2025-12-29
 
 ### Batch 1: Local Development Setup

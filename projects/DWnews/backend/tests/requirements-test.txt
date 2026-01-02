@@ -1,0 +1,15 @@
+# Test dependencies for The Daily Worker Backend
+
+# Testing framework
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+
+# FastAPI testing
+httpx>=0.24.0
+
+# Already required by main app (included for reference)
+# fastapi>=0.104.0
+# sqlalchemy>=2.0.0
+# pydantic>=2.0.0
+# pydantic-settings>=2.0.0

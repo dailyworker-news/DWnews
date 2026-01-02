@@ -1,0 +1,130 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Backend Tests
+  backend-tests:
+    name: Backend Tests
+    uses: ./.github/workflows/backend-tests.yml
+
+  # Job 2: Frontend Tests
+  frontend-tests:
+    name: Frontend Tests
+    uses: ./.github/workflows/frontend-tests.yml
+
+  # Job 3: Code Quality
+  code-quality:
+    name: Code Quality
+    uses: ./.github/workflows/code-quality.yml
+
+  # Job 4: Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety
+
+      - name: Check for security vulnerabilities
+        working-directory: projects/DWnews
+        continue-on-error: true
+        run: |
+          pip install -r backend/requirements.txt
+          safety check --json > safety-report.json || true
+          cat safety-report.json
+
+      - name: Upload safety report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-security-report
+          path: projects/DWnews/safety-report.json
+          retention-days: 7
+
+  # Job 5: Build Check
+  build-check:
+    name: Build & Import Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: projects/DWnews
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Check Python imports
+        working-directory: projects/DWnews
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/DWnews
+        run: |
+          python -c "from backend.main import app; print('✓ Backend imports OK')"
+          python -c "from database.models import Article, Category; print('✓ Database models import OK')"
+          python -c "from backend.config import settings; print('✓ Config imports OK')"
+
+      - name: Verify database schema
+        working-directory: projects/DWnews
+        run: |
+          python -c "
+          from database.models import Base
+          from sqlalchemy import create_engine
+          engine = create_engine('sqlite:///test_schema.db')
+          Base.metadata.create_all(engine)
+          print('✓ Database schema valid')
+          "
+          rm -f test_schema.db
+
+  # Final job: Status check
+  ci-status:
+    name: CI Status Check
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, code-quality, security-scan, build-check]
+    if: always()
+
+    steps:
+      - name: Check CI status
+        run: |
+          echo "### CI Pipeline Results 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Check | ${{ needs.build-check.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any required job failed
+        if: |
+          needs.backend-tests.result == 'failure' ||
+          needs.frontend-tests.result == 'failure' ||
+          needs.build-check.result == 'failure'
+        run: exit 1

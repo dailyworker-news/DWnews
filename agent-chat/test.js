@@ -21,28 +21,45 @@ async function testAgentChat() {
     const js = nc.jetstream();
     const jsm = await nc.jetstreamManager();
 
-    // Create stream if it doesn't exist
+    // Create or update stream
     try {
-      await jsm.streams.add({
-        name: 'AGENT_CHAT',
-        subjects: ['chat.roadmap', 'chat.coordination', 'chat.errors'],
+      await jsm.streams.update('AGENT_CHAT', {
+        subjects: ['chat.general', 'chat.roadmap', 'chat.coordination', 'chat.errors'],
         retention: 'limits',
         max_msgs_per_subject: 1000,
         max_bytes: 100 * 1024 * 1024,
         max_age: 7 * 24 * 60 * 60 * 1_000_000_000,
         storage: 'file',
       });
-      console.log('✅ Created AGENT_CHAT stream\n');
+      console.log('✅ Updated AGENT_CHAT stream with #general channel\n');
     } catch (err) {
-      if (err.message.includes('stream name already in use')) {
-        console.log('✅ AGENT_CHAT stream already exists\n');
+      if (err.message.includes('stream not found')) {
+        await jsm.streams.add({
+          name: 'AGENT_CHAT',
+          subjects: ['chat.general', 'chat.roadmap', 'chat.coordination', 'chat.errors'],
+          retention: 'limits',
+          max_msgs_per_subject: 1000,
+          max_bytes: 100 * 1024 * 1024,
+          max_age: 7 * 24 * 60 * 60 * 1_000_000_000,
+          storage: 'file',
+        });
+        console.log('✅ Created AGENT_CHAT stream\n');
       } else {
         throw err;
       }
     }
 
-    // Simulate Agent 1: Project Manager
-    console.log('📝 Agent: project-manager');
+    // Simulate Agent 1: Project Manager - Introduction
+    console.log('👋 Agent: project-manager (Marcus)');
+    await js.publish('chat.general', jc.encode({
+      handle: 'project-manager',
+      message: 'Hey everyone! I\'m Marcus, the project manager. I keep our roadmap organized and help coordinate parallel workstreams. Let\'s ship some great work!',
+      timestamp: new Date().toISOString(),
+    }));
+    console.log('  → Posted to #general\n');
+
+    // Simulate Agent 1: Project Manager - Work coordination
+    console.log('📝 Agent: project-manager (Marcus)');
     await js.publish('chat.coordination', jc.encode({
       handle: 'project-manager',
       message: 'Starting Phase 1.1 - GCP Infrastructure setup. ETA: 2 hours',

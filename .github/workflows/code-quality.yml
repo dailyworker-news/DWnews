@@ -1,0 +1,98 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/DWnews/backend/**'
+      - 'projects/DWnews/database/**'
+      - '.github/workflows/code-quality.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/DWnews/backend/**'
+      - 'projects/DWnews/database/**'
+      - '.github/workflows/code-quality.yml'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Linting & Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort mypy pylint
+
+      - name: Run Black (code formatter check)
+        working-directory: projects/DWnews
+        continue-on-error: true
+        run: |
+          black --check --diff backend/ database/ || echo "::warning::Black formatting issues found"
+
+      - name: Run isort (import sorting check)
+        working-directory: projects/DWnews
+        continue-on-error: true
+        run: |
+          isort --check-only --diff backend/ database/ || echo "::warning::Import sorting issues found"
+
+      - name: Run Flake8 (style guide)
+        working-directory: projects/DWnews
+        continue-on-error: true
+        run: |
+          flake8 backend/ database/ \
+            --count \
+            --max-line-length=120 \
+            --statistics \
+            --show-source \
+            --exclude=migrations,__pycache__,.git,venv \
+            --ignore=E203,W503,E501 \
+            || echo "::warning::Flake8 issues found"
+
+      - name: Run Pylint (code analysis)
+        working-directory: projects/DWnews
+        continue-on-error: true
+        run: |
+          pylint backend/ database/ \
+            --max-line-length=120 \
+            --disable=C0111,R0903,R0913 \
+            --ignore=migrations,__pycache__ \
+            || echo "::warning::Pylint issues found"
+
+      - name: Security check with Bandit
+        run: |
+          pip install bandit
+          cd projects/DWnews
+          bandit -r backend/ database/ \
+            --skip B101,B601 \
+            --format json \
+            -o bandit-report.json \
+            || true
+
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: projects/DWnews/bandit-report.json
+          retention-days: 7
+
+      - name: Code quality summary
+        if: always()
+        run: |
+          echo "### Code Quality Results 📊" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All code quality checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See individual steps for detailed results." >> $GITHUB_STEP_SUMMARY

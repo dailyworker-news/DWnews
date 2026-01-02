@@ -18,7 +18,7 @@ const __dirname = dirname(__filename);
 const NATS_SERVER = process.env.NATS_SERVER || 'nats://localhost:4222';
 const PORT = process.env.PORT || 3000;
 const STREAM_NAME = 'AGENT_CHAT';
-const CHANNELS = ['roadmap', 'coordination', 'errors'];
+const CHANNELS = ['general', 'roadmap', 'coordination', 'errors'];
 
 const jc = JSONCodec();
 

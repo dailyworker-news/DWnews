@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # Server
     backend_host: str = Field(default="localhost", alias="BACKEND_HOST")
     backend_port: int = Field(default=8000, alias="BACKEND_PORT")
+    frontend_host: str = Field(default="localhost", alias="FRONTEND_HOST")
+    frontend_port: int = Field(default=3000, alias="FRONTEND_PORT")
 
     # Database
     database_url: str = Field(default="sqlite:///./dwnews.db", alias="DATABASE_URL")

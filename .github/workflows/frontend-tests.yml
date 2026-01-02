@@ -1,0 +1,191 @@
+name: Frontend Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/DWnews/frontend/**'
+      - '.github/workflows/frontend-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/DWnews/frontend/**'
+      - '.github/workflows/frontend-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: projects/DWnews/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: projects/DWnews/frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: projects/DWnews/frontend
+        run: npm run lint
+
+      - name: Check code formatting
+        working-directory: projects/DWnews/frontend
+        run: npm run format:check
+
+      - name: Run unit tests
+        working-directory: projects/DWnews/frontend
+        run: npm test
+
+      - name: Generate coverage report
+        if: matrix.node-version == '20.x'
+        working-directory: projects/DWnews/frontend
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == '20.x'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./projects/DWnews/frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifacts
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: projects/DWnews/frontend/coverage/
+          retention-days: 7
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: projects/DWnews/frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frontend dependencies
+        working-directory: projects/DWnews/frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: projects/DWnews/frontend
+        run: npx playwright install --with-deps
+
+      - name: Install backend dependencies
+        working-directory: projects/DWnews
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Initialize test database
+        working-directory: projects/DWnews
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/DWnews
+        run: |
+          python database/init_db.py
+          python database/seed_data.py
+
+      - name: Run E2E tests
+        working-directory: projects/DWnews/frontend
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/DWnews
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: projects/DWnews/frontend/playwright-report/
+          retention-days: 7
+
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: projects/DWnews/frontend/test-results/
+          retention-days: 3
+
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: projects/DWnews/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: projects/DWnews/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: projects/DWnews/frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: projects/DWnews/frontend/dist/
+          retention-days: 7
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, e2e-tests, build]
+    if: always()
+
+    steps:
+      - name: Generate test summary
+        run: |
+          echo "### Frontend Test Results 🎨" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests  | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build      | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if required tests failed
+        if: |
+          needs.unit-tests.result == 'failure' ||
+          needs.build.result == 'failure'
+        run: exit 1

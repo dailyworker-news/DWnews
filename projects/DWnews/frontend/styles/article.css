@@ -16,6 +16,12 @@
   --article-gray-200: #D0D0D0;
   --article-gray-700: #4A4A4A;
   --article-gray-900: #1A1A1A;
+  --correction-bg: #fff3cd;
+  --correction-border: #ffc107;
+  --correction-critical: #dc3545;
+  --correction-major: #fd7e14;
+  --correction-moderate: #ffc107;
+  --correction-minor: #17a2b8;
 }
 
 /* ========================================
@@ -679,3 +685,92 @@
     height: 20px;
   }
 }
+
+/* ========================================
+   Correction Notice Styles
+   ======================================== */
+
+.correction-notice {
+  background-color: var(--correction-bg);
+  border: 2px solid var(--correction-border);
+  border-left: 6px solid var(--correction-border);
+  padding: 24px;
+  margin-bottom: 32px;
+  border-radius: 4px;
+}
+
+.correction-notice h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--article-black);
+}
+
+.correction-item {
+  background: var(--article-white);
+  border: 1px solid var(--article-gray-200);
+  border-left: 4px solid var(--correction-moderate);
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.correction-item:last-child {
+  margin-bottom: 0;
+}
+
+.correction-item.correction-critical {
+  border-left-color: var(--correction-critical);
+}
+
+.correction-item.correction-major {
+  border-left-color: var(--correction-major);
+}
+
+.correction-item.correction-moderate {
+  border-left-color: var(--correction-moderate);
+}
+
+.correction-item.correction-minor {
+  border-left-color: var(--correction-minor);
+}
+
+.correction-meta {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: var(--article-gray-700);
+}
+
+.correction-description {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+  color: var(--article-black);
+}
+
+.correction-details {
+  background: var(--article-gray-50);
+  padding: 12px;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.correction-details p {
+  margin: 0 0 8px 0;
+}
+
+.correction-details p:last-child {
+  margin-bottom: 0;
+}
+
+.correction-details strong {
+  font-weight: 700;
+  color: var(--article-gray-900);
+}
+

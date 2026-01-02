@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Article - The Daily Worker Admin</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .review-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .review-header {
+            background: #d32f2f;
+            color: white;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .review-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+
+        .review-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .review-sections {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .review-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .review-section {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .review-section h2 {
+            margin-top: 0;
+            color: #d32f2f;
+            font-size: 20px;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .review-section h3 {
+            color: #333;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .article-body {
+            line-height: 1.8;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .self-audit-checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .self-audit-checklist li {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .self-audit-checklist li.passed {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        .self-audit-checklist li.failed {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+
+        .self-audit-checklist .icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .bias-scan-results {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .bias-scan-results .result-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .bias-scan-results .result-label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .bias-scan-results .result-value {
+            color: #333;
+        }
+
+        .sources-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sources-list li {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+        }
+
+        .source-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .source-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .credibility-stars {
+            color: #ffc107;
+        }
+
+        .editorial-actions {
+            position: sticky;
+            top: 20px;
+        }
+
+        .editorial-notes {
+            margin-bottom: 20px;
+        }
+
+        .editorial-notes textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-approve {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #45a049;
+        }
+
+        .btn-revision {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-revision:hover {
+            background: #fb8c00;
+        }
+
+        .btn-reject {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #e53935;
+        }
+
+        .btn-back {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: #616161;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-draft {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-under_review {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .status-revision_requested {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .status-approved {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .revision-history {
+            margin-top: 20px;
+        }
+
+        .revision-item {
+            background: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #9c27b0;
+            border-radius: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="review-container">
+        <div id="loadingMessage" class="loading">
+            <p>Loading article review data...</p>
+        </div>
+
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div id="reviewContent" style="display: none;">
+            <!-- Header -->
+            <div class="review-header">
+                <h1 id="articleTitle">Article Title</h1>
+                <div class="review-meta">
+                    <span id="articleCategory">Category</span>
+                    <span id="articleStatus">Status</span>
+                    <span id="articleWordCount">Words</span>
+                    <span id="articleReadingLevel">Reading Level</span>
+                    <span id="articleDeadline">Deadline</span>
+                </div>
+            </div>
+
+            <div class="review-sections">
+                <!-- Main Content Column -->
+                <div class="main-column">
+                    <!-- Article Body -->
+                    <div class="review-section">
+                        <h2>Article Content</h2>
+                        <div id="articleSummary" class="article-summary"></div>
+                        <div id="articleBody" class="article-body"></div>
+                    </div>
+
+                    <!-- Self-Audit Results -->
+                    <div class="review-section">
+                        <h2>Self-Audit Checklist</h2>
+                        <p><strong>Overall Status:</strong> <span id="selfAuditStatus"></span></p>
+                        <ul id="selfAuditList" class="self-audit-checklist"></ul>
+                    </div>
+
+                    <!-- Bias Scan Report -->
+                    <div class="review-section">
+                        <h2>Bias Detection Scan</h2>
+                        <div id="biasScanReport" class="bias-scan-results"></div>
+                    </div>
+
+                    <!-- Sources -->
+                    <div class="review-section">
+                        <h2>Sources</h2>
+                        <ul id="sourcesList" class="sources-list"></ul>
+                    </div>
+
+                    <!-- Revision History -->
+                    <div class="review-section" id="revisionHistorySection" style="display: none;">
+                        <h2>Revision History</h2>
+                        <p><strong>Revision Count:</strong> <span id="revisionCount">0</span></p>
+                        <div id="revisionHistory" class="revision-history"></div>
+                    </div>
+                </div>
+
+                <!-- Actions Column -->
+                <div class="actions-column">
+                    <div class="review-section editorial-actions">
+                        <h2>Editorial Actions</h2>
+
+                        <!-- Article Info -->
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Word Count</div>
+                                <div class="info-value" id="wordCountValue">-</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Reading Level</div>
+                                <div class="info-value" id="readingLevelValue">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Editorial Notes -->
+                        <div class="editorial-notes">
+                            <label for="editorialNotesInput"><strong>Editorial Notes:</strong></label>
+                            <textarea id="editorialNotesInput" placeholder="Provide specific feedback for revision...
+
+Examples:
+- Strengthen worker impact in lead paragraph
+- Add more quotes from union organizers
+- Clarify timeline of events
+- Reading level too high, simplify language"></textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <button class="action-button btn-approve" onclick="approveArticle()">
+                            ✓ Approve & Publish
+                        </button>
+
+                        <button class="action-button btn-revision" onclick="requestRevision()">
+                            ↻ Request Revision
+                        </button>
+
+                        <button class="action-button btn-reject" onclick="rejectArticle()">
+                            ✗ Reject Article
+                        </button>
+
+                        <button class="action-button btn-back" onclick="goBack()">
+                            ← Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let currentArticle = null;
+
+        // Get article ID from URL parameter
+        function getArticleId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // Load article review data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const articleId = getArticleId();
+            if (articleId) {
+                loadArticleReview(articleId);
+            } else {
+                showError('No article ID specified');
+            }
+        });
+
+        // Load article review data
+        async function loadArticleReview(articleId) {
+            try {
+                const response = await fetch(`${API_BASE}/editorial/review/${articleId}`);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch article: ${response.statusText}`);
+                }
+
+                currentArticle = await response.json();
+                renderArticleReview(currentArticle);
+
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('reviewContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading article:', error);
+                showError(`Error loading article: ${error.message}`);
+            }
+        }
+
+        // Render article review interface
+        function renderArticleReview(article) {
+            // Header
+            document.getElementById('articleTitle').textContent = article.title;
+            document.getElementById('articleCategory').innerHTML = `📁 ${article.category_name}`;
+            document.getElementById('articleStatus').innerHTML = `<span class="status-badge status-${article.status}">${article.status}</span>`;
+            document.getElementById('articleWordCount').textContent = `${article.word_count || 0} words`;
+            document.getElementById('articleReadingLevel').textContent = `Reading Level: ${article.reading_level ? article.reading_level.toFixed(1) : 'N/A'}`;
+
+            if (article.review_deadline) {
+                const deadline = new Date(article.review_deadline);
+                const now = new Date();
+                const isOverdue = deadline < now;
+                const deadlineStr = deadline.toLocaleString();
+                document.getElementById('articleDeadline').innerHTML = isOverdue
+                    ? `⚠️ <span style="color: #ff5722;">OVERDUE: ${deadlineStr}</span>`
+                    : `⏰ Deadline: ${deadlineStr}`;
+            }
+
+            // Article Body
+            if (article.summary) {
+                document.getElementById('articleSummary').innerHTML = `<p><strong>Summary:</strong> ${article.summary}</p>`;
+            }
+            document.getElementById('articleBody').innerHTML = article.body.replace(/\n/g, '<br>');
+
+            // Info values
+            document.getElementById('wordCountValue').textContent = article.word_count || '-';
+            document.getElementById('readingLevelValue').textContent = article.reading_level ? article.reading_level.toFixed(1) : '-';
+
+            // Self-Audit
+            const selfAuditStatus = article.self_audit_passed ? '✓ Passed' : '✗ Failed';
+            document.getElementById('selfAuditStatus').innerHTML = article.self_audit_passed
+                ? '<span style="color: #4caf50;">✓ Passed</span>'
+                : '<span style="color: #f44336;">✗ Failed</span>';
+
+            if (article.self_audit_details && article.self_audit_details.length > 0) {
+                const auditList = document.getElementById('selfAuditList');
+                auditList.innerHTML = article.self_audit_details.map(item => `
+                    <li class="${item.passed ? 'passed' : 'failed'}">
+                        <span class="icon">${item.passed ? '✓' : '✗'}</span>
+                        <div>
+                            <strong>${item.criterion}</strong>
+                            ${item.notes ? `<br><small>${item.notes}</small>` : ''}
+                        </div>
+                    </li>
+                `).join('');
+            } else {
+                document.getElementById('selfAuditList').innerHTML = '<li>No self-audit details available</li>';
+            }
+
+            // Bias Scan Report
+            const biasScanDiv = document.getElementById('biasScanReport');
+            if (article.bias_scan_report) {
+                const report = article.bias_scan_report;
+                biasScanDiv.innerHTML = `
+                    ${report.hallucination_check ? `
+                        <div class="result-item">
+                            <span class="result-label">Hallucination Check:</span>
+                            <span class="result-value">${report.hallucination_check.passed ? '✓ Passed' : '✗ Failed'}</span>
+                            ${report.hallucination_check.issues ? `<br><small>${report.hallucination_check.issues}</small>` : ''}
+                        </div>
+                    ` : ''}
+                    ${report.propaganda_flags ? `
+                        <div class="result-item">
+                            <span class="result-label">Propaganda Flags:</span>
+                            <span class="result-value">${report.propaganda_flags.count || 0} issues</span>
+                            ${report.propaganda_flags.details ? `<br><small>${report.propaganda_flags.details}</small>` : ''}
+                        </div>
+                    ` : ''}
+                    ${report.bias_indicators ? `
+                        <div class="result-item">
+                            <span class="result-label">Bias Indicators:</span>
+                            <span class="result-value">${report.bias_indicators.level || 'None'}</span>
+                            ${report.bias_indicators.notes ? `<br><small>${report.bias_indicators.notes}</small>` : ''}
+                        </div>
+                    ` : ''}
+                `;
+            } else {
+                biasScanDiv.innerHTML = '<p>No bias scan report available</p>';
+            }
+
+            // Sources
+            const sourcesList = document.getElementById('sourcesList');
+            if (article.sources && article.sources.length > 0) {
+                sourcesList.innerHTML = article.sources.map(source => {
+                    const stars = '★'.repeat(source.credibility_score) + '☆'.repeat(5 - source.credibility_score);
+                    return `
+                        <li>
+                            <div class="source-name">${source.name}</div>
+                            <div class="source-meta">
+                                <span class="credibility-stars">${stars}</span> (${source.credibility_score}/5)
+                                | Type: ${source.source_type}
+                                ${source.citation_url ? `| <a href="${source.citation_url}" target="_blank">View Source</a>` : ''}
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+            } else {
+                sourcesList.innerHTML = '<li>No sources listed</li>';
+            }
+
+            // Revision History
+            if (article.revision_count > 0) {
+                document.getElementById('revisionHistorySection').style.display = 'block';
+                document.getElementById('revisionCount').textContent = article.revision_count;
+
+                if (article.latest_revision_notes) {
+                    document.getElementById('revisionHistory').innerHTML = `
+                        <div class="revision-item">
+                            <strong>Latest Revision Notes:</strong><br>
+                            ${article.latest_revision_notes}
+                        </div>
+                    `;
+                }
+            }
+
+            // Pre-fill editorial notes if they exist
+            if (article.editorial_notes) {
+                document.getElementById('editorialNotesInput').value = article.editorial_notes;
+            }
+        }
+
+        // Approve article
+        async function approveArticle() {
+            if (!currentArticle) return;
+
+            if (!confirm('Are you sure you want to approve this article for publication?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/editorial/${currentArticle.id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        approved_by: 'admin@dailyworker.news' // TODO: Get from logged-in user
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to approve article');
+                }
+
+                alert('Article approved successfully!');
+                goBack();
+
+            } catch (error) {
+                console.error('Error approving article:', error);
+                alert(`Error approving article: ${error.message}`);
+            }
+        }
+
+        // Request revision
+        async function requestRevision() {
+            if (!currentArticle) return;
+
+            const editorialNotes = document.getElementById('editorialNotesInput').value.trim();
+
+            if (!editorialNotes) {
+                alert('Please provide editorial notes for the revision request');
+                return;
+            }
+
+            if (!confirm('Request revision with these notes?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/editorial/${currentArticle.id}/request-revision`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        editorial_notes: editorialNotes,
+                        requested_by: 'admin@dailyworker.news' // TODO: Get from logged-in user
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to request revision');
+                }
+
+                alert('Revision requested successfully!');
+                goBack();
+
+            } catch (error) {
+                console.error('Error requesting revision:', error);
+                alert(`Error requesting revision: ${error.message}`);
+            }
+        }
+
+        // Reject article
+        async function rejectArticle() {
+            if (!currentArticle) return;
+
+            const reason = prompt('Please provide a reason for rejection:');
+
+            if (!reason || !reason.trim()) {
+                return;
+            }
+
+            if (!confirm('Are you sure you want to reject this article?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/editorial/${currentArticle.id}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        rejected_by: 'admin@dailyworker.news', // TODO: Get from logged-in user
+                        reason: reason
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reject article');
+                }
+
+                alert('Article rejected');
+                goBack();
+
+            } catch (error) {
+                console.error('Error rejecting article:', error);
+                alert(`Error rejecting article: ${error.message}`);
+            }
+        }
+
+        // Go back to dashboard
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('reviewContent').style.display = 'none';
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

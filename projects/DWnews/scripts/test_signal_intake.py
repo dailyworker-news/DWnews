@@ -1,426 +1,362 @@
 #!/usr/bin/env python3
 """
-Test signal intake process with live data from Twitter, Reddit, and RSS feeds
-Discovers newsworthy events and displays them for manual selection
+Test script for Signal Intake Agent.
+
+This script tests the complete event discovery pipeline:
+1. Fetch events from all sources (RSS, Twitter, Reddit, Government)
+2. Deduplicate events
+3. Store in database
+4. Verify storage and display statistics
+
+Usage:
+    python scripts/test_signal_intake.py                    # Full test
+    python scripts/test_signal_intake.py --dry-run          # Test without DB writes
+    python scripts/test_signal_intake.py --rss-only         # Test RSS feeds only
+    python scripts/test_signal_intake.py --stats            # Show discovery statistics
 """
-import os
+
 import sys
+import os
+import argparse
+import logging
 from pathlib import Path
 from datetime import datetime, timedelta
-import json
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
+# Load environment
 from dotenv import load_dotenv
+load_dotenv()
 
-# Load environment variables
-env_path = Path(__file__).parent.parent / '.env.local'
-load_dotenv(env_path)
-
-# Keywords for worker-focused news discovery
-LABOR_KEYWORDS = [
-    "labor union",
-    "workers union",
-    "strike",
-    "workplace safety",
-    "wage theft",
-    "worker organizing",
-    "collective bargaining",
-    "unionization",
-    "labor rights",
-    "workers rights"
-]
-
-SUBREDDITS = [
-    "antiwork",
-    "WorkReform",
-    "union",
-    "LateStageCapitalism",
-    "lostgeneration"
-]
-
-RSS_FEEDS = [
-    {
-        "name": "Labor Notes",
-        "url": "https://labornotes.org/feeds/all",
-        "type": "labor_focused"
-    },
-    {
-        "name": "ProPublica",
-        "url": "https://www.propublica.org/feeds/propublica/main",
-        "type": "investigative"
-    },
-    {
-        "name": "Reuters Labor",
-        "url": "https://rsshub.app/reuters/world",
-        "type": "mainstream"
-    },
-    {
-        "name": "AP Business",
-        "url": "https://rsshub.app/apnews/topics/business",
-        "type": "mainstream"
-    }
-]
+# Import agent
+from backend.agents.signal_intake_agent import SignalIntakeAgent
+from backend.database import get_db
+from database.models import EventCandidate
 
 
-def discover_twitter_signals():
-    """Discover potential news events from Twitter"""
-    print("\n" + "="*80)
-    print("TWITTER SIGNAL INTAKE")
-    print("="*80)
+def setup_logging(verbose: bool = False):
+    """Configure logging for the test script."""
+    level = logging.DEBUG if verbose else logging.INFO
 
-    bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
-    if not bearer_token:
-        print("❌ Twitter credentials not configured")
-        return []
+    # Create logs directory if it doesn't exist
+    log_dir = project_root / 'logs'
+    log_dir.mkdir(exist_ok=True)
+
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(log_dir / 'signal_intake_test.log')
+        ]
+    )
+
+
+def print_header(title: str):
+    """Print a formatted header."""
+    print("\n" + "="*70)
+    print(f"  {title}")
+    print("="*70)
+
+
+def print_section(title: str):
+    """Print a formatted section header."""
+    print(f"\n--- {title} ---")
+
+
+def test_discovery(
+    dry_run: bool = False,
+    rss_only: bool = False,
+    twitter_only: bool = False,
+    reddit_only: bool = False,
+    government_only: bool = False,
+    max_age_hours: int = 24
+):
+    """
+    Test event discovery.
+
+    Args:
+        dry_run: If True, don't write to database
+        rss_only: Only test RSS feeds
+        twitter_only: Only test Twitter
+        reddit_only: Only test Reddit
+        government_only: Only test government sources
+        max_age_hours: Only fetch events from last N hours
+    """
+    print_header("SIGNAL INTAKE AGENT - DISCOVERY TEST")
+
+    # Determine which sources to enable
+    if rss_only:
+        enable_rss, enable_twitter, enable_reddit, enable_gov = True, False, False, False
+    elif twitter_only:
+        enable_rss, enable_twitter, enable_reddit, enable_gov = False, True, False, False
+    elif reddit_only:
+        enable_rss, enable_twitter, enable_reddit, enable_gov = False, False, True, False
+    elif government_only:
+        enable_rss, enable_twitter, enable_reddit, enable_gov = False, False, False, True
+    else:
+        enable_rss, enable_twitter, enable_reddit, enable_gov = True, True, True, True
+
+    print(f"Configuration:")
+    print(f"  Max age: {max_age_hours} hours")
+    print(f"  Dry run: {dry_run}")
+    print(f"  Sources: RSS={enable_rss}, Twitter={enable_twitter}, "
+          f"Reddit={enable_reddit}, Government={enable_gov}")
+
+    # Create agent
+    print_section("Initializing Agent")
+    agent = SignalIntakeAgent(
+        max_age_hours=max_age_hours,
+        enable_rss=enable_rss,
+        enable_twitter=enable_twitter,
+        enable_reddit=enable_reddit,
+        enable_government=enable_gov,
+        dry_run=dry_run
+    )
+
+    # Run discovery
+    print_section("Running Discovery")
+    start_time = datetime.now()
 
     try:
-        import requests
+        results = agent.discover_events()
+        success = True
+    except Exception as e:
+        print(f"\n❌ ERROR: Discovery failed: {str(e)}")
+        logging.error("Discovery failed", exc_info=True)
+        success = False
+        results = None
 
-        url = "https://api.twitter.com/2/tweets/search/recent"
-        headers = {
-            "Authorization": f"Bearer {bearer_token}",
-            "Content-Type": "application/json"
+    end_time = datetime.now()
+    runtime = (end_time - start_time).total_seconds()
+
+    # Display results
+    if success and results:
+        print_section("Discovery Results")
+        print(f"  Runtime: {runtime:.2f} seconds")
+        print(f"  Total fetched: {results['total_fetched']}")
+        print(f"  Unique events: {results['total_unique']}")
+        print(f"  Stored in DB: {results['total_discovered']}")
+
+        print("\n  By source:")
+        for source, count in results['by_source'].items():
+            print(f"    {source}: {count}")
+
+        if results['errors']:
+            print("\n  ⚠️  Errors encountered:")
+            for error in results['errors']:
+                print(f"    - {error}")
+
+        # Calculate deduplication rate
+        if results['total_fetched'] > 0:
+            dedup_rate = (1 - results['total_unique'] / results['total_fetched']) * 100
+            print(f"\n  Deduplication rate: {dedup_rate:.1f}%")
+
+        # Success criteria
+        print_section("Success Criteria")
+        criteria = {
+            'Minimum events (20)': results['total_discovered'] >= 20,
+            'Source diversity (≥2)': len([c for c in results['by_source'].values() if c > 0]) >= 2,
+            'Runtime (<5 min)': runtime < 300,
+            'Error rate (<50%)': len(results['errors']) < len(results['by_source']) / 2,
         }
 
-        all_signals = []
+        for criterion, passed in criteria.items():
+            status = "✅ PASS" if passed else "❌ FAIL"
+            print(f"  {status}: {criterion}")
 
-        # Search for each keyword
-        for keyword in LABOR_KEYWORDS[:3]:  # Limit to 3 keywords for testing
-            print(f"\n🔍 Searching Twitter for: '{keyword}'")
+        # Overall result
+        all_passed = all(criteria.values())
+        print_section("Overall Result")
+        if all_passed:
+            print("  ✅ ALL TESTS PASSED")
+        else:
+            print("  ⚠️  SOME TESTS FAILED")
 
-            params = {
-                "query": f"{keyword} -is:retweet lang:en",
-                "max_results": 10,
-                "tweet.fields": "created_at,public_metrics,author_id",
-                "expansions": "author_id",
-                "user.fields": "username,verified"
-            }
+        return all_passed
 
-            response = requests.get(url, headers=headers, params=params)
-
-            if response.status_code == 200:
-                data = response.json()
-                tweets = data.get('data', [])
-                users = {u['id']: u for u in data.get('includes', {}).get('users', [])}
-
-                print(f"   Found {len(tweets)} tweets")
-
-                for tweet in tweets:
-                    author = users.get(tweet['author_id'], {})
-
-                    signal = {
-                        "source": "Twitter",
-                        "keyword": keyword,
-                        "text": tweet['text'],
-                        "author": author.get('username', 'unknown'),
-                        "verified": author.get('verified', False),
-                        "created_at": tweet['created_at'],
-                        "likes": tweet['public_metrics']['like_count'],
-                        "retweets": tweet['public_metrics']['retweet_count'],
-                        "engagement_score": tweet['public_metrics']['like_count'] + (tweet['public_metrics']['retweet_count'] * 2)
-                    }
-                    all_signals.append(signal)
-
-            else:
-                print(f"   ⚠️  API error: {response.status_code}")
-
-        print(f"\n✅ Total Twitter signals discovered: {len(all_signals)}")
-        return all_signals
-
-    except Exception as e:
-        print(f"❌ Error discovering Twitter signals: {e}")
-        return []
+    else:
+        print_section("Overall Result")
+        print("  ❌ DISCOVERY FAILED")
+        return False
 
 
-def discover_reddit_signals():
-    """Discover potential news events from Reddit"""
-    print("\n" + "="*80)
-    print("REDDIT SIGNAL INTAKE")
-    print("="*80)
+def show_discovery_stats(days: int = 7):
+    """
+    Show statistics about recent discoveries.
 
-    client_id = os.getenv('REDDIT_CLIENT_ID')
-    client_secret = os.getenv('REDDIT_CLIENT_SECRET')
-    user_agent = os.getenv('REDDIT_USER_AGENT')
+    Args:
+        days: Number of days to look back
+    """
+    print_header(f"DISCOVERY STATISTICS (Last {days} days)")
 
-    if not all([client_id, client_secret, user_agent]):
-        print("❌ Reddit credentials not configured")
-        return []
+    agent = SignalIntakeAgent()
+    stats = agent.get_discovery_stats(days=days)
 
-    try:
-        import requests
+    print(f"\nTotal discoveries: {stats['total_discoveries']}")
 
-        # Get OAuth token
-        auth = requests.auth.HTTPBasicAuth(client_id, client_secret)
-        data = {'grant_type': 'client_credentials'}
-        headers = {'User-Agent': user_agent}
+    print("\nBy status:")
+    for status, count in stats['by_status'].items():
+        percentage = (count / stats['total_discoveries'] * 100) if stats['total_discoveries'] > 0 else 0
+        print(f"  {status}: {count} ({percentage:.1f}%)")
 
-        token_response = requests.post(
-            'https://www.reddit.com/api/v1/access_token',
-            auth=auth,
-            data=data,
-            headers=headers
-        )
+    print("\nBy source:")
+    for source, count in stats['by_source'].items():
+        percentage = (count / stats['total_discoveries'] * 100) if stats['total_discoveries'] > 0 else 0
+        print(f"  {source}: {count} ({percentage:.1f}%)")
 
-        if token_response.status_code != 200:
-            print("❌ Reddit authentication failed")
-            return []
+    # Calculate daily average
+    daily_avg = stats['total_discoveries'] / days
+    print(f"\nDaily average: {daily_avg:.1f} events/day")
 
-        token = token_response.json()['access_token']
-        headers['Authorization'] = f'bearer {token}'
+    # Success metrics
+    print_section("Target Metrics")
+    metrics = {
+        'Minimum (20/day)': daily_avg >= 20,
+        'Target (30-50/day)': 30 <= daily_avg <= 50,
+        'Approval rate (10-20%)': 10 <= (stats['by_status'].get('approved', 0) / max(stats['total_discoveries'], 1) * 100) <= 20,
+    }
 
-        all_signals = []
-
-        # Check each subreddit
-        for subreddit in SUBREDDITS[:3]:  # Limit to 3 subreddits for testing
-            print(f"\n🔍 Checking r/{subreddit}")
-
-            response = requests.get(
-                f'https://oauth.reddit.com/r/{subreddit}/hot',
-                headers=headers,
-                params={'limit': 10}
-            )
-
-            if response.status_code == 200:
-                data = response.json()
-                posts = data['data']['children']
-
-                print(f"   Found {len(posts)} posts")
-
-                for post in posts:
-                    post_data = post['data']
-
-                    signal = {
-                        "source": "Reddit",
-                        "subreddit": subreddit,
-                        "title": post_data['title'],
-                        "text": post_data.get('selftext', '')[:500],  # Limit to 500 chars
-                        "author": post_data['author'],
-                        "created_at": datetime.fromtimestamp(post_data['created_utc']).isoformat(),
-                        "upvotes": post_data['ups'],
-                        "comments": post_data['num_comments'],
-                        "url": post_data['url'],
-                        "engagement_score": post_data['ups'] + (post_data['num_comments'] * 2)
-                    }
-                    all_signals.append(signal)
-
-            else:
-                print(f"   ⚠️  API error: {response.status_code}")
-
-        print(f"\n✅ Total Reddit signals discovered: {len(all_signals)}")
-        return all_signals
-
-    except Exception as e:
-        print(f"❌ Error discovering Reddit signals: {e}")
-        return []
+    for metric, met in metrics.items():
+        status = "✅" if met else "⚠️"
+        print(f"  {status} {metric}")
 
 
-def discover_rss_signals():
-    """Discover potential news events from RSS feeds"""
-    print("\n" + "="*80)
-    print("RSS FEED SIGNAL INTAKE")
-    print("="*80)
+def show_sample_events(limit: int = 5):
+    """
+    Show sample discovered events.
+
+    Args:
+        limit: Number of events to display
+    """
+    print_header(f"SAMPLE DISCOVERED EVENTS (Last {limit})")
+
+    session = next(get_db())
 
     try:
-        import feedparser
+        # Get recent events
+        events = session.query(EventCandidate).order_by(
+            EventCandidate.discovery_date.desc()
+        ).limit(limit).all()
 
-        all_signals = []
+        if not events:
+            print("\nNo events found in database.")
+            return
 
-        for feed_config in RSS_FEEDS:
-            feed_name = feed_config['name']
-            feed_url = feed_config['url']
+        for i, event in enumerate(events, 1):
+            print(f"\n{i}. {event.title}")
+            print(f"   Source: {event.discovered_from}")
+            print(f"   Category: {event.suggested_category}")
+            print(f"   Status: {event.status}")
+            print(f"   Discovered: {event.discovery_date}")
+            if event.keywords:
+                print(f"   Keywords: {event.keywords}")
+            if event.source_url:
+                print(f"   URL: {event.source_url[:80]}...")
 
-            print(f"\n🔍 Fetching {feed_name}")
-
-            try:
-                feed = feedparser.parse(feed_url)
-
-                if feed.entries:
-                    print(f"   Found {len(feed.entries)} articles")
-
-                    for entry in feed.entries[:10]:  # Limit to 10 per feed
-                        signal = {
-                            "source": "RSS",
-                            "feed": feed_name,
-                            "feed_type": feed_config['type'],
-                            "title": entry.title,
-                            "summary": entry.get('summary', '')[:500],
-                            "link": entry.link,
-                            "published": entry.get('published', entry.get('updated', '')),
-                            "engagement_score": 10 if feed_config['type'] == 'labor_focused' else 5  # Boost labor-focused feeds
-                        }
-                        all_signals.append(signal)
-                else:
-                    print(f"   ⚠️  No entries found")
-
-            except Exception as e:
-                print(f"   ❌ Error fetching {feed_name}: {e}")
-
-        print(f"\n✅ Total RSS signals discovered: {len(all_signals)}")
-        return all_signals
-
-    except Exception as e:
-        print(f"❌ Error discovering RSS signals: {e}")
-        return []
-
-
-def calculate_worker_relevance(signal):
-    """Calculate worker relevance score for a signal (0-1)"""
-    text = ""
-
-    if signal['source'] == 'Twitter':
-        text = signal['text'].lower()
-    elif signal['source'] == 'Reddit':
-        text = (signal['title'] + ' ' + signal.get('text', '')).lower()
-    elif signal['source'] == 'RSS':
-        text = (signal['title'] + ' ' + signal.get('summary', '')).lower()
-
-    # Worker-focused keywords
-    worker_keywords = [
-        'worker', 'labor', 'union', 'strike', 'wage', 'organizing',
-        'collective', 'bargaining', 'workplace', 'employee', 'contract',
-        'safety', 'overtime', 'benefits', 'fired', 'laid off', 'protest'
-    ]
-
-    # Count keyword matches
-    matches = sum(1 for keyword in worker_keywords if keyword in text)
-
-    # Calculate score (max score at 5+ keyword matches)
-    score = min(matches / 5.0, 1.0)
-
-    return round(score, 2)
-
-
-def score_and_rank_signals(signals):
-    """Score and rank all signals by newsworthiness"""
-    print("\n" + "="*80)
-    print("SCORING SIGNALS")
-    print("="*80)
-
-    for signal in signals:
-        # Calculate worker relevance
-        signal['worker_relevance'] = calculate_worker_relevance(signal)
-
-        # Normalize engagement score (0-1 scale)
-        if signal['source'] == 'Twitter':
-            # Twitter: high engagement = 100+ combined likes/retweets
-            signal['engagement_normalized'] = min(signal['engagement_score'] / 100.0, 1.0)
-        elif signal['source'] == 'Reddit':
-            # Reddit: high engagement = 500+ combined upvotes/comments
-            signal['engagement_normalized'] = min(signal['engagement_score'] / 500.0, 1.0)
-        elif signal['source'] == 'RSS':
-            # RSS: use feed type as proxy (labor-focused = higher)
-            signal['engagement_normalized'] = 0.7 if signal['feed_type'] == 'labor_focused' else 0.5
-
-        # Overall newsworthiness score (60% worker relevance, 40% engagement)
-        signal['newsworthiness_score'] = round(
-            (signal['worker_relevance'] * 0.6) + (signal['engagement_normalized'] * 0.4),
-            2
-        )
-
-    # Sort by newsworthiness score
-    ranked_signals = sorted(signals, key=lambda s: s['newsworthiness_score'], reverse=True)
-
-    print(f"✅ Scored {len(ranked_signals)} signals")
-    print(f"   Top score: {ranked_signals[0]['newsworthiness_score']}")
-    print(f"   Average score: {sum(s['newsworthiness_score'] for s in ranked_signals) / len(ranked_signals):.2f}")
-
-    return ranked_signals
-
-
-def display_top_signals(signals, limit=15):
-    """Display top-ranked signals for review"""
-    print("\n" + "="*80)
-    print(f"TOP {limit} NEWSWORTHY SIGNALS")
-    print("="*80)
-
-    for i, signal in enumerate(signals[:limit], 1):
-        print(f"\n[{i}] Score: {signal['newsworthiness_score']} | Worker Relevance: {signal['worker_relevance']} | Source: {signal['source']}")
-
-        if signal['source'] == 'Twitter':
-            text = signal['text'][:150] + "..." if len(signal['text']) > 150 else signal['text']
-            print(f"    @{signal['author']} {'✓' if signal['verified'] else ''}")
-            print(f"    {text}")
-            print(f"    Engagement: {signal['likes']} likes, {signal['retweets']} retweets")
-
-        elif signal['source'] == 'Reddit':
-            title = signal['title'][:120] + "..." if len(signal['title']) > 120 else signal['title']
-            print(f"    r/{signal['subreddit']} by u/{signal['author']}")
-            print(f"    {title}")
-            print(f"    Engagement: {signal['upvotes']} upvotes, {signal['comments']} comments")
-
-        elif signal['source'] == 'RSS':
-            title = signal['title'][:120] + "..." if len(signal['title']) > 120 else signal['title']
-            print(f"    {signal['feed']} ({signal['feed_type']})")
-            print(f"    {title}")
-            print(f"    Link: {signal['link']}")
-
-
-def save_signals_to_file(signals):
-    """Save signals to JSON file for further processing"""
-    output_dir = Path(__file__).parent.parent / 'test_output'
-    output_dir.mkdir(exist_ok=True)
-
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_file = output_dir / f'discovered_signals_{timestamp}.json'
-
-    with open(output_file, 'w') as f:
-        json.dump(signals, f, indent=2)
-
-    print(f"\n📁 Signals saved to: {output_file}")
-    return output_file
+    finally:
+        session.close()
 
 
 def main():
-    """Run signal intake test"""
-    print("\n" + "="*80)
-    print("THE DAILY WORKER - SIGNAL INTAKE TEST")
-    print("="*80)
-    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print()
+    """Main test script entry point."""
+    parser = argparse.ArgumentParser(
+        description='Test Signal Intake Agent event discovery'
+    )
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Test without writing to database'
+    )
+    parser.add_argument(
+        '--rss-only',
+        action='store_true',
+        help='Only test RSS feeds'
+    )
+    parser.add_argument(
+        '--twitter-only',
+        action='store_true',
+        help='Only test Twitter API'
+    )
+    parser.add_argument(
+        '--reddit-only',
+        action='store_true',
+        help='Only test Reddit API'
+    )
+    parser.add_argument(
+        '--government-only',
+        action='store_true',
+        help='Only test government sources'
+    )
+    parser.add_argument(
+        '--stats',
+        action='store_true',
+        help='Show discovery statistics'
+    )
+    parser.add_argument(
+        '--sample',
+        action='store_true',
+        help='Show sample discovered events'
+    )
+    parser.add_argument(
+        '--max-age',
+        type=int,
+        default=24,
+        help='Max age of events in hours (default: 24)'
+    )
+    parser.add_argument(
+        '--days',
+        type=int,
+        default=7,
+        help='Days to look back for stats (default: 7)'
+    )
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Enable verbose logging'
+    )
 
-    # Discover signals from all sources
-    twitter_signals = discover_twitter_signals()
-    reddit_signals = discover_reddit_signals()
-    rss_signals = discover_rss_signals()
+    args = parser.parse_args()
 
-    # Combine all signals
-    all_signals = twitter_signals + reddit_signals + rss_signals
+    # Setup logging
+    setup_logging(args.verbose)
 
-    if not all_signals:
-        print("\n❌ No signals discovered. Check API connections.")
-        return
+    # Run tests
+    try:
+        if args.stats:
+            show_discovery_stats(days=args.days)
 
-    print(f"\n" + "="*80)
-    print(f"TOTAL SIGNALS DISCOVERED: {len(all_signals)}")
-    print(f"  Twitter: {len(twitter_signals)}")
-    print(f"  Reddit: {len(reddit_signals)}")
-    print(f"  RSS: {len(rss_signals)}")
-    print("="*80)
+        elif args.sample:
+            show_sample_events(limit=5)
 
-    # Score and rank signals
-    ranked_signals = score_and_rank_signals(all_signals)
+        else:
+            # Run discovery test
+            success = test_discovery(
+                dry_run=args.dry_run,
+                rss_only=args.rss_only,
+                twitter_only=args.twitter_only,
+                reddit_only=args.reddit_only,
+                government_only=args.government_only,
+                max_age_hours=args.max_age
+            )
 
-    # Display top signals
-    display_top_signals(ranked_signals, limit=15)
+            # Show sample events if not dry run
+            if success and not args.dry_run:
+                show_sample_events(limit=5)
 
-    # Save to file
-    output_file = save_signals_to_file(ranked_signals)
+            # Exit with appropriate code
+            sys.exit(0 if success else 1)
 
-    print("\n" + "="*80)
-    print("NEXT STEPS")
-    print("="*80)
-    print()
-    print(f"1. Review the top 15 signals above")
-    print(f"2. Select 1 interesting signal for full article generation test")
-    print(f"3. All signals saved to: {output_file}")
-    print()
-    print("Once you've selected a signal, we'll:")
-    print("  • Verify sources for that event")
-    print("  • Generate a full test article")
-    print("  • Run through editorial review")
-    print()
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Test interrupted by user")
+        sys.exit(1)
+
+    except Exception as e:
+        print(f"\n\n❌ Unexpected error: {str(e)}")
+        logging.error("Unexpected error in test script", exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

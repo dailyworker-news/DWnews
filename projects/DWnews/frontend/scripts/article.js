@@ -169,6 +169,9 @@ function renderArticle(article) {
         document.getElementById('footerPublished').textContent = formatFullDate(article.published_at);
         document.getElementById('footerWordCount').textContent = article.word_count || 'N/A';
 
+        // Load and display corrections
+        loadCorrections(article.id);
+
         // Show article
         articleContent.style.display = 'block';
 
@@ -320,3 +323,104 @@ function setupShareButtons(article) {
         }
     });
 }
+
+// Load corrections for article
+async function loadCorrections(articleId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/articles/${articleId}`);
+
+        if (!response.ok) {
+            return; // Fail silently if corrections endpoint not available
+        }
+
+        const article = await response.json();
+
+        // Check if article has corrections (assuming corrections are included in article response)
+        // For now, we'll need to update the backend to include corrections in article response
+        // Or fetch corrections separately
+
+        // Placeholder: Fetch corrections from monitoring endpoint
+        const correctionsResponse = await fetch(`${API_BASE_URL}/articles/${articleId}/corrections`);
+
+        if (correctionsResponse.ok) {
+            const corrections = await correctionsResponse.json();
+
+            if (corrections && corrections.length > 0) {
+                displayCorrections(corrections);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error loading corrections:', error);
+        // Fail silently - corrections are optional
+    }
+}
+
+// Display corrections on page
+function displayCorrections(corrections) {
+    const correctionNotice = document.getElementById('correctionNotice');
+    const correctionsList = document.getElementById('correctionsList');
+
+    if (!corrections || corrections.length === 0) {
+        return;
+    }
+
+    // Filter for published corrections only
+    const publishedCorrections = corrections.filter(c => c.is_published);
+
+    if (publishedCorrections.length === 0) {
+        return;
+    }
+
+    // Build corrections HTML
+    let correctionsHTML = '';
+
+    publishedCorrections.forEach(correction => {
+        const correctionDate = formatCorrectionDate(correction.published_at);
+        const severityClass = `correction-${correction.severity}`;
+
+        correctionsHTML += `
+            <div class="correction-item ${severityClass}">
+                <p class="correction-meta">
+                    <strong>${correctionDate}</strong> - ${formatCorrectionType(correction.correction_type)}
+                </p>
+                <p class="correction-description">${correction.public_notice || correction.description}</p>
+                ${correction.incorrect_text ? `
+                    <div class="correction-details">
+                        <p><strong>Original:</strong> "${correction.incorrect_text}"</p>
+                        <p><strong>Corrected:</strong> "${correction.correct_text}"</p>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+
+    correctionsList.innerHTML = correctionsHTML;
+    correctionNotice.style.display = 'block';
+}
+
+// Format correction date
+function formatCorrectionDate(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+// Format correction type
+function formatCorrectionType(type) {
+    const typeMap = {
+        'factual_error': 'Factual Error',
+        'source_error': 'Source Error',
+        'clarification': 'Clarification',
+        'update': 'Update',
+        'retraction': 'Retraction'
+    };
+
+    return typeMap[type] || type;
+}
+

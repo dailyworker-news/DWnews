@@ -1,0 +1,116 @@
+name: Backend API Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/DWnews/backend/**'
+      - 'projects/DWnews/database/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/DWnews/backend/**'
+      - 'projects/DWnews/database/**'
+      - '.github/workflows/backend-tests.yml'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test:
+    name: Run Backend Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sqlite3
+
+      - name: Install Python dependencies
+        working-directory: projects/DWnews
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install -r backend/tests/requirements-test.txt
+
+      - name: Verify installation
+        working-directory: projects/DWnews
+        run: |
+          python --version
+          pip list
+          sqlite3 --version
+
+      - name: Run backend tests
+        working-directory: projects/DWnews
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/DWnews
+        run: |
+          pytest backend/tests/test_api_endpoints.py -v --tb=short --color=yes
+
+      - name: Generate coverage report
+        if: matrix.python-version == '3.11'
+        working-directory: projects/DWnews
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/DWnews
+        run: |
+          pytest backend/tests/test_api_endpoints.py \
+            --cov=backend \
+            --cov-report=term \
+            --cov-report=xml \
+            --cov-report=html
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./projects/DWnews/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifacts
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: projects/DWnews/htmlcov/
+          retention-days: 7
+
+      - name: Upload test database artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-db-${{ matrix.python-version }}
+          path: projects/DWnews/test_dwnews.db
+          retention-days: 3
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "### Test Results Summary 🧪" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY

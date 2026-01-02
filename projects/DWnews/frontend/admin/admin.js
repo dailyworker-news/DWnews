@@ -70,7 +70,7 @@ function renderArticlesList(articles) {
     const articlesList = document.getElementById('articlesList');
 
     articlesList.innerHTML = articles.map(article => `
-        <div class="article-card" onclick="loadArticlePreview(${article.id})">
+        <div class="article-card">
             <div class="article-card-header">
                 <h3 class="article-card-title">${article.title}</h3>
                 <span class="article-card-status status-${article.status}">${article.status}</span>
@@ -84,8 +84,24 @@ function renderArticlesList(articles) {
             </div>
 
             ${article.summary ? `<p class="article-card-summary">${article.summary}</p>` : ''}
+
+            <div class="article-card-actions" style="margin-top: 10px; display: flex; gap: 10px;">
+                <button onclick="openReview(${article.id}); event.stopPropagation();"
+                        style="padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    📋 Review
+                </button>
+                <button onclick="loadArticlePreview(${article.id}); event.stopPropagation();"
+                        style="padding: 8px 16px; background: #757575; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    👁️ Quick View
+                </button>
+            </div>
         </div>
     `).join('');
+}
+
+// Open article review page
+function openReview(articleId) {
+    window.location.href = `review-article.html?id=${articleId}`;
 }
 
 // Load article preview

@@ -5,7 +5,7 @@ import { connect, StringCodec, JSONCodec } from 'nats';
 
 const NATS_SERVER = process.env.NATS_SERVER || 'nats://localhost:4222';
 const STREAM_NAME = 'AGENT_CHAT';
-const CHANNELS = ['roadmap', 'coordination', 'errors'];
+const CHANNELS = ['general', 'roadmap', 'coordination', 'errors'];
 
 // Codec for encoding/decoding messages
 const sc = StringCodec();

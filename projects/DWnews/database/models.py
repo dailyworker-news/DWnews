@@ -146,6 +146,13 @@ class Article(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # Automated journalism workflow (added in migration 001)
+    bias_scan_report: Mapped[Optional[str]] = mapped_column(Text)  # JSON report from bias detection scan
+    self_audit_passed: Mapped[bool] = mapped_column(Boolean, default=False)  # Did article pass self-audit?
+    editorial_notes: Mapped[Optional[str]] = mapped_column(Text)  # Notes from human editors
+    assigned_editor: Mapped[Optional[str]] = mapped_column(String)  # Editor assigned to review
+    review_deadline: Mapped[Optional[datetime]] = mapped_column(DateTime)  # Review deadline
+
     # Relationships
     category: Mapped["Category"] = relationship(back_populates="articles")
     region: Mapped[Optional["Region"]] = relationship(back_populates="articles")
@@ -153,9 +160,11 @@ class Article(Base):
         secondary=article_sources,
         back_populates="articles"
     )
+    revisions: Mapped[List["ArticleRevision"]] = relationship(back_populates="article", cascade="all, delete-orphan")
+    corrections: Mapped[List["Correction"]] = relationship(back_populates="article", cascade="all, delete-orphan")
 
     __table_args__ = (
-        CheckConstraint("status IN ('draft', 'pending_review', 'approved', 'published', 'archived')"),
+        CheckConstraint("status IN ('draft', 'pending_review', 'under_review', 'revision_requested', 'approved', 'published', 'archived', 'needs_senior_review')"),
     )
 
     def __repr__(self):
@@ -191,6 +200,11 @@ class Topic(Base):
     status: Mapped[str] = mapped_column(String, default='discovered')
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text)
 
+    # Verification workflow (added in migration 001)
+    verified_facts: Mapped[Optional[str]] = mapped_column(Text)  # JSON array of verified facts
+    source_plan: Mapped[Optional[str]] = mapped_column(Text)  # JSON: planned sources for verification
+    verification_status: Mapped[str] = mapped_column(String, default='pending')
+
     # Relationships
     article_id: Mapped[Optional[int]] = mapped_column(ForeignKey('articles.id'))
     category: Mapped[Optional["Category"]] = relationship(back_populates="topics")
@@ -198,7 +212,198 @@ class Topic(Base):
 
     __table_args__ = (
         CheckConstraint("status IN ('discovered', 'filtered', 'approved', 'rejected', 'generated')"),
+        CheckConstraint("verification_status IN ('pending', 'in_progress', 'verified', 'partial', 'failed')"),
     )
 
     def __repr__(self):
         return f"<Topic(title='{self.title}', status='{self.status}')>"
+
+
+class EventCandidate(Base):
+    """Event candidate model for automated journalism pipeline"""
+    __tablename__ = 'event_candidates'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    # Event details
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    source_url: Mapped[Optional[str]] = mapped_column(String)
+    discovered_from: Mapped[Optional[str]] = mapped_column(String)  # RSS feed, Twitter, Reddit, etc.
+
+    # Event metadata
+    event_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    discovery_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Newsworthiness scoring (evaluated by Evaluation Agent)
+    worker_impact_score: Mapped[Optional[float]] = mapped_column(Float)  # 0-10
+    timeliness_score: Mapped[Optional[float]] = mapped_column(Float)  # 0-10
+    verifiability_score: Mapped[Optional[float]] = mapped_column(Float)  # 0-10
+    regional_relevance_score: Mapped[Optional[float]] = mapped_column(Float)  # 0-10
+    final_newsworthiness_score: Mapped[Optional[float]] = mapped_column(Float)  # Weighted average
+
+    # Topic categorization
+    suggested_category: Mapped[Optional[str]] = mapped_column(String)
+    keywords: Mapped[Optional[str]] = mapped_column(Text)  # JSON array or comma-separated
+
+    # Regional classification
+    is_national: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_local: Mapped[bool] = mapped_column(Boolean, default=False)
+    region_id: Mapped[Optional[int]] = mapped_column(ForeignKey('regions.id'))
+
+    # Processing status
+    status: Mapped[str] = mapped_column(String, default='discovered')
+    rejection_reason: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Links to generated content
+    topic_id: Mapped[Optional[int]] = mapped_column(ForeignKey('topics.id'))
+    article_id: Mapped[Optional[int]] = mapped_column(ForeignKey('articles.id'))
+
+    # Timestamps
+    evaluated_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    converted_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+    # Relationships
+    region: Mapped[Optional["Region"]] = relationship()
+    topic: Mapped[Optional["Topic"]] = relationship()
+    article: Mapped[Optional["Article"]] = relationship()
+
+    __table_args__ = (
+        CheckConstraint("status IN ('discovered', 'evaluated', 'approved', 'rejected', 'converted')"),
+    )
+
+    def __repr__(self):
+        return f"<EventCandidate(title='{self.title}', status='{self.status}', score={self.final_newsworthiness_score})>"
+
+
+class ArticleRevision(Base):
+    """Article revision tracking model"""
+    __tablename__ = 'article_revisions'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    article_id: Mapped[int] = mapped_column(ForeignKey('articles.id', ondelete='CASCADE'), nullable=False)
+
+    # Revision metadata
+    revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    revised_by: Mapped[str] = mapped_column(String, nullable=False)  # Agent name or editor username
+    revision_type: Mapped[str] = mapped_column(String, nullable=False)
+
+    # Changed fields (NULL if not changed in this revision)
+    title_before: Mapped[Optional[str]] = mapped_column(Text)
+    title_after: Mapped[Optional[str]] = mapped_column(Text)
+    body_before: Mapped[Optional[str]] = mapped_column(Text)
+    body_after: Mapped[Optional[str]] = mapped_column(Text)
+    summary_before: Mapped[Optional[str]] = mapped_column(Text)
+    summary_after: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Revision notes
+    change_summary: Mapped[Optional[str]] = mapped_column(Text)  # Brief description of changes
+    change_reason: Mapped[Optional[str]] = mapped_column(Text)  # Why changes were made
+
+    # Verification data
+    sources_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    bias_check_passed: Mapped[Optional[bool]] = mapped_column(Boolean)
+    reading_level_before: Mapped[Optional[float]] = mapped_column(Float)
+    reading_level_after: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    article: Mapped["Article"] = relationship(back_populates="revisions")
+
+    __table_args__ = (
+        CheckConstraint("revision_type IN ('draft', 'ai_edit', 'human_edit', 'fact_check', 'bias_correction', 'copy_edit')"),
+    )
+
+    def __repr__(self):
+        return f"<ArticleRevision(article_id={self.article_id}, revision={self.revision_number}, type='{self.revision_type}')>"
+
+
+class Correction(Base):
+    """Post-publication correction model"""
+    __tablename__ = 'corrections'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    article_id: Mapped[int] = mapped_column(ForeignKey('articles.id', ondelete='CASCADE'), nullable=False)
+
+    # Correction details
+    correction_type: Mapped[str] = mapped_column(String, nullable=False)
+
+    # What was wrong
+    incorrect_text: Mapped[str] = mapped_column(Text, nullable=False)
+    correct_text: Mapped[str] = mapped_column(Text, nullable=False)
+    section_affected: Mapped[Optional[str]] = mapped_column(String)  # headline, body, summary, etc.
+
+    # Correction metadata
+    severity: Mapped[str] = mapped_column(String, default='minor')
+    description: Mapped[str] = mapped_column(Text, nullable=False)  # Explanation of what was wrong
+
+    # Discovery
+    reported_by: Mapped[Optional[str]] = mapped_column(String)  # Who found the error
+    reported_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Resolution
+    corrected_by: Mapped[Optional[str]] = mapped_column(String)  # Editor who made the correction
+    corrected_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+    # Transparency
+    public_notice: Mapped[Optional[str]] = mapped_column(Text)  # Public correction notice
+    is_published: Mapped[bool] = mapped_column(Boolean, default=False)  # Is correction notice published
+    published_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+    # Status
+    status: Mapped[str] = mapped_column(String, default='pending')
+
+    # Relationships
+    article: Mapped["Article"] = relationship(back_populates="corrections")
+
+    __table_args__ = (
+        CheckConstraint("correction_type IN ('factual_error', 'source_error', 'clarification', 'update', 'retraction')"),
+        CheckConstraint("severity IN ('minor', 'moderate', 'major', 'critical')"),
+        CheckConstraint("status IN ('pending', 'verified', 'corrected', 'published')"),
+    )
+
+    def __repr__(self):
+        return f"<Correction(article_id={self.article_id}, type='{self.correction_type}', severity='{self.severity}')>"
+
+
+class SourceReliabilityLog(Base):
+    """Source reliability tracking and learning loop model"""
+    __tablename__ = 'source_reliability_log'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source_id: Mapped[int] = mapped_column(ForeignKey('sources.id'), nullable=False)
+
+    # Event details
+    event_type: Mapped[str] = mapped_column(String, nullable=False)
+
+    # Impact on reliability
+    reliability_delta: Mapped[Optional[float]] = mapped_column(Float)  # +/- change to credibility score
+    previous_score: Mapped[Optional[int]] = mapped_column(Integer)
+    new_score: Mapped[Optional[int]] = mapped_column(Integer)
+
+    # Context
+    article_id: Mapped[Optional[int]] = mapped_column(ForeignKey('articles.id', ondelete='SET NULL'))
+    correction_id: Mapped[Optional[int]] = mapped_column(ForeignKey('corrections.id', ondelete='SET NULL'))
+    notes: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Automated learning
+    automated_adjustment: Mapped[bool] = mapped_column(Boolean, default=False)  # Auto-adjusted by agent?
+    manual_override: Mapped[bool] = mapped_column(Boolean, default=False)  # Manually set by human?
+    reviewed_by: Mapped[Optional[str]] = mapped_column(String)  # Human reviewer if manual
+
+    # Timestamps
+    logged_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    source: Mapped["Source"] = relationship()
+    article: Mapped[Optional["Article"]] = relationship()
+    correction: Mapped[Optional["Correction"]] = relationship()
+
+    __table_args__ = (
+        CheckConstraint("event_type IN ('article_published', 'correction_issued', 'fact_check_pass', 'fact_check_fail', 'retraction', 'citation_added')"),
+    )
+
+    def __repr__(self):
+        return f"<SourceReliabilityLog(source_id={self.source_id}, event='{self.event_type}', delta={self.reliability_delta})>"

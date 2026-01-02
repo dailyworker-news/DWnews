@@ -166,6 +166,10 @@
       animation: slideIn 0.3s ease-out;
     }
 
+    .message.general {
+      border-left-color: #10b981;
+    }
+
     .message.roadmap {
       border-left-color: #8b5cf6;
     }
@@ -308,6 +312,11 @@
           <span>All Messages</span>
           <span class="channel-badge" id="badge-all">0</span>
         </div>
+        <div class="channel-item" data-channel="general" onclick="switchChannel('general')">
+          <span class="channel-icon">👋</span>
+          <span>General</span>
+          <span class="channel-badge" id="badge-general">0</span>
+        </div>
         <div class="channel-item" data-channel="roadmap" onclick="switchChannel('roadmap')">
           <span class="channel-icon">📊</span>
           <span>Roadmap</span>
@@ -356,6 +365,7 @@
     let messages = [];
     const channelInfo = {
       all: { name: 'All Messages', icon: '💬', description: 'Real-time view of all agent communications' },
+      general: { name: 'General', icon: '👋', description: 'Agent introductions, socializing, and casual chat' },
       roadmap: { name: 'Roadmap', icon: '📊', description: 'Roadmap updates, planning, and project direction' },
       coordination: { name: 'Coordination', icon: '🔄', description: 'Parallel work coordination and status updates' },
       errors: { name: 'Errors', icon: '🚨', description: 'Error reports, bugs, and issues' }
@@ -488,6 +498,7 @@
     function updateBadges() {
       const counts = {
         all: messages.length,
+        general: messages.filter(m => m.channel === 'general').length,
         roadmap: messages.filter(m => m.channel === 'roadmap').length,
         coordination: messages.filter(m => m.channel === 'coordination').length,
         errors: messages.filter(m => m.channel === 'errors').length

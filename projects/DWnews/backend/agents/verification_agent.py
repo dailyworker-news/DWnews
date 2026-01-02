@@ -1,0 +1,525 @@
+"""
+Verification Agent - Source Verification & Attribution
+
+Orchestrates source verification for approved topics in the automated journalism pipeline.
+Verifies sources, creates attribution plans, and ensures ≥3 credible sources per topic.
+
+Pipeline position: Between Evaluation Agent and Enhanced Journalist Agent
+Input: Approved topics from topics table
+Output: verified_facts and source_plan JSON stored in topics table
+"""
+
+import sys
+import os
+import json
+from datetime import datetime
+from typing import Dict, List, Optional
+from sqlalchemy.orm import Session
+
+# Add project root to path for imports
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
+
+from database.models import Topic, EventCandidate
+from backend.agents.verification.source_identifier import SourceIdentifier, Source
+from backend.agents.verification.cross_reference import CrossReferenceVerifier, VerificationResult
+from backend.agents.verification.fact_classifier import FactClassifier
+from backend.agents.verification.source_ranker import SourceRanker, RankedSource
+
+
+class VerificationAgent:
+    """
+    Main orchestrator for source verification and attribution
+    """
+
+    def __init__(self, session: Session, web_search_fn=None):
+        """
+        Initialize the Verification Agent
+
+        Args:
+            session: SQLAlchemy database session
+            web_search_fn: Optional function for web searching (default: None, will use mock)
+        """
+        self.session = session
+        self.web_search_fn = web_search_fn
+
+        # Initialize components
+        self.source_identifier = SourceIdentifier(web_search_fn=web_search_fn)
+        self.cross_verifier = CrossReferenceVerifier()
+        self.fact_classifier = FactClassifier()
+        self.source_ranker = SourceRanker()
+
+    def verify_topic(self, topic_id: int) -> bool:
+        """
+        Verify a single topic by finding sources and creating attribution plan
+
+        Args:
+            topic_id: ID of topic to verify
+
+        Returns:
+            True if verification succeeded, False otherwise
+        """
+        # Fetch topic
+        topic = self.session.query(Topic).filter(Topic.id == topic_id).first()
+
+        if not topic:
+            print(f"Topic {topic_id} not found")
+            return False
+
+        if topic.status != 'approved':
+            print(f"Topic {topic_id} is not approved (status: {topic.status})")
+            return False
+
+        print(f"\nVerifying topic: {topic.title}")
+        print("=" * 60)
+
+        try:
+            # Update status
+            topic.verification_status = 'in_progress'
+            self.session.commit()
+
+            # Step 1: Identify sources
+            print("\n1. Identifying sources...")
+            sources = self._identify_sources(topic)
+            print(f"   Found {len(sources)} potential sources")
+
+            if not sources:
+                print("   No sources found!")
+                topic.verification_status = 'failed'
+                self.session.commit()
+                return False
+
+            # Step 2: Rank sources by credibility
+            print("\n2. Ranking sources by credibility...")
+            ranked_sources = self._rank_sources(sources)
+
+            # Display ranking
+            for rs in ranked_sources[:5]:  # Show top 5
+                print(f"   {rs.rank}. {rs.name} (Tier {rs.credibility_tier}, Score: {rs.credibility_score:.1f})")
+
+            # Step 3: Validate threshold
+            print("\n3. Validating source threshold...")
+            validation = self.source_ranker.validate_source_threshold(ranked_sources)
+
+            print(f"   Credible sources (Tier 1-2): {validation['credible_sources_count']}")
+            print(f"   Academic citations: {validation['academic_sources_count']}")
+            print(f"   Meets threshold: {'YES' if validation['meets_threshold'] else 'NO'}")
+
+            if not validation['meets_threshold']:
+                print("\n   Insufficient sources for verification")
+                topic.verification_status = 'insufficient_sources'
+                self.session.commit()
+                return False
+
+            # Step 4: Extract and verify facts
+            print("\n4. Extracting and verifying facts...")
+            verified_facts = self._extract_and_verify_facts(topic, ranked_sources)
+
+            # Step 5: Create source plan
+            print("\n5. Creating attribution plan...")
+            source_plan = self._create_source_plan(ranked_sources, validated=validation)
+
+            # Step 6: Store results
+            print("\n6. Storing verification results...")
+            topic.verified_facts = json.dumps(verified_facts, indent=2)
+            topic.source_plan = json.dumps(source_plan, indent=2)
+            topic.verification_status = 'verified'
+            topic.source_count = len([s for s in ranked_sources if s.credibility_tier <= 2])
+            topic.academic_citation_count = validation['academic_sources_count']
+
+            self.session.commit()
+
+            print("\n✓ Verification complete!")
+            return True
+
+        except Exception as e:
+            print(f"\n✗ Verification failed: {e}")
+            topic.verification_status = 'failed'
+            self.session.commit()
+            return False
+
+    def verify_all_approved_topics(self, limit: Optional[int] = None) -> Dict:
+        """
+        Verify all approved topics that haven't been verified yet
+
+        Args:
+            limit: Optional limit on number of topics to process
+
+        Returns:
+            Dict with processing statistics
+        """
+        # Query approved topics with pending verification
+        query = self.session.query(Topic).filter(
+            Topic.status == 'approved',
+            Topic.verification_status == 'pending'
+        ).order_by(Topic.discovery_date.desc())
+
+        if limit:
+            query = query.limit(limit)
+
+        topics = query.all()
+
+        print(f"\nFound {len(topics)} topics to verify")
+        print("=" * 60)
+
+        verified_count = 0
+        insufficient_count = 0
+        failed_count = 0
+
+        for i, topic in enumerate(topics, 1):
+            print(f"\n[{i}/{len(topics)}] Processing: {topic.title}")
+
+            success = self.verify_topic(topic.id)
+
+            if success:
+                if topic.verification_status == 'verified':
+                    verified_count += 1
+                elif topic.verification_status == 'insufficient_sources':
+                    insufficient_count += 1
+            else:
+                failed_count += 1
+
+        return {
+            'total_processed': len(topics),
+            'verified': verified_count,
+            'insufficient_sources': insufficient_count,
+            'failed': failed_count,
+            'success_rate': round((verified_count / len(topics) * 100), 2) if topics else 0
+        }
+
+    def _identify_sources(self, topic: Topic) -> List[Source]:
+        """
+        Identify sources for a topic
+
+        Args:
+            topic: Topic to find sources for
+
+        Returns:
+            List of Source objects
+        """
+        # Build topic text
+        topic_text = f"{topic.title}. {topic.description or ''}"
+
+        # Build event data context
+        event_data = {
+            'keywords': topic.keywords,
+            'category': topic.category.slug if topic.category else None,
+            'region': topic.region.name if topic.region else None,
+            'is_national': topic.is_national
+        }
+
+        # Identify sources
+        sources = self.source_identifier.identify_sources(topic_text, event_data)
+
+        return sources
+
+    def _rank_sources(self, sources: List[Source]) -> List[RankedSource]:
+        """
+        Rank sources by credibility
+
+        Args:
+            sources: List of Source objects
+
+        Returns:
+            List of RankedSource objects
+        """
+        # Convert Source objects to dicts for ranking
+        source_dicts = [
+            {
+                'url': source.url,
+                'name': source.name,
+                'source_type': source.source_type
+            }
+            for source in sources
+        ]
+
+        # Rank sources
+        ranked_sources = self.source_ranker.rank_sources(source_dicts)
+
+        return ranked_sources
+
+    def _extract_and_verify_facts(self, topic: Topic, ranked_sources: List[RankedSource]) -> Dict:
+        """
+        Extract facts from topic and verify them against sources
+
+        Args:
+            topic: Topic to extract facts from
+            ranked_sources: Ranked source list
+
+        Returns:
+            Dict with verified_facts structure
+        """
+        # Extract key facts from topic description
+        facts = self._extract_facts_from_topic(topic)
+
+        # For each fact, get source content (in real implementation, would fetch actual content)
+        # For now, use source snippets as proxy
+        source_contents = [
+            {
+                'url': rs.url,
+                'name': rs.name,
+                'content': f"Content from {rs.name}",  # Placeholder
+                'snippet': f"Snippet about {topic.title}",
+                'source_type': rs.source_type
+            }
+            for rs in ranked_sources[:10]  # Limit to top 10 sources
+        ]
+
+        # Cross-reference verify facts
+        verification_result = self.cross_verifier.verify_claims(facts, source_contents)
+
+        # Classify each verified fact
+        classified_facts = []
+        for verified_fact in verification_result.verified_facts:
+            # Determine source type from sources
+            source_type = 'unknown'
+            if verified_fact.sources:
+                # Get source type from first supporting source
+                source_url = verified_fact.sources[0]
+                matching_source = next(
+                    (rs for rs in ranked_sources if rs.url == source_url),
+                    None
+                )
+                if matching_source:
+                    source_type = matching_source.source_type
+
+            # Classify fact
+            fact_type = self.fact_classifier.classify_fact(verified_fact.claim, source_type)
+
+            classified_facts.append({
+                'claim': verified_fact.claim,
+                'type': fact_type,
+                'sources': verified_fact.sources,
+                'confidence': verified_fact.confidence,
+                'conflicting_info': verified_fact.conflicting_info
+            })
+
+        # Get credible sources only (Tier 1-2)
+        credible_sources = [rs for rs in ranked_sources if rs.credibility_tier <= 2]
+        academic_sources = [
+            rs for rs in ranked_sources
+            if rs.source_type == 'academic' or 'academic' in rs.reasoning.lower()
+        ]
+
+        # Build summary
+        source_summary = {
+            'total_sources': len(ranked_sources),
+            'credible_sources': len(credible_sources),
+            'academic_citations': len(academic_sources),
+            'meets_threshold': len(credible_sources) >= 3 or len(academic_sources) >= 2,
+            'source_agreement_score': round(verification_result.source_agreement_score, 2)
+        }
+
+        return {
+            'facts': classified_facts,
+            'source_summary': source_summary
+        }
+
+    def _extract_facts_from_topic(self, topic: Topic) -> List[str]:
+        """
+        Extract key factual claims from topic
+
+        Args:
+            topic: Topic to extract from
+
+        Returns:
+            List of factual claims
+        """
+        # Simple fact extraction based on sentences
+        text = f"{topic.title}. {topic.description or ''}"
+
+        # Split into sentences
+        import re
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+
+        # Filter to factual-sounding sentences (heuristic)
+        facts = []
+        for sentence in sentences:
+            # Skip very short sentences
+            if len(sentence) < 20:
+                continue
+
+            # Skip questions
+            if '?' in sentence:
+                continue
+
+            # Keep sentences with numbers, names, or specific details
+            if re.search(r'\d+|[A-Z][a-z]+\s+[A-Z][a-z]+|\$', sentence):
+                facts.append(sentence)
+
+        # If no facts extracted, use the whole description
+        if not facts and topic.description:
+            facts = [topic.description]
+
+        # Default: just use title if nothing else
+        if not facts:
+            facts = [topic.title]
+
+        return facts[:5]  # Limit to 5 facts
+
+    def _create_source_plan(self, ranked_sources: List[RankedSource], validated: Dict) -> Dict:
+        """
+        Create attribution plan for journalist
+
+        Args:
+            ranked_sources: List of ranked sources
+            validated: Validation results dict
+
+        Returns:
+            Dict with source_plan structure
+        """
+        # Split sources into primary and supporting
+        primary_sources = [rs for rs in ranked_sources if rs.credibility_tier == 1][:3]
+        supporting_sources = [rs for rs in ranked_sources if rs.credibility_tier == 2][:3]
+
+        # Build attribution strategy
+        if primary_sources:
+            primary_name = primary_sources[0].name
+            strategy = f"Lead with {primary_name} as primary source"
+
+            if len(primary_sources) > 1:
+                strategy += f", corroborate with {primary_sources[1].name}"
+
+            if supporting_sources:
+                strategy += f", cite {supporting_sources[0].name} for additional context"
+        elif supporting_sources:
+            strategy = f"Lead with {supporting_sources[0].name}, cross-reference with other credible sources"
+        else:
+            strategy = "Use available sources with appropriate attribution and verification notes"
+
+        return {
+            'primary_sources': [
+                {
+                    'name': rs.name,
+                    'url': rs.url,
+                    'type': rs.source_type,
+                    'rank': rs.rank,
+                    'credibility_tier': rs.credibility_tier,
+                    'credibility_score': rs.credibility_score
+                }
+                for rs in primary_sources
+            ],
+            'supporting_sources': [
+                {
+                    'name': rs.name,
+                    'url': rs.url,
+                    'type': rs.source_type,
+                    'rank': rs.rank,
+                    'credibility_tier': rs.credibility_tier,
+                    'credibility_score': rs.credibility_score
+                }
+                for rs in supporting_sources
+            ],
+            'attribution_strategy': strategy,
+            'verification_notes': {
+                'total_sources_found': len(ranked_sources),
+                'credible_sources': validated['credible_sources_count'],
+                'academic_citations': validated['academic_sources_count'],
+                'threshold_met': validated['meets_threshold'],
+                'threshold_met_by': validated.get('threshold_met_by')
+            }
+        }
+
+    def get_verification_stats(self) -> Dict:
+        """
+        Get statistics about verified topics
+
+        Returns:
+            Dict with verification statistics
+        """
+        # Count topics by verification status
+        total_topics = self.session.query(Topic).filter(
+            Topic.status == 'approved'
+        ).count()
+
+        verified = self.session.query(Topic).filter(
+            Topic.verification_status == 'verified'
+        ).count()
+
+        pending = self.session.query(Topic).filter(
+            Topic.verification_status == 'pending'
+        ).count()
+
+        insufficient = self.session.query(Topic).filter(
+            Topic.verification_status == 'insufficient_sources'
+        ).count()
+
+        failed = self.session.query(Topic).filter(
+            Topic.verification_status == 'failed'
+        ).count()
+
+        # Calculate average source counts for verified topics
+        from sqlalchemy import func
+        avg_sources = self.session.query(
+            func.avg(Topic.source_count),
+            func.avg(Topic.academic_citation_count)
+        ).filter(Topic.verification_status == 'verified').first()
+
+        return {
+            'total_approved_topics': total_topics,
+            'verified': verified,
+            'pending': pending,
+            'insufficient_sources': insufficient,
+            'failed': failed,
+            'verification_rate': round((verified / total_topics * 100), 2) if total_topics > 0 else 0,
+            'avg_source_count': round(avg_sources[0], 1) if avg_sources[0] else 0,
+            'avg_academic_citations': round(avg_sources[1], 1) if avg_sources[1] else 0
+        }
+
+
+def main():
+    """
+    Main function for running the Verification Agent standalone
+    """
+    from backend.database import SessionLocal
+
+    session = SessionLocal()
+    agent = VerificationAgent(session)
+
+    print("=" * 60)
+    print("VERIFICATION AGENT - Source Verification & Attribution")
+    print("=" * 60)
+
+    # Get current stats
+    stats = agent.get_verification_stats()
+    print(f"\nCurrent Status:")
+    print(f"  Total approved topics: {stats['total_approved_topics']}")
+    print(f"  Verified: {stats['verified']}")
+    print(f"  Pending: {stats['pending']}")
+    print(f"  Insufficient sources: {stats['insufficient_sources']}")
+    print(f"  Failed: {stats['failed']}")
+    print(f"  Verification rate: {stats['verification_rate']}%")
+
+    if stats['pending'] == 0:
+        print("\nNo pending topics to verify.")
+        return
+
+    # Process pending topics
+    print(f"\nProcessing {stats['pending']} pending topics...")
+    results = agent.verify_all_approved_topics()
+
+    print(f"\n{'=' * 60}")
+    print("RESULTS:")
+    print(f"{'=' * 60}")
+    print(f"Total processed: {results['total_processed']}")
+    print(f"Verified: {results['verified']} ({results['success_rate']}%)")
+    print(f"Insufficient sources: {results['insufficient_sources']}")
+    print(f"Failed: {results['failed']}")
+
+    # Show updated stats
+    updated_stats = agent.get_verification_stats()
+    print(f"\nUpdated Status:")
+    print(f"  Total verified: {updated_stats['verified']}")
+    print(f"  Verification rate: {updated_stats['verification_rate']}%")
+
+    if updated_stats['verified'] > 0:
+        print(f"\nAverage metrics for verified topics:")
+        print(f"  Source count: {updated_stats['avg_source_count']}")
+        print(f"  Academic citations: {updated_stats['avg_academic_citations']}")
+
+    session.close()
+
+
+if __name__ == '__main__':
+    main()

@@ -45,6 +45,7 @@ The agent chat system enables agents to coordinate work via persistent chat chan
 3. **Dashboard** (`dashboard.js`) - Real-time web UI for observing agent communications at http://localhost:3000
 
 **Channels:**
+- `#general` - Agent introductions, socializing, and casual team chat
 - `#roadmap` - Roadmap updates and project direction
 - `#coordination` - Parallel work coordination and status updates
 - `#errors` - Error reports and issues
@@ -81,34 +82,50 @@ Agents working in this repository have access to chat tools via MCP:
 // 1. Set your agent handle (required first step)
 set_handle({ handle: "backend-dev-01" })
 
-// 2. Check what others are doing
-read_messages({ channel: "coordination", limit: 10 })
+// 2. Introduce yourself in #general (first activation only)
+publish_message({
+  channel: "general",
+  message: "Hey everyone! I'm [YourName], [your role]. [Brief intro about yourself and what you do]. Looking forward to working with you all!"
+})
 
-// 3. Announce your work to avoid conflicts
+// 3. Check what others are doing
+read_messages({ channel: "coordination", limit: 10 })
+read_messages({ channel: "general", limit: 5 })
+
+// 4. Announce your work to avoid conflicts
 publish_message({
   channel: "coordination",
   message: "Starting database schema update. ETA: 20 mins. Will lock schema."
 })
 
-// 4. Report errors immediately
+// 5. Report errors immediately
 publish_message({
   channel: "errors",
   message: "CRITICAL: API timeout on /api/articles. Investigating..."
 })
 
-// 5. Update roadmap discussions
+// 6. Update roadmap discussions
 publish_message({
   channel: "roadmap",
   message: "Completed Phase 1.1 - GCP Infrastructure. Updated roadmap.md"
+})
+
+// 7. Share in #general (optional but encouraged)
+publish_message({
+  channel: "general",
+  message: "Just finished a complex database migration - feels great when everything just works! Anyone else working on data stuff today?"
 })
 ```
 
 **Best Practices:**
 - Always `set_handle` before publishing messages
+- Introduce yourself in `#general` when you first activate
 - Read `#coordination` before starting work to avoid conflicts
-- Be specific: include file paths, phase numbers, ETAs
+- Use `#general` for socializing, questions, and building team culture
+- Be specific in technical channels: include file paths, phase numbers, ETAs
 - Report completion to unblock dependent agents
 - Post errors to `#errors` channel immediately
+- You're not just a function - engage as a unique individual with personality
 
 ### Testing the Chat System
 
@@ -292,7 +309,7 @@ cat plans/priorities.md           # View feature priorities
 
 The web dashboard at http://localhost:3000 provides:
 - Real-time message streaming via WebSocket
-- Channel filtering (All, #roadmap, #coordination, #errors)
+- Channel filtering (All, #general, #roadmap, #coordination, #errors)
 - Message history with timestamps and agent identification
 - Auto-reconnect on connection loss
 

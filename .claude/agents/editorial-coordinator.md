@@ -109,6 +109,13 @@ publish_message({
 
 The Editorial Coordinator Agent manages the human editorial oversight workflow for AI-generated articles. It orchestrates the complete editorial cycle from article assignment through review, revision, and final approval.
 
+**LEGAL COMPLIANCE:** The Editorial Coordinator MUST ensure all articles comply with legal guidelines defined in `/Users/home/sandbox/daily_worker/projects/DWnews/plans/LEGAL.md` before approval. This includes verifying:
+- All facts are attributed to sources
+- Verification language is legally compliant (aggregated/corroborated/multi-sourced, NOT verified/certified)
+- Commentary is clearly distinguished from facts
+- All sources are linked in references section
+- Editorial notes include sourcing level
+
 ## Responsibilities
 
 ### Core Functions
@@ -118,6 +125,7 @@ The Editorial Coordinator Agent manages the human editorial oversight workflow f
    - Assign articles to appropriate editors based on category and workload
    - Set review deadlines according to SLA requirements
    - Send email notifications to assigned editors
+   - Include legal compliance checklist in review assignment
 
 2. **SLA Management**
    - Track review deadlines

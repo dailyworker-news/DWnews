@@ -4,144 +4,205 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - The Daily Worker</title>
-    <link rel="stylesheet" href="styles/main.css">
+    <meta name="description" content="Learn about The Daily Worker's mission, sourcing standards, and editorial approach.">
+    <!-- Google Fonts: Playfair Display (masthead/headlines) and Merriweather (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css?v=6">
+    <link rel="stylesheet" href="styles/article.css?v=6">
     <style>
-        .legal-content {
+        .about-content {
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem 1rem;
-        }
-        .legal-content h1 {
-            font-size: 2.5rem;
-            color: var(--color-primary);
-            margin-bottom: 1rem;
-        }
-        .legal-content h2 {
-            font-size: 1.5rem;
-            color: var(--color-text);
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
-        .legal-content p {
-            margin-bottom: 1rem;
             line-height: 1.8;
         }
-        .legal-content ul {
+
+        .about-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+        }
+
+        .about-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-top: 2.5rem;
             margin-bottom: 1rem;
+            color: #2c2c2c;
+        }
+
+        .about-content p {
+            font-family: 'Merriweather', serif;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .about-content ul {
+            font-family: 'Merriweather', serif;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
             padding-left: 2rem;
         }
-        .legal-content li {
-            margin-bottom: 0.5rem;
+
+        .about-content li {
+            margin-bottom: 0.75rem;
+            color: #333;
         }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 1rem;
-            color: var(--color-secondary);
-            text-decoration: none;
+
+        .about-content strong {
+            font-weight: 700;
         }
-        .back-link:hover {
-            text-decoration: underline;
+
+        .sourcing-examples {
+            margin-top: 2rem;
+        }
+
+        .example-callout {
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .example-callout h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-callout p {
+            font-size: 1rem;
+            margin: 0;
+            color: #444;
+        }
+
+        .example-aggregated {
+            background-color: #fff9e6;
+            border-left-color: #f0ad4e;
+        }
+
+        .example-corroborated {
+            background-color: #e8f4f8;
+            border-left-color: #5bc0de;
+        }
+
+        .example-multisourced {
+            background-color: #eaf7ea;
+            border-left-color: #5cb85c;
+        }
+
+        .legal-disclaimer {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .legal-disclaimer p {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 0.75rem;
+        }
+
+        .legal-disclaimer p:last-child {
+            margin-bottom: 0;
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <header class="site-header">
         <div class="container">
-            <h1 class="site-title">The Daily Worker</h1>
+            <h1 class="site-title"><a href="/frontend/" style="color: white; text-decoration: none;">The Daily Worker</a></h1>
             <p class="site-tagline">Accurate, Worker-Centric News That Doesn't Pull Punches</p>
+
+            <nav class="main-nav">
+                <a href="/frontend/" class="nav-link">← Back to Home</a>
+            </nav>
         </div>
     </header>
 
-    <main class="legal-content">
-        <a href="index.html" class="back-link">← Back to Home</a>
+    <!-- Main Content -->
+    <main class="site-main container">
+        <div class="about-content">
+            <h1>About The Daily Worker</h1>
 
-        <h1>About The Daily Worker</h1>
+            <p>The Daily Worker is a news aggregation and commentary platform providing working-class perspectives on current events. All content is AI-assisted and represents editorial opinion and analysis, not independent fact-checking or verification.</p>
 
-        <h2>Our Mission</h2>
-        <p>
-            The Daily Worker delivers accurate, timely news that matters to working-class Americans,
-            analyzed through a Marxist/Leninist lens. We don't shy away from uncomfortable truths,
-            and we don't pull punches when it comes to exposing exploitation, inequality, and injustice.
-        </p>
+            <h2>Our Sourcing Standards</h2>
 
-        <h2>What We Believe</h2>
-        <ul>
-            <li><strong>Quality Over Quantity:</strong> We publish 3-10 carefully researched articles daily,
-                not a flood of clickbait. Every article meets our standards for accuracy and relevance.</li>
-            <li><strong>Worker-Centric Perspective:</strong> All news is analyzed through the lens of
-                working-class interests. We ask "How does this affect workers?" for every story.</li>
-            <li><strong>No Corporate Influence:</strong> We're not beholden to advertisers, shareholders,
-                or corporate interests. Our only loyalty is to the truth and to working people.</li>
-            <li><strong>Evidence-Based Analysis:</strong> Every article cites multiple credible sources
-                and includes academic citations where appropriate. We value accuracy over ideology.</li>
-        </ul>
+            <div class="sourcing-examples">
+                <div class="example-callout example-aggregated">
+                    <h3>
+                        <span class="badge-icon">📄</span>
+                        <strong>AGGREGATED</strong>
+                    </h3>
+                    <p>Republished from single source with attribution — see ref.</p>
+                </div>
 
-        <h2>How We Work</h2>
-        <p>
-            Our content pipeline combines AI-powered discovery and generation with human editorial oversight:
-        </p>
-        <ul>
-            <li><strong>Discovery:</strong> We monitor RSS feeds, social media, and trusted news sources
-                to identify stories that matter to working people.</li>
-            <li><strong>Filtering:</strong> Topics are evaluated for source credibility, worker relevance,
-                and engagement potential before we commit to coverage.</li>
-            <li><strong>Generation:</strong> AI tools help draft articles with proper reading level
-                (7.5-8.5 Flesch-Kincaid), always including "Why This Matters" and "What You Can Do" sections.</li>
-            <li><strong>Review:</strong> Human editors review every article before publication to ensure
-                accuracy, tone, and quality standards are met.</li>
-        </ul>
+                <div class="example-callout example-corroborated">
+                    <h3>
+                        <span class="badge-icon">📋</span>
+                        <strong>CORROBORATED</strong>
+                    </h3>
+                    <p>Multiple sources (2-4) report similar information — see ref.</p>
+                </div>
 
-        <h2>Content Standards</h2>
-        <p>Every article we publish must meet these criteria:</p>
-        <ul>
-            <li>Minimum 3 credible sources cited</li>
-            <li>Reading level between 7.5-8.5 (accessible but not dumbed down)</li>
-            <li>Worker relevance score of at least 0.3</li>
-            <li>Engagement potential score of at least 0.3</li>
-            <li>"Why This Matters" section explaining broader significance</li>
-            <li>"What You Can Do" section providing concrete action steps</li>
-        </ul>
+                <div class="example-callout example-multisourced">
+                    <h3>
+                        <span class="badge-icon">📰</span>
+                        <strong>MULTI-SOURCED</strong>
+                    </h3>
+                    <p>Reported across 5+ independent outlets — see ref.</p>
+                </div>
+            </div>
 
-        <h2>AI-Generated Content Disclosure</h2>
-        <p>
-            We use artificial intelligence tools to help discover topics, draft articles, and source images.
-            However, all content is reviewed and edited by human editors before publication. AI is a tool
-            that helps us work more efficiently—it doesn't replace human judgment, fact-checking, or editorial oversight.
-        </p>
-
-        <h2>Our Principles</h2>
-        <ul>
-            <li><strong>Accuracy First:</strong> We correct mistakes promptly and prominently.</li>
-            <li><strong>No Punches Pulled:</strong> We call out exploitation, corruption, and injustice
-                regardless of who's responsible.</li>
-            <li><strong>Worker Solidarity:</strong> We support labor organizing, strikes, and collective action.</li>
-            <li><strong>Broad Coverage:</strong> We cover Labor, Tech, Politics, Economics, Current Affairs,
-                Art & Culture, Sport, and Good News.</li>
-            <li><strong>Regional Focus:</strong> National news and local stories that affect working families.</li>
-        </ul>
-
-        <h2>Contact</h2>
-        <p>
-            We're building this platform to serve working people. If you have story tips, feedback,
-            or want to get involved, we want to hear from you.
-        </p>
-        <p>
-            <strong>Note:</strong> The Daily Worker is currently in development. Full contact information
-            will be available when we launch publicly.
-        </p>
-
-        <h2>History</h2>
-        <p>
-            The Daily Worker honors the legacy of the original Daily Worker newspaper (1924-1958),
-            which covered labor news and working-class struggles during a critical period of American history.
-            Like our predecessor, we're committed to telling the stories that corporate media ignores.
-        </p>
-
-        <a href="index.html" class="back-link">← Back to Home</a>
+            <div class="legal-disclaimer">
+                <p><strong>Important Disclaimer:</strong></p>
+                <p>We link to all source material. Readers should review original sources and form their own conclusions. The Daily Worker does not warrant accuracy of aggregated content and is not liable for errors in source material.</p>
+                <p>All articles represent editorial commentary and analysis from a working-class perspective. This platform does not claim to provide independent fact-checking or verification services.</p>
+            </div>
+        </div>
     </main>
 
+    <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>The Daily Worker</h3>
+                    <p>Accurate, worker-centric news that doesn't pull punches.</p>
+                    <p class="footer-tagline">Quality over quantity. Always.</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Categories</h3>
+                    <nav class="footer-nav">
+                        <a href="/frontend/?category=labor">Labor</a>
+                        <a href="/frontend/?category=politics">Politics</a>
+                        <a href="/frontend/?category=economics">Economics</a>
+                        <a href="/frontend/?category=good-news">Good News</a>
+                    </nav>
+                </div>
+
+                <div class="footer-section">
+                    <h3>About</h3>
+                    <nav class="footer-nav">
+                        <a href="/frontend/about.html">About Us</a>
+                        <a href="/frontend/privacy.html">Privacy</a>
+                        <a href="/frontend/terms.html">Terms</a>
+                    </nav>
+                </div>
+            </div>
+
             <p class="copyright">&copy; 2025 The Daily Worker. All rights reserved.</p>
         </div>
     </footer>

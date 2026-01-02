@@ -2,17 +2,26 @@
 
 ## Document Information
 
-**Version:** 1.1
-**Date:** 2025-12-29
+**Version:** 1.2
+**Date:** 2026-01-02
 **Project:** The Daily Worker (Project Code: DWnews)
 **Status:** Active
 **Philosophy:** Bare Bones MVP - Ship Fast, Iterate
+
+**MANDATORY COMPLIANCE DOCUMENTS:**
+- **LEGAL.md** - Legal guidelines for attribution, commentary, and platform positioning (v1.0, 2026-01-02)
+- **journalism-standards.md** - Professional journalism standards and best practices
+- **SECURITY.md** - Security requirements and implementation guidelines
+
+All content generation, agent instructions, and editorial workflows MUST comply with these documents.
 
 ---
 
 ## 1. Mission
 
 Deliver accurate, worker-centric news that doesn't pull punches. Materialist perspective on politics, economics, labor, technology, culture, and current affairs. Quality over quantity.
+
+**Legal Positioning:** The Daily Worker is a news aggregation and commentary platform that amplifies worker-centric perspectives on current events. We aggregate news from external sources with proper attribution and provide AI-generated editorial commentary and analysis. We are NOT an independent fact-checking service or verification authority. All content links to original source material for reader verification.
 
 ---
 
@@ -67,11 +76,13 @@ Topics MUST pass all three criteria:
 - LLM-powered article creation (user's Claude, ChatGPT, or Gemini subscriptions)
 - Specialized AI journalist agents by beat (investigative, sports, gossip, economics, tech, culture)
 - **ALL articles MUST comply with professional journalism standards** (see `journalism-standards.md`)
+- **ALL articles MUST comply with legal guidelines** (see `LEGAL.md`) **[MANDATORY]**
 - AI bias detection and copy editing
 - Human final review and approval
 
-**Journalism Standards Reference:**
-All journalist agents must follow professional standards defined in:
+**Mandatory Compliance Documents:**
+All journalist agents must follow professional standards and legal guidelines defined in:
+- `plans/LEGAL.md` **[MANDATORY]** - Legal guidelines for attribution, commentary vs. fact, verification language, platform positioning
 - `plans/journalism-standards.md` - Professional newsroom standards (inverted pyramid, 5W+H, attribution, sources, nut graf, etc.)
 - `.claude/agents/journalist.md` - Journalist agent instructions and checklist
 
@@ -85,13 +96,27 @@ All journalist agents must follow professional standards defined in:
 - Neutral tone with emotion conveyed through facts/quotes, not author voice
 - Clear separation of fact and opinion
 
+**Legal Compliance Requirements (LEGAL.md):**
+- **Attribution:** All facts must be attributed to sources ("According to [Source]...", "As reported by [Source]...")
+- **Commentary vs. Fact:** Facts are attributed; commentary is clearly marked with signal phrases ("suggests", "raises questions", "critics argue")
+- **Verification Language:** Use only "aggregated/corroborated/multi-sourced" (NEVER "verified/certified/confirmed")
+- **Platform Positioning:** Aggregator + commentary, NOT independent fact-checking or verification authority
+- **Source Links:** All original sources must be linked in references section
+- **Editorial Notes:** Must include sourcing level (aggregated/corroborated/multi-sourced)
+
 ### 3.4 Editorial Workflow
-1. AI journalist agent generates draft following journalism standards
+1. AI journalist agent generates draft following journalism standards AND legal guidelines (LEGAL.md)
 2. AI bias scan and initial edit
 3. Self-check against journalism standards checklist
-4. Human editor reviews and approves
-5. Graphics sourcing/generation
-6. Publication
+4. **Legal compliance check** (attribution, verification language, commentary distinction)
+5. Human editor reviews and approves (journalism + legal compliance)
+6. Graphics sourcing/generation
+7. Publication
+
+**Legal Compliance Checkpoints:**
+- Pre-generation: Review LEGAL.md requirements before writing
+- Post-generation: Validate attribution, sourcing level, commentary distinction
+- Pre-publication: Editor verifies legal compliance checklist completed
 
 ---
 

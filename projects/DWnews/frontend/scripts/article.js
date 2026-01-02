@@ -230,18 +230,22 @@ function displayVerificationBadge(article) {
     let verificationLevel = null;
     let sourceCount = 0;
 
-    // Parse verification level from editorial notes
-    if (notes.includes('verification: certified')) {
-        verificationLevel = 'certified';
-        const match = notes.match(/verification: certified \((\d+) sources\)/);
-        if (match) sourceCount = parseInt(match[1]);
-    } else if (notes.includes('verification: verified')) {
-        verificationLevel = 'verified';
-        const match = notes.match(/verification: verified \((\d+) sources\)/);
-        if (match) sourceCount = parseInt(match[1]);
-    } else if (notes.includes('verification: unverified')) {
-        verificationLevel = 'unverified';
-        sourceCount = 0;
+    // Parse verification level from editorial notes (new terminology)
+    const sourceMatch = notes.match(/(\d+)\s*source/);
+    if (sourceMatch) sourceCount = parseInt(sourceMatch[1]);
+
+    if (notes.includes('multi-sourced') || notes.includes('multi-source')) {
+        verificationLevel = 'multi-sourced';
+    } else if (notes.includes('corroborated')) {
+        verificationLevel = 'corroborated';
+    } else if (notes.includes('aggregated')) {
+        verificationLevel = 'aggregated';
+    } else if (notes.includes('certified')) {
+        verificationLevel = 'multi-sourced'; // Legacy mapping
+    } else if (notes.includes('verified')) {
+        verificationLevel = 'corroborated'; // Legacy mapping
+    } else if (notes.includes('unverified')) {
+        verificationLevel = 'aggregated'; // Legacy mapping
     }
 
     if (!verificationLevel) {
@@ -252,20 +256,20 @@ function displayVerificationBadge(article) {
     verificationBadge.className = 'article-badge badge-verification';
 
     switch(verificationLevel) {
-        case 'certified':
+        case 'multi-sourced':
             verificationBadge.classList.add('badge-verified-certified');
-            verificationBadge.innerHTML = `<span class="badge-icon">✓✓</span> Certified (${sourceCount}+ sources)`;
-            verificationBadge.title = 'This article has been thoroughly researched and verified against multiple credible sources';
+            verificationBadge.innerHTML = `<span class="badge-icon">📰</span> Multi-Sourced`;
+            verificationBadge.title = 'Reported across 5+ independent outlets';
             break;
-        case 'verified':
+        case 'corroborated':
             verificationBadge.classList.add('badge-verified-yes');
-            verificationBadge.innerHTML = `<span class="badge-icon">✓</span> Verified (${sourceCount} source${sourceCount !== 1 ? 's' : ''})`;
-            verificationBadge.title = `This article has been verified against ${sourceCount} credible source${sourceCount !== 1 ? 's' : ''}`;
+            verificationBadge.innerHTML = `<span class="badge-icon">📋</span> Corroborated`;
+            verificationBadge.title = 'Multiple sources (2-4) report similar information';
             break;
-        case 'unverified':
+        case 'aggregated':
             verificationBadge.classList.add('badge-verified-no');
-            verificationBadge.innerHTML = `<span class="badge-icon">⚠</span> Unverified`;
-            verificationBadge.title = 'This article could not be independently verified. Exercise additional caution.';
+            verificationBadge.innerHTML = `<span class="badge-icon">📄</span> Aggregated`;
+            verificationBadge.title = 'Republished from single source with attribution';
             break;
     }
 
@@ -288,12 +292,18 @@ function displayVerificationCallout(article) {
     let sourceCount = 0;
 
     // Extract verification level from editorial notes
-    if (notes.includes('certified')) {
-        verificationLevel = 'certified';
+    if (notes.includes('multi-sourced') || notes.includes('multi-source')) {
+        verificationLevel = 'multi-sourced';
+    } else if (notes.includes('corroborated')) {
+        verificationLevel = 'corroborated';
+    } else if (notes.includes('aggregated')) {
+        verificationLevel = 'aggregated';
+    } else if (notes.includes('certified')) {
+        verificationLevel = 'multi-sourced'; // Legacy mapping
     } else if (notes.includes('verified')) {
-        verificationLevel = 'verified';
+        verificationLevel = 'corroborated'; // Legacy mapping
     } else if (notes.includes('unverified')) {
-        verificationLevel = 'unverified';
+        verificationLevel = 'aggregated'; // Legacy mapping
     }
 
     // Extract source count
@@ -306,27 +316,27 @@ function displayVerificationCallout(article) {
 
     // Set content based on verification level
     switch(verificationLevel) {
-        case 'certified':
+        case 'multi-sourced':
             callout.className = 'verification-callout certified';
-            statusIcon.textContent = '✓✓';
-            statusText.textContent = 'Certified';
-            description.textContent = `Thoroughly researched and verified against ${sourceCount}+ credible sources. See references below.`;
+            statusIcon.textContent = '📰';
+            statusText.textContent = 'Multi-Sourced';
+            description.textContent = `Reported across ${sourceCount}+ independent outlets — see ref.`;
             break;
-        case 'verified':
+        case 'corroborated':
             callout.className = 'verification-callout verified';
-            statusIcon.textContent = '✓';
-            statusText.textContent = 'Verified';
+            statusIcon.textContent = '📋';
+            statusText.textContent = 'Corroborated';
             description.textContent = sourceCount > 0
-                ? `${sourceCount} listed source${sourceCount !== 1 ? 's' : ''} — see ref.`
-                : 'Verified against credible sources — see ref.';
+                ? `${sourceCount} sources report similar information — see ref.`
+                : 'Multiple sources report similar information — see ref.';
             break;
-        case 'unverified':
+        case 'aggregated':
             callout.className = 'verification-callout unverified';
-            statusIcon.textContent = '⚠';
-            statusText.textContent = 'Unverified';
+            statusIcon.textContent = '📄';
+            statusText.textContent = 'Aggregated';
             description.textContent = sourceCount > 0
-                ? `${sourceCount} source${sourceCount !== 1 ? 's' : ''} listed but not independently verified — see ref.`
-                : 'No listed sources. Exercise additional caution.';
+                ? `Republished from ${sourceCount} source${sourceCount !== 1 ? 's' : ''} with attribution — see ref.`
+                : 'Republished from single source with attribution — see ref.';
             break;
     }
 

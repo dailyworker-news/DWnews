@@ -259,13 +259,23 @@ class EditorialCoordinator:
                 self.logger.error(f"Article {article_id} not found")
                 return False
 
-            article.status = 'approved'
+            # Set status to published (not approved)
+            article.status = 'published'
             article.assigned_editor = approved_by
             article.editorial_notes = f"Approved by {approved_by} on {datetime.utcnow().isoformat()}"
 
+            # Set published_at if not already set
+            if not article.published_at:
+                article.published_at = datetime.utcnow()
+
+            # Remove [NEEDS REVIEW] tag from title if present
+            if article.title and '[NEEDS REVIEW]' in article.title:
+                article.title = article.title.replace('[NEEDS REVIEW]', '').strip()
+                self.logger.info(f"Removed [NEEDS REVIEW] tag from article {article_id} title")
+
             self.db.commit()
 
-            self.logger.info(f"Article {article_id} approved by {approved_by}")
+            self.logger.info(f"Article {article_id} published by {approved_by}")
             return True
 
         except Exception as e:

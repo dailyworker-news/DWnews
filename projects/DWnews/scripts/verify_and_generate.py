@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
-Real Data Pipeline - Complete Workflow with RSS Feeds
+Verify and Generate - Process existing approved topics through full pipeline
 
-Discovers REAL events from RSS feeds, verifies sources, generates articles
-with proper citations. NO HALLUCINATIONS - only writes using verified facts.
+Takes approved topics and runs them through:
+1. Verification Agent - Gather sources and extract verified facts
+2. Enhanced Journalist Agent - Generate articles with proper citations
+3. Image Sourcer - Generate images with DALL-E
+4. Editorial Review - Prepare for publication
+
+NO HALLUCINATIONS - Only verified, cited content.
 """
 
 import sys
@@ -13,29 +18,25 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.config import settings
-from backend.agents.signal_intake_agent import SignalIntakeAgent
-from backend.agents.evaluation_agent import EvaluationAgent
 from backend.agents.verification_agent import VerificationAgent
 from backend.agents.enhanced_journalist_agent import EnhancedJournalistAgent
 from scripts.content.source_images import ImageSourcer
-from backend.agents.publication_agent import PublicationAgent
 from backend.logging_config import get_logger
+from database.models import Topic
 
 logger = get_logger(__name__)
 
 def main():
-    """Run complete pipeline with real RSS data"""
+    """Process existing approved topics through full pipeline"""
 
     print("=" * 80)
-    print("REAL DATA PIPELINE - Complete Workflow")
+    print("VERIFY AND GENERATE - Process Approved Topics")
     print("=" * 80)
     print("\nThis will:")
-    print("  1. Discover real events from RSS feeds (Reuters, AP, ProPublica)")
-    print("  2. Score events for newsworthiness")
-    print("  3. Verify sources and extract facts")
-    print("  4. Generate articles with CITATIONS ONLY from verified sources")
-    print("  5. Generate images with DALL-E")
-    print("  6. Prepare for editorial review")
+    print("  1. Verify sources and extract facts from approved topics")
+    print("  2. Generate articles with CITATIONS ONLY from verified sources")
+    print("  3. Generate images with DALL-E")
+    print("  4. Prepare for editorial review")
     print("\nNO HALLUCINATIONS - Only verified, cited content.\n")
 
     # Create database session
@@ -44,76 +45,49 @@ def main():
     session = Session()
 
     try:
-        # Step 1: Signal Intake - Discover REAL events
+        # Get approved topics that need verification
         print("=" * 80)
-        print("STEP 1: Discovering Real Events from RSS Feeds")
+        print("Finding Approved Topics")
         print("=" * 80)
 
-        intake = SignalIntakeAgent(
-            max_age_hours=24,
-            enable_rss=True,
-            enable_twitter=False,
-            enable_reddit=False,
-            enable_government=False
-        )
+        topics = session.query(Topic).filter_by(
+            status='approved',
+            verification_status='unverified'
+        ).limit(5).all()
 
-        result = intake.discover_events(session)
-        print(f"\n✓ Discovered {result['total_discovered']} new events from RSS feeds")
+        if not topics:
+            print("\n⚠ No unverified approved topics found.")
+            return False
 
-        # Check for existing discovered events that need processing
-        from database.models import EventCandidate
-        existing_discovered = session.query(EventCandidate).filter_by(status='discovered').count()
+        print(f"\n✓ Found {len(topics)} approved topics to process:")
+        for topic in topics:
+            print(f"  - {topic.title[:70]}...")
 
-        if result['total_discovered'] == 0 and existing_discovered == 0:
-            print("\n⚠ No events to process. Check RSS feed configuration.")
-            return
-
-        if result['total_discovered'] == 0:
-            print(f"  Using {existing_discovered} existing discovered events from previous runs")
-
-        # Step 2: Evaluation - Score for newsworthiness
+        # Step 1: Verification - Gather sources and verify facts
         print("\n" + "=" * 80)
-        print("STEP 2: Evaluating Events for Newsworthiness")
-        print("=" * 80)
-
-        evaluator = EvaluationAgent(session)
-        eval_result = evaluator.process_discovered_events()
-
-        print(f"\n✓ Evaluated {eval_result['total_processed']} events")
-        print(f"  Approved: {eval_result['approved']}")
-        print(f"  Rejected: {eval_result['rejected']}")
-
-        # Check for existing approved topics that need verification
-        topics = session.query(Topic).filter_by(status='approved', verification_status='unverified').limit(10).all()
-
-        if eval_result['approved'] == 0 and len(topics) == 0:
-            print("\n⚠ No events approved and no existing topics to verify.")
-            return
-
-        if eval_result['approved'] == 0:
-            print(f"  Using {len(topics)} existing approved topics from previous runs")
-
-        # Step 3: Verification - Gather sources and verify facts
-        print("\n" + "=" * 80)
-        print("STEP 3: Verifying Sources and Extracting Facts")
+        print("STEP 1: Verifying Sources and Extracting Facts")
         print("=" * 80)
 
         verifier = VerificationAgent(session)
-
-        # Topics already queried in Step 2 (approved + unverified)
-
         verified_count = 0
+
         for topic in topics:
-            print(f"\nVerifying: {topic.title}")
-            verifier.verify_topic(topic.id)
-            session.commit()
-            verified_count += 1
+            print(f"\nVerifying: {topic.title[:70]}...")
+            try:
+                verifier.verify_topic(topic.id)
+                session.commit()
+                session.refresh(topic)
+                print(f"  ✓ Verified (status: {topic.verification_status}, sources: {topic.source_count})")
+                verified_count += 1
+            except Exception as e:
+                logger.error(f"Verification failed: {e}")
+                print(f"  ✗ Verification failed: {e}")
 
-        print(f"\n✓ Verified {verified_count} topics with sources")
+        print(f"\n✓ Verified {verified_count}/{len(topics)} topics")
 
-        # Step 4: Article Generation - Use ONLY verified facts
+        # Step 2: Article Generation - Use ONLY verified facts
         print("\n" + "=" * 80)
-        print("STEP 4: Generating Articles with Source Citations")
+        print("STEP 2: Generating Articles with Source Citations")
         print("=" * 80)
         print("\nIMPORTANT: Journalist will ONLY use verified facts from sources.")
         print("Any article without proper citations will be flagged.\n")
@@ -122,13 +96,14 @@ def main():
         articles_generated = []
 
         for topic in topics:
-            print(f"\nGenerating article: {topic.title}")
+            print(f"\nGenerating article: {topic.title[:60]}...")
             print(f"  Verification status: {topic.verification_status}")
             print(f"  Source count: {topic.source_count}")
 
             try:
                 article = journalist.generate_article(topic.id)
                 if article:
+                    session.refresh(article)
                     articles_generated.append(article)
                     print(f"  ✓ Article generated (ID: {article.id})")
                     print(f"    Word count: {article.word_count}")
@@ -141,9 +116,13 @@ def main():
 
         print(f"\n✓ Generated {len(articles_generated)} articles")
 
-        # Step 5: Image Sourcing
+        if len(articles_generated) == 0:
+            print("\n⚠ No articles generated. Check verification results.")
+            return False
+
+        # Step 3: Image Sourcing
         print("\n" + "=" * 80)
-        print("STEP 5: Generating Images with DALL-E")
+        print("STEP 3: Generating Images with DALL-E")
         print("=" * 80)
 
         sourcer = ImageSourcer(session)
@@ -157,17 +136,18 @@ def main():
                     session.commit()
             except Exception as e:
                 logger.error(f"Error sourcing image: {e}")
+                print(f"  ✗ Error: {e}")
 
         print(f"\n✓ Sourced {images_sourced} images")
 
-        # Step 6: Prepare for Review
+        # Step 4: Prepare for Review
         print("\n" + "=" * 80)
-        print("STEP 6: Preparing Articles for Editorial Review")
+        print("STEP 4: Preparing Articles for Editorial Review")
         print("=" * 80)
 
         for article in articles_generated:
             article.status = 'draft'
-            has_citations = ('According to' in article.body or 
+            has_citations = ('According to' in article.body or
                            'reported' in article.body or
                            'said' in article.body)
             print(f"\n✓ {article.title[:60]}...")
@@ -182,8 +162,7 @@ def main():
         print("PIPELINE COMPLETE")
         print("=" * 80)
         print(f"\n📊 Results:")
-        print(f"  Events discovered: {result['total_discovered']}")
-        print(f"  Topics approved: {eval_result['approved']}")
+        print(f"  Topics processed: {len(topics)}")
         print(f"  Topics verified: {verified_count}")
         print(f"  Articles generated: {len(articles_generated)}")
         print(f"  Images sourced: {images_sourced}")
@@ -194,6 +173,7 @@ def main():
                 print(f"\n  • {article.title}")
                 print(f"    Status: {article.status}")
                 print(f"    Self-audit: {'✓ PASS' if article.self_audit_passed else '✗ FAIL'}")
+                print(f"    Has image: {'✓' if article.image_url else '✗'}")
 
         print(f"\n✓ Articles ready for review in admin dashboard:")
         print(f"   http://localhost:8000/frontend/admin/")

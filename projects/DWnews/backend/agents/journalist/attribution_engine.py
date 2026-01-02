@@ -158,7 +158,17 @@ Generate the complete article now with critical analysis integrated throughout."
             fact_type = fact.get("type", "observed")
             sources = fact.get("sources", [])
 
-            source_names = ", ".join([s.get("name", "Unknown") for s in sources])
+            # Handle both string URLs and dict sources
+            source_names_list = []
+            for s in sources:
+                if isinstance(s, dict):
+                    source_names_list.append(s.get("name", "Unknown"))
+                elif isinstance(s, str):
+                    # Extract domain from URL
+                    from urllib.parse import urlparse
+                    domain = urlparse(s).netloc.replace('www.', '')
+                    source_names_list.append(domain or "Unknown")
+            source_names = ", ".join(source_names_list) if source_names_list else "Unknown"
 
             attribution_style = self._get_attribution_style(fact_type)
 

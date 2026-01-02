@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/main.css?v=5">
-    <link rel="stylesheet" href="styles/article.css?v=5">
+    <link rel="stylesheet" href="styles/main.css?v=6">
+    <link rel="stylesheet" href="styles/article.css?v=6">
     <!-- Markdown parser for article formatting -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
 </head>
@@ -18,11 +18,11 @@
     <!-- Header -->
     <header class="site-header">
         <div class="container">
-            <h1 class="site-title"><a href="/" style="color: white; text-decoration: none;">The Daily Worker</a></h1>
+            <h1 class="site-title"><a href="/frontend/" style="color: white; text-decoration: none;">The Daily Worker</a></h1>
             <p class="site-tagline">Accurate, Worker-Centric News That Doesn't Pull Punches</p>
 
             <nav class="main-nav">
-                <a href="/" class="nav-link">← Back to Home</a>
+                <a href="/frontend/" class="nav-link">← Back to Home</a>
             </nav>
         </div>
     </header>
@@ -178,7 +178,7 @@
         <div id="errorMessage" class="error-message" style="display: none;">
             <h2>Article Not Found</h2>
             <p>Sorry, we couldn't find the article you're looking for.</p>
-            <a href="/" class="btn-primary">← Back to Home</a>
+            <a href="/frontend/" class="btn-primary">← Back to Home</a>
         </div>
     </main>
 
@@ -195,19 +195,19 @@
                 <div class="footer-section">
                     <h3>Categories</h3>
                     <nav class="footer-nav">
-                        <a href="/">Labor</a>
-                        <a href="/">Politics</a>
-                        <a href="/">Economics</a>
-                        <a href="/">Good News</a>
+                        <a href="/frontend/?category=labor">Labor</a>
+                        <a href="/frontend/?category=politics">Politics</a>
+                        <a href="/frontend/?category=economics">Economics</a>
+                        <a href="/frontend/?category=good-news">Good News</a>
                     </nav>
                 </div>
 
                 <div class="footer-section">
                     <h3>About</h3>
                     <nav class="footer-nav">
-                        <a href="/about.html">About Us</a>
-                        <a href="/privacy.html">Privacy</a>
-                        <a href="/terms.html">Terms</a>
+                        <a href="/frontend/about.html">About Us</a>
+                        <a href="/frontend/privacy.html">Privacy</a>
+                        <a href="/frontend/terms.html">Terms</a>
                     </nav>
                 </div>
             </div>
@@ -216,6 +216,6 @@
         </div>
     </footer>
 
-    <script src="scripts/article.js?v=3"></script>
+    <script src="scripts/article.js?v=4"></script>
 </body>
 </html>

@@ -327,12 +327,19 @@ class EnhancedJournalistAgent:
         source_count = topic.source_count or 0
 
         # Create article
+        # Get category_id with fallback to default "Labor" category
+        category_id = topic.category_id
+        if category_id is None:
+            # Fallback to Labor category (id=1) if topic has no category
+            logger.warning(f"Topic {topic.id} missing category_id, using default Labor category")
+            category_id = 1
+
         article = Article(
             title=title,
             slug=slug,
             body=body,
             summary=self._generate_summary(body),
-            category_id=topic.category_id,
+            category_id=category_id,
             author="DWnews AI Journalist",
             is_national=topic.is_national,
             is_local=topic.is_local,
@@ -377,11 +384,17 @@ class EnhancedJournalistAgent:
         title, body = self._parse_article_text(article_text)
         slug = self._generate_slug(title) + "-needs-review"
 
+        # Get category_id with fallback to default "Labor" category
+        category_id = topic.category_id
+        if category_id is None:
+            logger.warning(f"Topic {topic.id} missing category_id, using default Labor category")
+            category_id = 1
+
         article = Article(
             title=title + " [NEEDS REVIEW]",
             slug=slug,
             body=body,
-            category_id=topic.category_id,
+            category_id=category_id,
             author="DWnews AI Journalist",
             reading_level=reading_level or 0.0,
             word_count=len(article_text.split()),

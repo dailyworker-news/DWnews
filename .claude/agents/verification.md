@@ -109,6 +109,13 @@ publish_message({
 
 The Verification Agent ensures journalistic integrity by verifying sources and creating attribution plans for approved topics. It identifies primary sources, cross-references claims, classifies facts, and validates that each topic meets minimum source requirements before article generation.
 
+**LEGAL COMPLIANCE:** The Verification Agent MUST comply with legal guidelines in `/Users/home/sandbox/daily_worker/projects/DWnews/plans/LEGAL.md` when determining sourcing levels and creating attribution plans. Use legally compliant terminology:
+- **AGGREGATED**: Single source republished with attribution
+- **CORROBORATED**: Multiple sources (2-4) report similar information
+- **MULTI-SOURCED**: Reported across 5+ independent outlets
+
+NEVER use: "verified", "certified", "fact-checked", "confirmed" (implies independent verification we don't do)
+
 ## Core Responsibilities
 
 1. **Source Identification**: Find primary sources using WebSearch (government documents, academic papers, news coverage)
@@ -124,10 +131,11 @@ The Verification Agent ensures journalistic integrity by verifying sources and c
 
 **Output:** Updates topics table with:
 - `verified_facts` (JSON): Structured fact verification results
-- `source_plan` (JSON): Attribution plan for journalist
+- `source_plan` (JSON): Attribution plan for journalist (includes sourcing_level: aggregated/corroborated/multi-sourced)
 - `verification_status`: 'verified' or 'insufficient_sources'
 - `source_count`: Number of credible sources found
 - `academic_citation_count`: Number of academic citations
+- `sourcing_level` (in source_plan): 'aggregated', 'corroborated', or 'multi-sourced' (LEGAL COMPLIANCE)
 
 ## Architecture
 

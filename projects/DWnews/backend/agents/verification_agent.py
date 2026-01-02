@@ -120,7 +120,7 @@ class VerificationAgent:
             # Always proceed - don't block on insufficient sources
             # Step 4: Extract and verify facts
             print("\n4. Extracting and verifying facts...")
-            verified_facts = self._extract_and_verify_facts(topic, ranked_sources)
+            verified_facts = self._extract_and_verify_facts(topic, sources, ranked_sources)
 
             # Step 5: Create source plan
             print("\n5. Creating attribution plan...")
@@ -217,21 +217,103 @@ class VerificationAgent:
         Returns:
             List of Source objects
         """
-        # Build topic text
-        topic_text = f"{topic.title}. {topic.description or ''}"
+        sources = []
 
-        # Build event data context
-        event_data = {
-            'keywords': topic.keywords,
-            'category': topic.category.slug if topic.category else None,
-            'region': topic.region.name if topic.region else None,
-            'is_national': topic.is_national
-        }
+        # FIRST: Get the original RSS source URL if this topic came from an event
+        event = self.session.query(EventCandidate).filter(
+            EventCandidate.topic_id == topic.id
+        ).first()
 
-        # Identify sources
-        sources = self.source_identifier.identify_sources(topic_text, event_data)
+        if event and event.source_url:
+            # Fetch content from the original source URL
+            print(f"   Fetching original source: {event.source_url[:80]}...")
+            original_source = self._fetch_original_source(event.source_url, event.title)
+            if original_source:
+                sources.append(original_source)
+                print(f"   ✓ Fetched content from original source")
+            else:
+                print(f"   ✗ Could not fetch original source")
+
+        # SECOND: Search for additional corroborating sources
+        if len(sources) < 3:  # Only search if we need more sources
+            # Build topic text
+            topic_text = f"{topic.title}. {topic.description or ''}"
+
+            # Build event data context
+            event_data = {
+                'keywords': topic.keywords,
+                'category': topic.category.slug if topic.category else None,
+                'region': topic.region.name if topic.region else None,
+                'is_national': topic.is_national
+            }
+
+            # Search for additional sources
+            additional_sources = self.source_identifier.identify_sources(topic_text, event_data)
+            sources.extend(additional_sources)
 
         return sources
+
+    def _fetch_original_source(self, url: str, title: str) -> Optional[Source]:
+        """
+        Fetch content from the original RSS source URL
+
+        Args:
+            url: URL to fetch
+            title: Article title
+
+        Returns:
+            Source object with fetched content, or None if fetch failed
+        """
+        try:
+            # Import WebFetch at runtime to avoid circular imports
+            from backend.tools.web_tools import WebFetch
+
+            # Fetch the article content
+            fetcher = WebFetch()
+            prompt = """Extract the main article content including:
+            1. The full text of the article
+            2. Any key facts, statistics, or quotes
+            3. Names of people or organizations mentioned
+            4. Dates and locations mentioned
+
+            Return the content in a structured format."""
+
+            result = fetcher.fetch(url, prompt)
+
+            if result and len(result) > 100:  # Ensure we got substantial content
+                # Determine source type based on URL
+                source_type = 'news_agency'
+                if 'intercept.com' in url:
+                    source_type = 'investigative_journalism'
+                elif 'truthout.org' in url:
+                    source_type = 'news_agency'
+                elif 'democracynow.org' in url:
+                    source_type = 'news_agency'
+                elif '.gov' in url:
+                    source_type = 'government_document'
+                elif '.edu' in url or 'academic' in url:
+                    source_type = 'academic'
+
+                # Extract publication name from URL
+                from urllib.parse import urlparse
+                domain = urlparse(url).netloc
+                name = domain.replace('www.', '').split('.')[0].title()
+
+                return Source(
+                    name=name,
+                    url=url,
+                    source_type=source_type,
+                    snippet=result,  # Store FULL content for fact extraction
+                    discovered_via='original_rss_source',
+                    credibility_tier=1  # Original sources are tier 1
+                )
+            else:
+                print(f"     Warning: Fetched content too short ({len(result) if result else 0} chars)")
+                return None
+
+        except Exception as e:
+            print(f"     Error fetching {url}: {e}")
+            return None
 
     def _rank_sources(self, sources: List[Source]) -> List[RankedSource]:
         """
@@ -258,32 +340,56 @@ class VerificationAgent:
 
         return ranked_sources
 
-    def _extract_and_verify_facts(self, topic: Topic, ranked_sources: List[RankedSource]) -> Dict:
+    def _extract_and_verify_facts(self, topic: Topic, sources: List[Source], ranked_sources: List[RankedSource]) -> Dict:
         """
         Extract facts from topic and verify them against sources
 
         Args:
             topic: Topic to extract facts from
+            sources: Original Source objects with fetched content
             ranked_sources: Ranked source list
 
         Returns:
             Dict with verified_facts structure
         """
-        # Extract key facts from topic description
-        facts = self._extract_facts_from_topic(topic)
+        # Extract key facts from FETCHED SOURCE CONTENT (not just topic title)
+        facts = []
+        fact_source_map = {}  # Track which source each fact came from
 
-        # For each fact, get source content (in real implementation, would fetch actual content)
-        # For now, use source snippets as proxy
-        source_contents = [
-            {
+        # First, extract from topic description
+        topic_facts = self._extract_facts_from_topic(topic)
+        facts.extend(topic_facts)
+
+        # CRITICAL: Extract facts from fetched source content
+        for source in sources:
+            if source.snippet and len(source.snippet) > 200:
+                # Extract facts from the fetched article content
+                source_facts = self._extract_facts_from_text(source.snippet, source.url)
+
+                # Map each extracted fact to its source URL
+                for fact in source_facts:
+                    facts.append(fact)
+                    fact_source_map[fact] = source.url
+
+        # Build source_contents from actual fetched sources
+        # Match ranked sources back to original Source objects with content
+        source_contents = []
+        for rs in ranked_sources[:10]:  # Limit to top 10 sources
+            # Find the original Source object to get the snippet/content
+            source_obj = next(
+                (s for s in sources if s.url == rs.url),
+                None
+            )
+
+            content_text = source_obj.snippet if source_obj and source_obj.snippet else f"Content from {rs.name}"
+
+            source_contents.append({
                 'url': rs.url,
                 'name': rs.name,
-                'content': f"Content from {rs.name}",  # Placeholder
-                'snippet': f"Snippet about {topic.title}",
+                'content': content_text,
+                'snippet': content_text[:500],  # First 500 chars
                 'source_type': rs.source_type
-            }
-            for rs in ranked_sources[:10]  # Limit to top 10 sources
-        ]
+            })
 
         # Cross-reference verify facts
         verification_result = self.cross_verifier.verify_claims(facts, source_contents)
@@ -291,11 +397,18 @@ class VerificationAgent:
         # Classify each verified fact
         classified_facts = []
         for verified_fact in verification_result.verified_facts:
+            # IMPORTANT: Override sources with our tracked source mapping
+            fact_sources = verified_fact.sources
+
+            # If this fact was extracted from a specific source, use that
+            if verified_fact.claim in fact_source_map:
+                fact_sources = [fact_source_map[verified_fact.claim]]
+
             # Determine source type from sources
             source_type = 'unknown'
-            if verified_fact.sources:
+            if fact_sources:
                 # Get source type from first supporting source
-                source_url = verified_fact.sources[0]
+                source_url = fact_sources[0]
                 matching_source = next(
                     (rs for rs in ranked_sources if rs.url == source_url),
                     None
@@ -306,11 +419,16 @@ class VerificationAgent:
             # Classify fact
             fact_type = self.fact_classifier.classify_fact(verified_fact.claim, source_type)
 
+            # Use higher confidence for facts extracted from fetched sources
+            confidence = verified_fact.confidence
+            if verified_fact.claim in fact_source_map:
+                confidence = 'high' if confidence == 'medium' else 'medium'
+
             classified_facts.append({
                 'claim': verified_fact.claim,
                 'type': fact_type,
-                'sources': verified_fact.sources,
-                'confidence': verified_fact.confidence,
+                'sources': fact_sources,
+                'confidence': confidence,
                 'conflicting_info': verified_fact.conflicting_info
             })
 
@@ -334,6 +452,55 @@ class VerificationAgent:
             'facts': classified_facts,
             'source_summary': source_summary
         }
+
+    def _extract_facts_from_text(self, text: str, source_url: str) -> List[str]:
+        """
+        Extract key factual claims from article text
+
+        Args:
+            text: Article text to extract from
+            source_url: URL of the source (for attribution)
+
+        Returns:
+            List of factual claims
+        """
+        import re
+
+        # Split into sentences
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+
+        facts = []
+        for sentence in sentences:
+            # Skip very short or very long sentences
+            if len(sentence) < 30 or len(sentence) > 300:
+                continue
+
+            # Skip questions and hypotheticals
+            if '?' in sentence or sentence.lower().startswith(('if ', 'what if', 'suppose')):
+                continue
+
+            # Prioritize sentences with:
+            # - Numbers/statistics
+            # - Proper nouns (names of people/organizations)
+            # - Specific dates
+            # - Quoted text
+            # - Action verbs (said, announced, reported, etc.)
+
+            has_number = bool(re.search(r'\d+', sentence))
+            has_proper_noun = bool(re.search(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+', sentence))
+            has_action_verb = bool(re.search(r'\b(said|announced|reported|stated|confirmed|revealed|according to)\b', sentence, re.I))
+            has_quote = '"' in sentence or "'" in sentence
+
+            # Score the sentence
+            score = sum([has_number, has_proper_noun, has_action_verb * 2, has_quote * 2])
+
+            # Keep sentences with score >= 2
+            if score >= 2:
+                facts.append(sentence)
+
+        # Limit to top 10 most fact-dense sentences
+        return facts[:10]
 
     def _extract_facts_from_topic(self, topic: Topic) -> List[str]:
         """

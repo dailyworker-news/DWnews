@@ -23,7 +23,7 @@ from backend.auth import (
     require_user,
     decode_token
 )
-from backend.database import get_db_connection
+from backend.database import get_db, get_db_connection
 
 logger = logging.getLogger(__name__)
 

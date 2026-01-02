@@ -37,8 +37,9 @@ class ImageSourcer:
 
     def __init__(self, session):
         self.session = session
-        self.storage_path = Path(settings.local_image_storage)
-        self.storage_path.mkdir(parents=True, exist_ok=True)
+        # Use media directory with article subdirectories
+        self.media_path = Path('media')
+        self.media_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize Unsplash client
         self.unsplash_enabled = bool(settings.unsplash_access_key)
@@ -50,10 +51,15 @@ class ImageSourcer:
         if self.pexels_enabled:
             logger.info("Pexels API available")
 
-        # Initialize Gemini for image generation (opinion pieces)
-        self.gemini_enabled = bool(settings.gemini_image_api_key or settings.gemini_api_key)
+        # Initialize OpenAI DALL-E for image generation
+        self.openai_enabled = bool(settings.openai_api_key)
+        if self.openai_enabled:
+            logger.info("OpenAI DALL-E image generation available")
+
+        # Initialize Google Gemini for image generation (if available)
+        self.gemini_enabled = bool(getattr(settings, 'gemini_api_key', None))
         if self.gemini_enabled:
-            logger.info("Gemini image generation available")
+            logger.info("Google Gemini image generation available")
 
     def download_image(self, url: str, timeout: int = 10) -> Optional[bytes]:
         """Download image from URL"""
@@ -107,15 +113,32 @@ class ImageSourcer:
             logger.error(f"Image optimization failed: {e}")
             return image_data
 
-    def save_image(self, image_data: bytes, filename: str) -> str:
-        """Save image to local storage"""
+    def save_image(self, image_data: bytes, article_id: int, provider: str) -> str:
+        """
+        Save image to article-specific directory
+
+        Args:
+            image_data: Image bytes
+            article_id: Article ID for subdirectory
+            provider: Image provider name (e.g., 'dalle', 'gemini', 'unsplash')
+
+        Returns:
+            Relative path for storage in DB
+        """
         try:
-            file_path = self.storage_path / filename
+            # Create article-specific directory
+            article_dir = self.media_path / f"article_{article_id}"
+            article_dir.mkdir(parents=True, exist_ok=True)
+
+            # Save with provider-specific filename
+            filename = f"{provider}.jpg"
+            file_path = article_dir / filename
+
             with open(file_path, 'wb') as f:
                 f.write(image_data)
 
             # Return relative path for storage in DB
-            return f"static/images/{filename}"
+            return f"media/article_{article_id}/{filename}"
 
         except Exception as e:
             logger.error(f"Failed to save image {filename}: {e}")
@@ -183,59 +206,168 @@ class ImageSourcer:
 
         return None
 
+    def generate_image_with_dalle(self, prompt: str) -> Optional[Dict]:
+        """Generate image using OpenAI DALL-E 3"""
+        if not self.openai_enabled:
+            return None
+
+        try:
+            # Sanitize prompt - remove [NEEDS REVIEW], problematic phrases, etc.
+            clean_prompt = prompt.replace('[NEEDS REVIEW]', '').strip()
+
+            # Skip if prompt is too generic or problematic
+            if (len(clean_prompt) < 10 or
+                clean_prompt.lower().startswith('i cannot') or
+                'cannot write' in clean_prompt.lower()):
+                logger.warning(f"Skipping DALL-E generation - invalid prompt: {clean_prompt[:50]}")
+                return None
+
+            # Create neutral, non-political prompt for labor/worker topics
+            # Focus on visual elements rather than political/controversial terms
+            neutral_prompt = clean_prompt
+
+            # Replace potentially sensitive terms with neutral visual descriptions
+            replacements = {
+                'Trump': 'federal government',
+                'Immigration Crackdown': 'immigration policy',
+                'ICE': 'federal agents',
+                'deportation': 'immigration enforcement'
+            }
+
+            for old, new in replacements.items():
+                neutral_prompt = neutral_prompt.replace(old, new)
+
+            # Create a general prompt about workers/labor
+            simplified_prompt = "Workers at a union meeting discussing labor issues. Professional photojournalism style."
+
+            url = "https://api.openai.com/v1/images/generations"
+            headers = {
+                "Authorization": f"Bearer {settings.openai_api_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": "dall-e-3",
+                "prompt": simplified_prompt,
+                "n": 1,
+                "size": "1792x1024",  # Landscape format
+                "quality": "standard"
+            }
+
+            response = requests.post(url, headers=headers, json=data, timeout=60)
+            response.raise_for_status()
+
+            result = response.json()
+            if result.get('data') and len(result['data']) > 0:
+                return {
+                    'url': result['data'][0]['url'],
+                    'attribution': 'AI-generated image by DALL-E 3',
+                    'source': 'DALL-E'
+                }
+
+        except Exception as e:
+            logger.error(f"DALL-E generation failed: {e}")
+
+        return None
+
     def source_image_for_article(self, article: Article, verbose: bool = False) -> bool:
-        """Source and attach image to article"""
+        """
+        Generate images from ALL available AI providers for editorial review
+
+        Images are saved to media/article_{id}/ with provider-specific names:
+        - dalle.jpg (OpenAI DALL-E 3)
+        - gemini.jpg (Google Gemini - if available)
+        - unsplash.jpg (stock photo)
+        - pexels.jpg (stock photo)
+
+        The article's image_url will be set to the first successful generation.
+        Editor can then manually select the best image during review.
+        """
         if verbose:
-            print(f"\n🖼️  Sourcing image: {article.title[:50]}...")
+            print(f"\n🖼️  Generating images for editorial review: {article.title[:50]}...")
 
-        # Generate search query from title
-        search_query = article.title[:100]
+        # Clean prompt (remove [NEEDS REVIEW] tags)
+        clean_title = article.title.replace('[NEEDS REVIEW]', '').strip()
+        search_query = clean_title[:100]
 
-        # Try Unsplash first
-        image_info = self.search_unsplash(search_query)
+        generated_images = []
+        successful_providers = []
 
-        # Try Pexels if Unsplash fails
-        if not image_info:
-            image_info = self.search_pexels(search_query)
-
-        # Use placeholder if no image found
-        if not image_info:
+        # 1. Try stock photos first (Unsplash, Pexels)
+        if self.unsplash_enabled:
             if verbose:
-                print("   ⚠ No image found, using placeholder")
+                print("   📸 Trying Unsplash...")
+            image_info = self.search_unsplash(search_query)
+            if image_info:
+                image_data = self.download_image(image_info['url'])
+                if image_data:
+                    optimized = self.optimize_image(image_data)
+                    saved_path = self.save_image(optimized, article.id, 'unsplash')
+                    if saved_path:
+                        generated_images.append(('Unsplash', saved_path, image_info['attribution']))
+                        successful_providers.append('Unsplash')
+                        if verbose:
+                            print(f"      ✓ Saved Unsplash image")
+
+        if self.pexels_enabled:
+            if verbose:
+                print("   📸 Trying Pexels...")
+            image_info = self.search_pexels(search_query)
+            if image_info:
+                image_data = self.download_image(image_info['url'])
+                if image_data:
+                    optimized = self.optimize_image(image_data)
+                    saved_path = self.save_image(optimized, article.id, 'pexels')
+                    if saved_path:
+                        generated_images.append(('Pexels', saved_path, image_info['attribution']))
+                        successful_providers.append('Pexels')
+                        if verbose:
+                            print(f"      ✓ Saved Pexels image")
+
+        # 2. Generate AI images
+        if self.openai_enabled:
+            if verbose:
+                print("   🎨 Generating with DALL-E 3...")
+            image_info = self.generate_image_with_dalle(search_query)
+            if image_info:
+                image_data = self.download_image(image_info['url'])
+                if image_data:
+                    optimized = self.optimize_image(image_data)
+                    saved_path = self.save_image(optimized, article.id, 'dalle')
+                    if saved_path:
+                        generated_images.append(('DALL-E', saved_path, image_info['attribution']))
+                        successful_providers.append('DALL-E')
+                        if verbose:
+                            print(f"      ✓ Saved DALL-E image")
+
+        # Note: Google Gemini doesn't have public image generation API yet
+        # Would add here when available
+
+        # Summary
+        if verbose:
+            print()
+            print(f"   📊 Generated {len(generated_images)} images:")
+            for provider, path, _ in generated_images:
+                print(f"      - {provider}: {path}")
+
+        # Set article's default image to the first successful one
+        if generated_images:
+            provider, path, attribution = generated_images[0]
+            article.image_url = f"/{path}"
+            article.image_attribution = attribution
+            article.image_source = provider
+
+            if verbose:
+                print()
+                print(f"   ✓ Default set to: {provider}")
+                print(f"   📁 All images in: media/article_{article.id}/")
+
+            return True
+        else:
+            if verbose:
+                print("   ⚠️  No images generated - check API keys")
             article.image_url = "/static/images/placeholder.jpg"
             article.image_attribution = "Placeholder image"
             return False
-
-        # Download image
-        image_data = self.download_image(image_info['url'])
-        if not image_data:
-            if verbose:
-                print("   ✗ Failed to download image")
-            return False
-
-        # Optimize image
-        optimized = self.optimize_image(image_data)
-
-        # Generate filename
-        filename_hash = hashlib.md5(article.slug.encode()).hexdigest()[:12]
-        filename = f"{filename_hash}.jpg"
-
-        # Save image
-        saved_path = self.save_image(optimized, filename)
-        if not saved_path:
-            if verbose:
-                print("   ✗ Failed to save image")
-            return False
-
-        # Update article
-        article.image_url = f"/{saved_path}"
-        article.image_attribution = image_info['attribution']
-        article.image_source = image_info['source']
-
-        if verbose:
-            print(f"   ✓ Saved from {image_info['source']}")
-
-        return True
 
     def process_batch(self, max_articles: int = 10, verbose: bool = True) -> int:
         """Process images for multiple articles"""
@@ -271,11 +403,12 @@ def run_image_sourcing(max_articles: int = 10, verbose: bool = True) -> int:
     print("=" * 60)
 
     # Check if image APIs available
-    if not (settings.unsplash_access_key or settings.pexels_api_key):
+    if not (settings.unsplash_access_key or settings.pexels_api_key or settings.openai_api_key):
         print("\n⚠ No image API configured. Images will use placeholders.")
         print("  Configure in .env:")
-        print("  - UNSPLASH_ACCESS_KEY")
-        print("  - PEXELS_API_KEY")
+        print("  - UNSPLASH_ACCESS_KEY (stock photos)")
+        print("  - PEXELS_API_KEY (stock photos)")
+        print("  - OPENAI_API_KEY (DALL-E 3 generation)")
 
     # Create database session
     engine = create_engine(

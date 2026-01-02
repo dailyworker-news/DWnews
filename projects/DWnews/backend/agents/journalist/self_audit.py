@@ -401,7 +401,15 @@ class SelfAudit:
             sources = set()
             for fact in verified_facts["facts"]:
                 if "sources" in fact:
-                    sources.update([s.get("name") for s in fact["sources"] if s.get("name")])
+                    # Handle both string URLs and dict sources
+                    for s in fact["sources"]:
+                        if isinstance(s, dict) and s.get("name"):
+                            sources.add(s.get("name"))
+                        elif isinstance(s, str):
+                            # Extract domain name from URL
+                            from urllib.parse import urlparse
+                            domain = urlparse(s).netloc.replace('www.', '')
+                            sources.add(domain)
             has_multiple_sources = len(sources) >= 2
 
         if perspective_count >= 3 or has_multiple_sources:

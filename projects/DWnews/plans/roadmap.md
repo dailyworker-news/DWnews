@@ -492,9 +492,10 @@ Implements specialized investigatory journalism agent to handle Unverified artic
 **Parallel:** 6.10.1-6.10.2 simultaneous, then 6.10.3
 **Purpose:** Implement multi-user authentication and category-based assignment for editorial oversight
 **Priority:** High (blocks scaling editorial operations with multiple human editors)
+**Updated:** 2026-01-01 (Added Phase 6.10.4 and 6.10.5 for editorial workflow enhancements)
 
 **Overview:**
-The current editorial system lacks multi-user support. The admin portal at `/frontend/admin/` has no authentication, and the `assigned_editor` field is just a string. This phase implements a complete user management system with role-based access control, category-based assignment, and secure authentication to enable scaling editorial oversight with multiple human editors.
+The current editorial system lacks multi-user support and critical editorial workflow features. The admin portal at `/frontend/admin/` has no authentication, and the `assigned_editor` field is just a string. This batch implements a complete user management system with role-based access control, category-based assignment, secure authentication, AND two critical editorial workflow enhancements: pull back approved stories (Phase 6.10.4) and right of reply workflow (Phase 6.10.5).
 
 **Current State:**
 - Editorial API routes exist (approve, request revision, reject) ✅
@@ -509,6 +510,12 @@ The current editorial system lacks multi-user support. The admin portal at `/fro
 - User management interface (create/edit/delete editor accounts)
 - Assignment system (assign articles to specific editors by category)
 - Multi-editor support (different editors for Labor, Politics, Economics, etc.)
+- **NEW:** Pull back mechanism for approved (not published) articles
+- **NEW:** Right of reply automated email workflow for journalistic standards
+
+**User-Requested Features (Added 2026-01-01):**
+- **Phase 6.10.4:** Pull back approved stories before publication (prevents editorial mistakes)
+- **Phase 6.10.5:** Right of reply email workflow (journalistic standards, legal risk reduction)
 
 ### Phase 6.10.1: Database Schema & Authentication Backend
 - **Status:** ⚪ Not Started
@@ -575,6 +582,91 @@ The current editorial system lacks multi-user support. The admin portal at `/fro
   - Test suite: `/scripts/test_assignment_workflow.py` (multi-editor concurrency tests)
   - Documentation: `/docs/MULTI_EDITOR_SETUP.md` (setup guide for editorial team)
 
+### Phase 6.10.4: Pull Back Approved Stories
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.10.3
+- **Complexity:** S
+- **Priority:** High (prevents editorial mistakes from going live)
+- **User Story:** Editor approves article, then discovers valid rejection reasons (factual error, missing context) before publication. Needs ability to reverse approval and return to revision.
+- **Tasks:**
+  - [ ] Add "Pull Back" action in admin review interface (only for approved, not published articles)
+  - [ ] Implement pull back API endpoint: POST /api/editorial/articles/{id}/pull-back
+  - [ ] Validate pull back conditions: article.status == 'approved' AND article.status != 'published'
+  - [ ] On pull back: Set status to 'revision_requested', append reason to editorial_notes
+  - [ ] Create article_revision record (type='pull_back', notes=reason)
+  - [ ] Send email notification to assigned editor (article pulled back for revision)
+  - [ ] Add "Pull Back" button to admin portal (visible only for approved articles)
+  - [ ] Prevent pull back after publication (immutable once live)
+  - [ ] Test pull back workflow: approve → pull back → editor receives notification → article returns to revision state
+- **Done When:** Editors can pull back approved (not published) articles, notifications sent, revision tracking complete
+- **Deliverables:**
+  - Pull back API endpoint: `/backend/routes/editorial.py` (POST /api/editorial/articles/{id}/pull-back)
+  - Frontend update: `/frontend/admin/review-article.html` (Pull Back button with confirmation dialog)
+  - JavaScript logic: `/frontend/admin/scripts/review.js` (pull back action handler)
+  - Email notification: Updated `/backend/agents/email_notifications.py` (pull back alert template)
+  - Test suite: `/scripts/test_pull_back_workflow.py` (validation, notifications, revision tracking)
+  - Documentation: Updated `/docs/EDITORIAL_WORKFLOWS.md` (pull back procedure)
+- **Technical Notes:**
+  - No database schema changes required (uses existing status transitions)
+  - Pull back logic: `if article.status == 'published': raise Error("Cannot pull back published")`
+  - Validation: `if article.status != 'approved': raise Error("Can only pull back approved articles")`
+  - Immutability: Once published, articles cannot be pulled back (archival integrity)
+
+### Phase 6.10.5: Right of Reply Email Workflow
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.10.3
+- **Complexity:** M
+- **Priority:** Medium (improves journalistic standards, reduces legal risk)
+- **User Story:** Breaking story references Goldman Sachs voting record. Journalistic standards require offering right of reply before publication. Automated workflow emails Goldman's press office for comment.
+- **Tasks:**
+  - [ ] Create `right_of_reply_requests` table (article_id, entity_name, entity_type, contact_email, status, deadline, response_text, requested_at, responded_at)
+  - [ ] Add article status: 'awaiting_reply' (blocks publication until deadline or response received)
+  - [ ] Implement entity identification UI (manual tagging: person/organization name + email)
+  - [ ] Build email template: "You are mentioned in an upcoming article about [topic]. We'd like to offer you an opportunity to comment before publication. Please respond by [deadline]."
+  - [ ] Implement request reply API: POST /api/editorial/articles/{id}/request-reply (entity_name, contact_email, deadline)
+  - [ ] Track email status: sent, opened (if SendGrid tracking enabled), replied, no_response
+  - [ ] Build reply recording interface: POST /api/editorial/articles/{id}/record-reply (response_text)
+  - [ ] Add "Awaiting Response" indicator in review interface (shows deadline, entities contacted)
+  - [ ] Implement "Mark Reply Offered" bypass (editor manually contacted entity, skips automated workflow)
+  - [ ] Build email integration (SendGrid or AWS SES for delivery)
+  - [ ] Add reply deadline logic: Auto-clear 'awaiting_reply' status after deadline passes
+  - [ ] Include responses in article before publication (optional field: right_of_reply_response)
+  - [ ] Test complete workflow: identify entity → send email → track status → record response → publish with response
+- **Done When:** Automated email workflow sends right of reply requests, tracks responses, includes replies in articles before publication
+- **Deliverables:**
+  - Database migration: `/database/migrations/005_right_of_reply.sql` (new table, article status update)
+  - Migration runner: `/database/migrations/run_migration_005.py`
+  - SQLAlchemy model: Updated `/database/models.py` (RightOfReplyRequest class)
+  - API endpoints: `/backend/routes/right_of_reply.py` (request, record, status endpoints)
+  - Email template: `/backend/agents/email_templates/right_of_reply.html`
+  - Frontend UI: `/frontend/admin/right-of-reply.html` (entity management, response recording)
+  - JavaScript logic: `/frontend/admin/scripts/right-of-reply.js`
+  - Email service integration: Updated `/backend/agents/email_notifications.py` (SendGrid/AWS SES)
+  - Test suite: `/scripts/test_right_of_reply_workflow.py` (email sending, response recording, deadline logic)
+  - Documentation: `/docs/RIGHT_OF_REPLY.md` (workflow guide, legal justification)
+- **Technical Notes:**
+  - **Database schema:**
+    ```sql
+    CREATE TABLE right_of_reply_requests (
+      id INTEGER PRIMARY KEY,
+      article_id INTEGER REFERENCES articles(id),
+      entity_name VARCHAR(255),
+      entity_type VARCHAR(50), -- 'person', 'organization', 'government'
+      contact_email VARCHAR(255),
+      status VARCHAR(50), -- 'sent', 'opened', 'replied', 'no_response', 'bypassed'
+      deadline TIMESTAMP,
+      response_text TEXT,
+      requested_at TIMESTAMP DEFAULT NOW(),
+      responded_at TIMESTAMP
+    );
+    ```
+  - **Article status update:** Add 'awaiting_reply' to CheckConstraint
+  - **Email service:** Use existing SendGrid integration (Phase 6.6), configure new template
+  - **Deadline calculation:** Default 48-72 hours depending on article urgency
+  - **Response inclusion:** Store in article.right_of_reply_response field (optional JSON: [{entity, response, timestamp}])
+  - **Bypass workflow:** Editor can mark "Reply offered manually" to skip automated email
+  - **Category requirements:** Consider requiring right of reply only for Politics, Labor Issues, Economics (not Sports, Good News, Celebrity Gossip)
+
 **Batch 6.10 Success Criteria:**
 - [ ] Multiple editor accounts with role-based access (admin vs. editor)
 - [ ] Secure authentication with JWT tokens and password hashing
@@ -585,6 +677,11 @@ The current editorial system lacks multi-user support. The admin portal at `/fro
 - [ ] Multi-editor concurrent review tested and functional
 - [ ] Email notifications for article assignments
 - [ ] Complete user management interface (create/edit/delete editors)
+- [ ] **NEW:** Editors can pull back approved articles before publication (Phase 6.10.4)
+- [ ] **NEW:** Pull back prevents editorial mistakes from going live
+- [ ] **NEW:** Right of reply workflow sends automated email requests (Phase 6.10.5)
+- [ ] **NEW:** Right of reply responses tracked and included in articles
+- [ ] **NEW:** Journalistic standards met with comment opportunity for referenced entities
 - [ ] Ready for production use with multiple human editors
 
 ---

@@ -413,3 +413,66 @@ class SourceReliabilityLog(Base):
 
     def __repr__(self):
         return f"<SourceReliabilityLog(source_id={self.source_id}, event='{self.event_type}', delta={self.reliability_delta})>"
+
+
+class SportsLeague(Base):
+    """Sports league model for subscription-based sports content"""
+    __tablename__ = 'sports_leagues'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    league_code: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    country: Mapped[Optional[str]] = mapped_column(String)
+    tier_requirement: Mapped[str] = mapped_column(String, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user_preferences: Mapped[List["UserSportsPreference"]] = relationship(back_populates="league")
+    results: Mapped[List["SportsResult"]] = relationship(back_populates="league")
+
+    __table_args__ = (
+        CheckConstraint("tier_requirement IN ('free', 'basic', 'premium')"),
+    )
+
+    def __repr__(self):
+        return f"<SportsLeague(code='{self.league_code}', name='{self.name}', tier='{self.tier_requirement}')>"
+
+
+class UserSportsPreference(Base):
+    """User sports league preferences"""
+    __tablename__ = 'user_sports_preferences'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    league_id: Mapped[int] = mapped_column(ForeignKey('sports_leagues.id'), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    league: Mapped["SportsLeague"] = relationship(back_populates="user_preferences")
+
+    def __repr__(self):
+        return f"<UserSportsPreference(user_id={self.user_id}, league_id={self.league_id}, enabled={self.enabled})>"
+
+
+class SportsResult(Base):
+    """Sports match results for article generation"""
+    __tablename__ = 'sports_results'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    league_id: Mapped[int] = mapped_column(ForeignKey('sports_leagues.id'), nullable=False)
+    match_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    home_team: Mapped[str] = mapped_column(String, nullable=False)
+    away_team: Mapped[str] = mapped_column(String, nullable=False)
+    score: Mapped[Optional[str]] = mapped_column(String)  # e.g., "2-1", "104-98"
+    summary: Mapped[Optional[str]] = mapped_column(Text)  # Brief match summary
+    article_id: Mapped[Optional[int]] = mapped_column(ForeignKey('articles.id'))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    league: Mapped["SportsLeague"] = relationship(back_populates="results")
+
+    def __repr__(self):
+        return f"<SportsResult(league_id={self.league_id}, {self.home_team} vs {self.away_team}, {self.match_date})>"

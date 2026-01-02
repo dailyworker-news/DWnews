@@ -96,7 +96,7 @@ async def root():
 
 
 # API Routes
-from backend.routes import articles, editorial, payments, auth, access_control, dashboard, subscription_management
+from backend.routes import articles, editorial, payments, auth, access_control, dashboard, subscription_management, sports
 
 app.include_router(auth.router)  # Already has /api/auth prefix
 app.include_router(access_control.router)  # Already has /api/access prefix
@@ -105,6 +105,8 @@ app.include_router(editorial.router, prefix="/api/editorial", tags=["editorial"]
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 app.include_router(dashboard.router)  # Already has /api/dashboard prefix
 app.include_router(subscription_management.router)  # Already has /api/dashboard prefix
+app.include_router(sports.router)  # Already has /api/sports prefix
+app.include_router(sports.admin_router)  # Already has /api/admin/sports prefix
 
 
 if __name__ == "__main__":

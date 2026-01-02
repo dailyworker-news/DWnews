@@ -661,12 +661,50 @@ draft → ai_review → human_review → approved → published
 - Uptime checks (free)
 
 ### 13.8 Deployment
-- GCP Cloud Run or Compute Engine e2-micro
-- PostgreSQL (Cloud SQL db-f1-micro)
-- Cloud Storage for images
+
+**Status:** Deployment automation complete, ON HOLD pending security setup
+
+**CI/CD Infrastructure:**
+- GitHub Actions workflows (8 total):
+  - 5 CI/CD workflows: backend tests, frontend tests, code quality, dependency updates, main CI
+  - 3 deployment workflows: staging deployment, production deployment, manual rollback
+- Multi-version testing: Python 3.9-3.11, Node 18.x-20.x
+- Multi-browser E2E testing: Chromium, Firefox, WebKit
+- Automated quality checks and security scanning
+
+**Production Infrastructure (Ready, Not Deployed):**
+- GCP Cloud Run (serverless container deployment)
+- PostgreSQL (Cloud SQL with private IP only)
+- Cloud Storage for images (with Cloud CDN)
 - Cloudflare CDN (external, free tier)
-- GitHub Actions CI/CD (free)
-- Environments: Development + Production only
+- Environments: Development (local) + Staging (GCP) + Production (GCP)
+
+**Deployment Prerequisites (MUST COMPLETE FIRST):**
+1. Complete all functional and end-user testing locally
+2. Set up new GCP project with different root account
+3. Implement ALL security requirements from CLOUD_SECURITY_CONFIG.md:
+   - API key scoping (restrict to required services only)
+   - Service account setup with minimal permissions
+   - Secret Manager for all credentials
+   - VPC with private subnets, Cloud SQL Private IP
+   - Cloud Armor for DDoS protection
+   - Monitoring, alerting, and audit logging
+   - Container security hardening
+   - Compliance configuration (GDPR, CCPA)
+4. Test deployment to staging environment
+5. Verify rollback procedures work
+
+**Security-First Approach:**
+- NO deployment to production until security configuration complete
+- Unrestricted API keys MUST be scoped before cloud deployment
+- Service accounts MUST use principle of least privilege
+- All secrets MUST be stored in Secret Manager (not environment variables)
+- Network isolation required (private IPs, VPC, firewall rules)
+
+**Reference Documents:**
+- Security: `/plans/CLOUD_SECURITY_CONFIG.md` (comprehensive security requirements)
+- Deployment Status: `/plans/roadmap.md` (current deployment hold status)
+- Testing: Backend tests, frontend tests, CI/CD workflows in `.github/workflows/`
 
 ---
 
@@ -716,28 +754,77 @@ draft → ai_review → human_review → approved → published
 
 ## 16. Deployment & Launch
 
-### 16.1 MVP Launch Criteria
-- Working prototype demonstrated
+**Current Status:** Deployment infrastructure ready, ON HOLD pending security and testing
+
+### 16.1 Pre-Deployment Requirements (MUST COMPLETE)
+
+**Local Testing:**
+- [ ] All 99+ automated tests passing
+- [ ] Functional testing complete (all features working)
+- [ ] End-user testing complete (realistic user workflows validated)
+- [ ] Performance testing passed (< 2s page load times)
+- [ ] Accessibility audit passed (WCAG 2.1 AA compliance)
+- [ ] Mobile responsiveness validated on real devices
+
+**Security Configuration:**
+- [ ] New GCP project created with different root account
+- [ ] API keys scoped to minimum required services
+- [ ] Service accounts configured with least privilege
+- [ ] All secrets migrated to GCP Secret Manager
+- [ ] VPC and network security configured (private IPs, firewall rules)
+- [ ] Cloud Armor enabled for DDoS protection
+- [ ] Monitoring and alerting configured
+- [ ] Container images hardened and scanned
+- [ ] Compliance requirements implemented (GDPR, CCPA)
+- [ ] Complete security checklist from CLOUD_SECURITY_CONFIG.md
+
+**Deployment Readiness:**
+- [ ] Staging environment deployment tested
+- [ ] Production deployment workflow tested
+- [ ] Rollback procedure verified
+- [ ] All GitHub Actions secrets configured
+- [ ] Documentation updated and accurate
+
+### 16.2 MVP Launch Criteria
+- Working prototype demonstrated locally
 - Satisfactory article quality achieved
 - Major UX bugs fixed
 - Editorial workflow validated
 - Local news integration working
 - Visual hierarchy effective
-- Security basics implemented
+- **ALL security requirements implemented** (CRITICAL)
+- **Complete testing completed** (functional + end-user)
+- **New GCP infrastructure ready** (different account, proper security)
 
-### 16.2 Soft Launch
-- Deploy to production
+### 16.3 Soft Launch (After Prerequisites Complete)
+- Deploy to staging environment first
+- Verify all functionality in staging
+- Deploy to production via approved workflow
 - Generate initial articles
-- Monitor quality and UX
+- Monitor quality, UX, and security
+- Monitor costs and performance
 - Iterate and fix issues
 - Expand when satisfactory
 
-### 16.3 Post-Launch
-- Monitor costs monthly
-- Track content quality
+### 16.4 Post-Launch
+- Monitor costs daily (first week), then weekly
+- Monitor security logs daily (first month)
+- Track content quality continuously
 - Fix bugs as discovered
-- Iterate based on usage
-- Scale infrastructure as needed
+- Iterate based on usage and feedback
+- Scale infrastructure only when justified
+- Rotate secrets per security schedule
+- Conduct monthly security reviews
+
+### 16.5 Deployment Timeline
+1. **CURRENT:** Complete local testing (functional + end-user)
+2. **CURRENT:** Implement security configuration (CLOUD_SECURITY_CONFIG.md)
+3. **PARALLEL:** Batch 7 - Subscription System (can proceed with security setup)
+4. **NEXT:** Set up new GCP project with proper security controls
+5. **NEXT:** Deploy to staging and test
+6. **FINAL:** Production deployment (only after ALL prerequisites complete)
+
+**No Rush Policy:** Quality and security take absolute priority over speed to production. The deployment automation is ready and tested. Take the time needed to get security right.
 
 ---
 

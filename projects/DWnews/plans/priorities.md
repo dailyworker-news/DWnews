@@ -127,30 +127,60 @@ Accurate, worker-centric news that doesn't pull punches.
 ## Prioritization Framework
 
 ### P0: Launch Prerequisites
-**Goal:** Working prototype with satisfactory utility
+**Goal:** Working prototype with satisfactory utility and enterprise-grade security
 
-**Must Have:**
-1. Web portal (responsive, mobile-friendly)
-2. Front page: NEW + CONTINUING story display
-3. National (5+) + Local (5+) news split
-4. Local selection by user preference/IP inference
-5. Article display (accurate, worker-centric, accessible)
-6. Social sharing buttons
-7. Basic legal compliance (Terms, Privacy Policy)
-8. GCP deployment
-9. Gemini opinion imagery integration
+**Current Status:**
+- ✅ Web portal complete (responsive, mobile-friendly)
+- ✅ Front page: NEW + CONTINUING story display
+- ✅ National + Local news split with IP inference
+- ✅ Article generation and display (accurate, worker-centric, accessible)
+- ✅ Social sharing buttons
+- ✅ Basic legal compliance (Terms, Privacy Policy)
+- ✅ 99+ automated tests implemented
+- ✅ Complete CI/CD pipeline with quality checks
+- ✅ Deployment automation ready (staging, production, rollback)
+- ⏸️ **ON HOLD:** GCP deployment (waiting for security setup)
+- ⏸️ **ON HOLD:** Gemini imagery integration (waiting for scoped API keys)
+
+**Must Complete Before Production:**
+1. **Local Testing:**
+   - Run all 99+ functional tests
+   - Complete end-user testing (realistic workflows)
+   - Performance testing (< 2s page load)
+   - Accessibility audit (WCAG 2.1 AA)
+   - Mobile testing on real devices
+
+2. **Security Configuration (CRITICAL):**
+   - Set up new GCP project (different root account)
+   - Scope all API keys to minimum required services
+   - Configure service accounts with least privilege
+   - Migrate all secrets to GCP Secret Manager
+   - Set up VPC with private subnets
+   - Enable Cloud Armor for DDoS protection
+   - Configure monitoring and alerting
+   - Implement compliance requirements (GDPR, CCPA)
+   - Complete ALL items from CLOUD_SECURITY_CONFIG.md
+
+3. **Deployment Readiness:**
+   - Test staging deployment workflow
+   - Test production deployment workflow
+   - Verify rollback procedure
+   - Update GitHub Actions secrets
+   - Final documentation review
 
 **Quality Bar for Soft Launch:**
-- Satisfactory utility to readers
-- UX bugs fixed
+- Satisfactory utility to readers (validated in local testing)
+- All UX bugs fixed
 - Article quality meets standards (accuracy, accessibility, worker perspective)
+- **ALL security requirements implemented** (non-negotiable)
+- Complete testing passed (functional + end-user)
+- New GCP infrastructure ready with proper security controls
 
 **Explicitly Deferred from P0:**
-- Complex AI automation
-- Automated content discovery
-- Advanced analytics
-- Performance optimization beyond "good enough"
-- Mobile apps
+- Advanced AI automation (have basic journalism pipeline)
+- Native mobile apps (web responsive design sufficient)
+- Advanced analytics (basic monitoring sufficient)
+- Performance optimization beyond "good enough" (< 2s page load is acceptable)
 
 ---
 
@@ -365,16 +395,44 @@ Launch when quality bar met, not timeline-driven.
 
 ## Next Steps
 
-1. Stakeholder approval of VERSION 1 priorities
-2. GCP project setup
-3. Gemini API integration planning
-4. Infrastructure architecture (static vs. server-rendered decision)
-5. Local news sourcing strategy (which states to launch with)
-6. Front page UI design (NEW + CONTINUING display approach)
-7. Content management workflow design
-8. Build working prototype
-9. Quality validation
-10. Soft launch
+**Completed:**
+1. ✅ Stakeholder approval of priorities
+2. ✅ Infrastructure architecture (server-rendered with FastAPI)
+3. ✅ Local news sourcing strategy (IP inference + user preference)
+4. ✅ Front page UI design (NEW + CONTINUING display with traditional newspaper aesthetic)
+5. ✅ Content management workflow (editorial coordination, human review)
+6. ✅ Working prototype built and functional locally
+7. ✅ Automated journalism pipeline (signal intake, evaluation, verification, journalist agents)
+8. ✅ Testing infrastructure (99+ tests, CI/CD, deployment automation)
+
+**Current Priority (Before Production):**
+1. **IMMEDIATE:** Complete all functional tests locally (run 99+ test suite)
+2. **IMMEDIATE:** Complete end-user testing (realistic user workflows)
+3. **CRITICAL:** Set up new GCP project with different root account
+4. **CRITICAL:** Implement complete security configuration (CLOUD_SECURITY_CONFIG.md)
+   - API key scoping
+   - Service account setup
+   - Secret Manager migration
+   - Network security (VPC, firewall, Cloud Armor)
+   - Monitoring and alerting
+   - Container security
+   - Compliance configuration
+5. **PARALLEL:** Batch 7 - Subscription System (can proceed during security setup)
+
+**After Prerequisites Complete:**
+1. Deploy to staging environment
+2. Test staging deployment thoroughly
+3. Deploy to production (via approved workflow)
+4. Monitor security, quality, UX, and costs
+5. Soft launch to small audience
+6. Iterate based on feedback
+
+**Timeline Philosophy:**
+- No rush to production
+- Quality and security take absolute priority
+- Deployment automation is ready and tested
+- Take the time needed to get security configuration right
+- Local testing must be thorough before cloud deployment
 
 ---
 

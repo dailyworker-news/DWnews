@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - The Daily Worker</title>
+    <!-- Google Fonts: Playfair Display (masthead/headlines) and Merriweather (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+<body>
+    <!-- Newspaper Masthead -->
+    <header class="newspaper-masthead">
+        <div class="container">
+            <!-- Top Bar -->
+            <div class="masthead-top">
+                <span class="edition-info">My Account</span>
+                <a href="/" class="subscribe-btn">← Back to Home</a>
+            </div>
+
+            <!-- Main Title -->
+            <div class="masthead-title">
+                <h1>THE DAILY WORKER</h1>
+                <p class="masthead-tagline">Account Management</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <main class="dashboard-container container">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-message">
+            <p>Loading your account details...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-message" style="display: none;">
+            <p id="errorMessage"></p>
+            <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+        </div>
+
+        <!-- Dashboard Content (Hidden until loaded) -->
+        <div id="dashboardContent" style="display: none;">
+            <!-- Page Header -->
+            <div class="dashboard-header">
+                <h2>Welcome, <span id="userEmail"></span></h2>
+            </div>
+
+            <!-- Subscription Status Section -->
+            <section class="dashboard-section">
+                <h3>Subscription Status</h3>
+
+                <div class="subscription-card">
+                    <!-- Plan Badge -->
+                    <div class="plan-badge" id="planBadge">
+                        <span id="planName"></span>
+                    </div>
+
+                    <!-- Status Indicator -->
+                    <div class="status-indicator" id="statusIndicator">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText"></span>
+                    </div>
+
+                    <!-- Subscription Details Grid -->
+                    <div class="subscription-details" id="subscriptionDetails">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="subscription-actions" id="subscriptionActions">
+                        <!-- Will be populated by JavaScript based on status -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Billing Management Section -->
+            <section class="dashboard-section" id="billingSection" style="display: none;">
+                <h3>Billing & Invoices</h3>
+
+                <div class="billing-card">
+                    <!-- Payment Method -->
+                    <div class="payment-method" id="paymentMethodSection">
+                        <h4>Payment Method</h4>
+                        <div id="paymentMethodDetails">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        <button id="updatePaymentBtn" class="btn btn-secondary">
+                            Update Payment Method
+                        </button>
+                    </div>
+
+                    <!-- Invoice History -->
+                    <div class="invoice-history">
+                        <h4>Invoice History</h4>
+                        <div id="invoicesList">
+                            <p class="loading-message">Loading invoices...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Preferences Section -->
+            <section class="dashboard-section">
+                <h3>Personalization Preferences</h3>
+
+                <div class="preferences-card">
+                    <!-- Sports Leagues Preference -->
+                    <div class="preference-group">
+                        <h4>Sports Leagues</h4>
+                        <p class="preference-description" id="sportsDescription">
+                            Customize which sports leagues you follow
+                        </p>
+
+                        <!-- Sports Leagues Selection -->
+                        <div id="sportsLeaguesSection">
+                            <p class="loading-message">Loading sports leagues...</p>
+                        </div>
+                    </div>
+
+                    <!-- Local News Preference -->
+                    <div class="preference-group">
+                        <h4>Local News Region</h4>
+                        <p class="preference-description">
+                            Select your local region for personalized local news coverage
+                        </p>
+
+                        <div class="local-region-input">
+                            <label for="localRegionInput">City or Region:</label>
+                            <input
+                                type="text"
+                                id="localRegionInput"
+                                placeholder="e.g., New York, NY"
+                                class="form-input"
+                            >
+                            <p class="input-hint">We've detected your location as <span id="inferredLocation">loading...</span>. You can override this.</p>
+                        </div>
+                    </div>
+
+                    <!-- Save Preferences Button -->
+                    <div class="preferences-actions">
+                        <button id="savePreferencesBtn" class="btn btn-primary">
+                            Save Preferences
+                        </button>
+                        <span id="preferencesStatus" class="status-message"></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Cancellation Confirmation Modal -->
+    <div id="cancelModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Cancel Subscription</h3>
+            <p>Are you sure you want to cancel your subscription?</p>
+            <p class="modal-warning">
+                Your subscription will remain active until the end of the current billing period
+                (<span id="cancelEndDate"></span>).
+            </p>
+            <div class="modal-actions">
+                <button id="confirmCancelBtn" class="btn btn-danger">Yes, Cancel Subscription</button>
+                <button id="closeCancelModalBtn" class="btn btn-secondary">Keep Subscription</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Toast -->
+    <div id="toast" class="toast" style="display: none;">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Dashboard JavaScript -->
+    <script src="scripts/dashboard.js"></script>
+</body>
+</html>

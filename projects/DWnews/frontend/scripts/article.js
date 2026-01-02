@@ -97,6 +97,10 @@ function renderArticle(article) {
         // Verification badge
         displayVerificationBadge(article);
 
+        // Verification callout and references
+        displayVerificationCallout(article);
+        displayReferences(article);
+
         // Title
         document.getElementById('articleTitle').textContent = article.title;
 
@@ -266,6 +270,105 @@ function displayVerificationBadge(article) {
     }
 
     verificationBadge.style.display = 'inline-block';
+}
+
+// Display verification callout box with simplified text
+function displayVerificationCallout(article) {
+    const callout = document.getElementById('verificationCallout');
+    const statusIcon = document.getElementById('verificationStatusIcon');
+    const statusText = document.getElementById('verificationStatusText');
+    const description = document.getElementById('verificationDescription');
+
+    if (!article.editorial_notes) {
+        return; // No verification info
+    }
+
+    const notes = article.editorial_notes.toLowerCase();
+    let verificationLevel = null;
+    let sourceCount = 0;
+
+    // Extract verification level from editorial notes
+    if (notes.includes('certified')) {
+        verificationLevel = 'certified';
+    } else if (notes.includes('verified')) {
+        verificationLevel = 'verified';
+    } else if (notes.includes('unverified')) {
+        verificationLevel = 'unverified';
+    }
+
+    // Extract source count
+    const sourceMatch = notes.match(/(\d+)\s*source/);
+    if (sourceMatch) {
+        sourceCount = parseInt(sourceMatch[1]);
+    }
+
+    if (!verificationLevel) return;
+
+    // Set content based on verification level
+    switch(verificationLevel) {
+        case 'certified':
+            callout.className = 'verification-callout certified';
+            statusIcon.textContent = '✓✓';
+            statusText.textContent = 'Certified';
+            description.textContent = `Thoroughly researched and verified against ${sourceCount}+ credible sources. See references below.`;
+            break;
+        case 'verified':
+            callout.className = 'verification-callout verified';
+            statusIcon.textContent = '✓';
+            statusText.textContent = 'Verified';
+            description.textContent = sourceCount > 0
+                ? `${sourceCount} listed source${sourceCount !== 1 ? 's' : ''} — see ref.`
+                : 'Verified against credible sources — see ref.';
+            break;
+        case 'unverified':
+            callout.className = 'verification-callout unverified';
+            statusIcon.textContent = '⚠';
+            statusText.textContent = 'Unverified';
+            description.textContent = sourceCount > 0
+                ? `${sourceCount} source${sourceCount !== 1 ? 's' : ''} listed but not independently verified — see ref.`
+                : 'No listed sources. Exercise additional caution.';
+            break;
+    }
+
+    callout.style.display = 'block';
+}
+
+// Display references section
+function displayReferences(article) {
+    const referencesSection = document.getElementById('referencesSection');
+    const referencesList = document.getElementById('referencesList');
+
+    // Check if article has sources (would come from article_sources table)
+    // For now, extract from editorial notes or sources field if available
+    const references = [];
+
+    // Try to get sources from article.sources (if populated by backend)
+    if (article.sources && Array.isArray(article.sources) && article.sources.length > 0) {
+        article.sources.forEach(source => {
+            references.push({
+                title: source.title || source.name || 'Source',
+                url: source.url
+            });
+        });
+    }
+
+    // If no sources, don't show references section
+    if (references.length === 0) {
+        referencesSection.style.display = 'none';
+        return;
+    }
+
+    // Build references list HTML
+    const referencesHTML = references.map(ref => {
+        if (ref.url) {
+            return `<li><a href="${ref.url}" target="_blank" rel="noopener noreferrer">${ref.title}</a></li>`;
+        } else {
+            return `<li>${ref.title}</li>`;
+        }
+    }).join('');
+
+    referencesList.innerHTML = referencesHTML;
+    referencesSection.style.display = 'block';
 }
 
 // Check if article is new (within 24 hours)

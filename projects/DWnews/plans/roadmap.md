@@ -1187,34 +1187,47 @@ Implements subscription functionality to enable revenue generation. Users pay $1
   - Consider "full archive access" for subscribers instead of just 10 days (stronger value prop)
   - Use inline upgrade prompts, not blocking popups ✅ IMPLEMENTED
 
-### Phase 7.4: Subscriber Dashboard & User Preferences
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 7.1 ✅, Phase 7.2
+### Phase 7.4: Subscriber Dashboard & User Preferences ✅
+- **Status:** 🟢 Complete
+- **Completed:** 2026-01-02
+- **Depends On:** Phase 7.1 ✅, Phase 7.2 ✅, Phase 7.3 ✅
 - **Complexity:** M
-- **Updated:** 2026-01-01 (Added sports and local news preferences)
-- **Tasks:**
-  - [ ] Build subscriber dashboard page (/account/subscription)
-  - [ ] Display current subscription status (active, canceled, past_due, trial)
-  - [ ] Display billing information (next billing date, amount, payment method)
-  - [ ] Display invoice history (download links to Stripe invoice PDFs)
-  - [ ] Add link to update payment method (Stripe Customer Portal or custom form)
-  - [ ] Show subscription start date and renewal date
-  - [ ] Display cancellation option with confirmation dialog
-  - [ ] **NEW:** Add user preferences section (sports leagues, local news region)
-  - [ ] **NEW:** Sports preference UI (Basic tier: select 1 league, Premium tier: unlimited leagues)
-  - [ ] **NEW:** Local news preference UI (city/region selection, override IP-inferred location)
-  - [ ] **NEW:** Save preferences to user_sports_preferences and users.local_region
-  - [ ] Test dashboard with various subscription states (Free, Basic, Premium)
-  - [ ] Test preference updates (sports league changes, local region changes)
-- **Done When:** Subscribers can view/manage subscription, configure sports and local news preferences
-- **Business Analyst Notes:**
-  - Sports/local personalization = VRIO resource (high strategic value)
-  - This is the key differentiator - prioritize UX quality
-  - Consider onboarding flow to capture preferences during signup
+- **Implementation:**
+  - ✅ Backend API routes (/backend/routes/dashboard.py):
+    - GET /api/dashboard/subscription - Returns subscription status, billing info, plan details
+    - GET /api/dashboard/invoices - Fetches invoice history from Stripe
+    - POST /api/dashboard/customer-portal - Generates Stripe Customer Portal session
+    - GET /api/dashboard/preferences - Returns user's sports leagues and local region
+    - PUT /api/dashboard/preferences - Updates preferences with tier validation
+    - GET /api/dashboard/sports-leagues - Lists available leagues with tier requirements
+    - POST /api/dashboard/cancel-subscription - Cancels subscription at period end
+  - ✅ Database migration (005_add_local_region.sql) - Added local_region column to users table
+  - ✅ Frontend dashboard page (/frontend/dashboard.html):
+    - Responsive design with mobile support
+    - Subscription status section (plan badge, status indicator, billing details)
+    - Billing management section (payment method, invoice history)
+    - User preferences section (sports leagues, local news region)
+  - ✅ Dashboard JavaScript (/frontend/scripts/dashboard.js):
+    - API integration for all dashboard endpoints
+    - Tier-based sports league selection (Free=0, Basic=1, Premium=unlimited)
+    - Subscription cancellation modal with confirmation
+    - Stripe Customer Portal integration for payment updates
+    - Real-time preference updates with validation
+  - ✅ Dashboard CSS (/frontend/styles/dashboard.css):
+    - Newspaper-inspired design matching main site aesthetic
+    - Responsive mobile layout
+    - Status indicators with color coding
+    - Modal and toast notifications
+  - ✅ Comprehensive testing documentation (DASHBOARD_TESTING.md)
+- **Business Value:**
+  - Sports/local personalization = VRIO resource (high strategic value) ✅
+  - Tier-based restrictions enforce upgrade incentives
+  - Self-service billing reduces support burden
+  - Customer Portal integration simplifies payment management
 
 ### Phase 7.5: Subscription Management
-- **Status:** Blocked
-- **Depends On:** Phase 7.3, Phase 7.4
+- **Status:** ⚪ Not Started
+- **Depends On:** Phase 7.3 ✅, Phase 7.4 ✅
 - **Complexity:** S
 - **Tasks:**
   - [ ] Implement subscription cancellation flow (cancel at period end, immediate cancellation options)

@@ -177,6 +177,110 @@
   border-color: #d97706;
 }
 
+/* ========================================
+   Verification Callout Box
+   ======================================== */
+
+.verification-callout {
+  margin: 32px 0;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.verification-callout.verified {
+  background: #d1ecf1;
+  border-color: #0c5460;
+}
+
+.verification-callout.certified {
+  background: #d4edda;
+  border-color: #155724;
+}
+
+.verification-callout.unverified {
+  background: #fff3cd;
+  border-color: #856404;
+}
+
+.verification-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.verification-status strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.verification-callout.verified .verification-status {
+  color: #0c5460;
+}
+
+.verification-callout.certified .verification-status {
+  color: #155724;
+}
+
+.verification-callout.unverified .verification-status {
+  color: #856404;
+}
+
+.verification-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* ========================================
+   References Section
+   ======================================== */
+
+.references-section {
+  margin: 40px 0 32px 0;
+  padding: 24px;
+  background: var(--article-gray-50);
+  border-radius: 4px;
+  border: 1px solid var(--article-gray-200);
+}
+
+.references-section h3 {
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--article-gray-900);
+}
+
+.references-list {
+  margin: 0;
+  padding-left: 24px;
+  list-style: decimal;
+}
+
+.references-list li {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  color: var(--article-gray-700);
+}
+
+.references-list li:last-child {
+  margin-bottom: 0;
+}
+
+.references-list a {
+  color: #0066cc;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.references-list a:hover {
+  text-decoration: underline;
+}
+
 /* Article Page Title - Newspaper Headline Style */
 .article-page-title {
   font-family: 'Playfair Display', serif;

@@ -86,15 +86,64 @@ ARTICLE REQUIREMENTS:
 - Punchy, direct writing that doesn't pull punches
 - Include specific details: numbers, dates, names from verified facts
 
+CRITICAL ANALYSIS REQUIREMENTS (develop independent voice):
+You are not a stenographer - you are an investigative journalist with an independent perspective. Your job is to question, contextualize, and analyze, not just report.
+
+1. SCALE & PROPORTION ANALYSIS:
+   - When numbers are cited (funding, jobs, wages), ask: Is this substantial given the scale of the problem?
+   - Calculate per-person or per-worker impacts when relevant
+   - Example: "$98M for youth training" → How many workers does this serve? What's the per-worker funding? How does this compare to the need?
+
+2. POWER & BENEFICIARY ANALYSIS:
+   - Who benefits from the current situation/problem?
+   - Who has power in this story and how are they using it?
+   - Follow the money: Who profits? Who pays?
+   - Example: "Training gap" → Who benefits from inadequate worker training? Employers who can pay less?
+
+3. HISTORICAL CONTEXT:
+   - How does this compare to past efforts/funding/policies?
+   - Is this a new problem or a recurring pattern?
+   - What precedents exist?
+   - Example: Compare current funding to historical levels (adjusted for inflation)
+
+4. STRUCTURAL ANALYSIS:
+   - What systemic issues does this reveal?
+   - Is this addressing symptoms or root causes?
+   - What power structures are being challenged or reinforced?
+   - Example: "Job training program" → Why do workers lack skills in the first place? Failure of education system? Employer disinvestment in training?
+
+5. QUESTION OFFICIAL NARRATIVES:
+   - Government/corporate press releases are starting points, not endpoints
+   - Challenge assumptions and PR framing
+   - Ask "why now?" and "who benefits?"
+   - Example: Press release says "investment in workforce" → Is this really investment, or cost-shifting from employers to taxpayers?
+
+6. WORKER IMPACT FOCUS:
+   - What does this mean for individual workers in concrete terms?
+   - Move beyond statistics to real-world implications
+   - Example: "$15/hour minimum wage" → What can workers actually afford with this? Compare to local rent, groceries, childcare costs
+
+7. SKEPTICAL BUT FAIR:
+   - Be critical without being cynical
+   - Challenge claims with evidence, not speculation
+   - Present counterarguments when relevant
+   - Maintain fairness while centering worker perspective
+
+INTEGRATE CRITICAL ANALYSIS INTO ARTICLE BODY:
+- Don't add a separate "Analysis" section - weave critical perspective throughout
+- Lead with facts, follow with context and critical questions
+- Use phrases like: "That figure represents...", "To put this in perspective...", "Critics note...", "However, the deeper issue is..."
+- Make connections between individual stories and systemic patterns
+
 STRUCTURE:
 1. Headline (compelling, worker-impact focused)
 2. Lead paragraph (Who/What/When/Where - cite primary source)
-3. Nut graf (Why it matters to workers)
-4. Body (Details with proper attribution)
-5. "Why This Matters" section (worker impact)
+3. Nut graf (Why it matters to workers - include critical context)
+4. Body (Details with proper attribution AND critical analysis integrated throughout)
+5. "Why This Matters" section (worker impact with structural analysis)
 6. "What You Can Do" section (actionable steps)
 
-Generate the complete article now."""
+Generate the complete article now with critical analysis integrated throughout."""
 
         return prompt
 

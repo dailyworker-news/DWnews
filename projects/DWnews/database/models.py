@@ -205,6 +205,12 @@ class Topic(Base):
     source_plan: Mapped[Optional[str]] = mapped_column(Text)  # JSON: planned sources for verification
     verification_status: Mapped[str] = mapped_column(String, default='pending')
 
+    # Investigation tracking (added for Investigatory Journalist Agent)
+    investigated: Mapped[bool] = mapped_column(Boolean, default=False)
+    investigation_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    investigation_confidence: Mapped[Optional[float]] = mapped_column(Float)  # 0-100
+    investigation_notes: Mapped[Optional[str]] = mapped_column(Text)
+
     # Relationships
     article_id: Mapped[Optional[int]] = mapped_column(ForeignKey('articles.id'))
     category: Mapped[Optional["Category"]] = relationship(back_populates="topics")

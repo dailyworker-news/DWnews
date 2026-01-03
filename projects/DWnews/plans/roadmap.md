@@ -407,31 +407,9 @@ Current image generation produces generic, low-quality results using basic promp
 ### Phase 6.11.2: Switch to Gemini 2.5 Flash Image ✅ COMPLETE
 **See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
-### Phase 6.11.3: Implement Claude Prompt Enhancement
-- **Status:** ⚪ Not Started (Ready to start - dependencies met)
-- **Depends On:** Phase 6.11.2 ✅
-- **Complexity:** M
-- **Tasks:**
-  - [ ] Create prompt enhancement service using Claude Sonnet
-  - [ ] Implement prompt: "Generate 3-5 diverse artistic image concepts for this article: {headline} + {summary}"
-  - [ ] Parse Claude response to extract concepts, confidence scores, rationales
-  - [ ] Implement confidence scoring validation (0.0-1.0 scale)
-  - [ ] Implement prompt selection logic (highest confidence score)
-  - [ ] Add concept diversity validation (ensure different artistic approaches)
-  - [ ] Store all 3-5 concepts in database (article_image_concepts table)
-  - [ ] Store selected concept metadata (confidence, rationale) with image record
-  - [ ] Test with real articles (verify concept quality and diversity)
-  - [ ] Add fallback: if Claude API fails, use simple prompt wrapping
-- **Done When:** Claude generates 3-5 artistic concepts per article, confidence scoring works, best prompt selected
-- **Deliverables:**
-  - Prompt enhancement service: `/backend/services/prompt_enhancement.py`
-  - Database migration: `/database/migrations/006_image_concepts.sql` (article_image_concepts table)
-  - Test suite: `/backend/tests/test_prompt_enhancement.py`
-  - Example concepts: `/docs/EXAMPLE_PROMPT_CONCEPTS.md` (real output samples)
-
 ### Phase 6.11.4: Update Image Sourcing Pipeline
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 6.11.3
+- **Status:** ⚪ Not Started (Ready to start - dependencies met)
+- **Depends On:** Phase 6.11.3 ✅
 - **Complexity:** S
 - **Tasks:**
   - [ ] Update scripts/content/source_images.py with new workflow
@@ -1009,43 +987,8 @@ Implements subscription functionality to enable revenue generation. Users pay $1
   - Consider "full archive access" for subscribers instead of just 10 days (stronger value prop)
   - Use inline upgrade prompts, not blocking popups ✅ IMPLEMENTED
 
-### Phase 7.4: Subscriber Dashboard & User Preferences ✅
-- **Status:** 🟢 Complete
-- **Completed:** 2026-01-02
-- **Depends On:** Phase 7.1 ✅, Phase 7.2 ✅, Phase 7.3 ✅
-- **Complexity:** M
-- **Implementation:**
-  - ✅ Backend API routes (/backend/routes/dashboard.py):
-    - GET /api/dashboard/subscription - Returns subscription status, billing info, plan details
-    - GET /api/dashboard/invoices - Fetches invoice history from Stripe
-    - POST /api/dashboard/customer-portal - Generates Stripe Customer Portal session
-    - GET /api/dashboard/preferences - Returns user's sports leagues and local region
-    - PUT /api/dashboard/preferences - Updates preferences with tier validation
-    - GET /api/dashboard/sports-leagues - Lists available leagues with tier requirements
-    - POST /api/dashboard/cancel-subscription - Cancels subscription at period end
-  - ✅ Database migration (005_add_local_region.sql) - Added local_region column to users table
-  - ✅ Frontend dashboard page (/frontend/dashboard.html):
-    - Responsive design with mobile support
-    - Subscription status section (plan badge, status indicator, billing details)
-    - Billing management section (payment method, invoice history)
-    - User preferences section (sports leagues, local news region)
-  - ✅ Dashboard JavaScript (/frontend/scripts/dashboard.js):
-    - API integration for all dashboard endpoints
-    - Tier-based sports league selection (Free=0, Basic=1, Premium=unlimited)
-    - Subscription cancellation modal with confirmation
-    - Stripe Customer Portal integration for payment updates
-    - Real-time preference updates with validation
-  - ✅ Dashboard CSS (/frontend/styles/dashboard.css):
-    - Newspaper-inspired design matching main site aesthetic
-    - Responsive mobile layout
-    - Status indicators with color coding
-    - Modal and toast notifications
-  - ✅ Comprehensive testing documentation (DASHBOARD_TESTING.md)
-- **Business Value:**
-  - Sports/local personalization = VRIO resource (high strategic value) ✅
-  - Tier-based restrictions enforce upgrade incentives
-  - Self-service billing reduces support burden
-  - Customer Portal integration simplifies payment management
+### Phase 7.4: Subscriber Dashboard & User Preferences ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
 ### Phase 7.7: Sports Subscription Configuration
 - **Status:** 🟡 Partial Complete - Core API Ready (tdd-sports-engineer)
@@ -1147,7 +1090,7 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 - **Sustainability:** No API rate limits, no business risk from third-party API changes
 
 ### Phase 11.1: RSS Source Research & Curation
-- **Status:** ⚪ Not Started
+- **Status:** 🟡 In Progress (tdd-rss-researcher-2026-01-02)
 - **Complexity:** S
 - **Tasks:**
   - [ ] Research and identify 15-20 new high-quality RSS sources

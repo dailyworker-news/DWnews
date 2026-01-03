@@ -1075,33 +1075,12 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 ### Phase 11.1: RSS Source Research & Curation ✅ COMPLETE
 **See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
-### Phase 11.2: RSS Feed Integration & Testing
-- **Status:** 🟡 In Progress
-- **Assigned to:** tdd-dev-rss-integration-20260102
-- **Started:** 2026-01-02
-- **Depends On:** Phase 11.1 ✅
-- **Complexity:** M
-- **Tasks:**
-  - [ ] Add 10-15 new RSS sources to `/backend/agents/feeds/rss_feeds.py`
-  - [ ] Configure priority levels (critical, high, medium) per source
-  - [ ] Set keyword filters for general news sources (labor, union, worker, strike, etc.)
-  - [ ] Update `FEED_SOURCES` dictionary with new sources
-  - [ ] Test each new feed individually (verify parsing, content quality)
-  - [ ] Test deduplication logic with expanded feed list (prevent duplicate events across sources)
-  - [ ] Run Signal Intake Agent with expanded feeds (target: 30-60 events/day)
-  - [ ] Validate event quality: newsworthiness scores, source attribution, worker relevance
-  - [ ] Monitor performance: fetch time, parsing errors, event quality
-  - [ ] Update RSS aggregator documentation
-- **Done When:** 10-15 new RSS sources operational, 30-60 events/day discovered, quality validated
-- **Deliverables:**
-  - Updated RSS aggregator: `/backend/agents/feeds/rss_feeds.py` (22-27 total sources)
-  - Test results: `/scripts/test_expanded_rss_feeds.py` (event counts, quality metrics, performance)
-  - Performance report: Event volume per source, fetch times, parsing success rate
-  - Updated documentation: `/backend/agents/feeds/README.md` (new sources, configuration)
+### Phase 11.2: RSS Feed Integration & Testing ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
 ### Phase 11.3: Feed Health Monitoring & Management
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 11.2
+- **Status:** ⚪ Not Started (Ready to start - dependencies met)
+- **Depends On:** Phase 11.2 ✅
 - **Complexity:** M
 - **Tasks:**
   - [ ] Build RSS feed health monitoring system

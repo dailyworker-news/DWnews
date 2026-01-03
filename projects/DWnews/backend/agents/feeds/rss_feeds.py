@@ -110,6 +110,58 @@ class RSSFeedAggregator:
             'priority': 'high',
             'keywords': ['labor', 'worker', 'union', 'community', 'technology', 'surveillance'],
         },
+
+        # ===== NEW SOURCES (Phase 11.2 - Batch 1) =====
+        # Added 2026-01-02: RSS Feed Expansion to address Twitter API limitations
+        # Target: 13 existing + 8 new = 21 total feeds
+
+        # Worker-Focused Media (CRITICAL priority)
+        'the_lever': {
+            'url': 'https://www.levernews.com/rss',
+            'priority': 'critical',
+            'keywords': [],  # All articles relevant (worker-focused investigative journalism)
+        },
+        'jacobin': {
+            'url': 'https://jacobin.com/feed',
+            'priority': 'critical',
+            'keywords': [],  # All articles relevant (socialist labor perspective)
+        },
+
+        # Investigative Journalism (HIGH priority)
+        'icij': {
+            'url': 'https://www.icij.org/feed/',
+            'priority': 'high',
+            'keywords': ['labor', 'worker', 'exploitation', 'corruption', 'wage theft', 'employment'],
+        },
+        'reveal': {
+            'url': 'https://revealnews.org/feed/',
+            'priority': 'high',
+            'keywords': ['labor', 'worker', 'safety', 'violation', 'employment', 'workplace'],
+        },
+        'the_markup': {
+            'url': 'https://themarkup.org/feeds/rss.xml',
+            'priority': 'high',
+            'keywords': ['worker', 'labor', 'surveillance', 'gig economy', 'tech', 'algorithm'],
+        },
+
+        # Regional Labor Publications (HIGH priority)
+        'labor_press_nyc': {
+            'url': 'https://www.laborpress.org/feed/',
+            'priority': 'high',
+            'keywords': [],  # All articles relevant (NYC labor news)
+        },
+        'belt_magazine': {
+            'url': 'https://beltmag.com/feed/',
+            'priority': 'high',
+            'keywords': [],  # All articles relevant (Rust Belt/Midwest labor)
+        },
+
+        # Local News Aggregators (HIGH priority)
+        'scalawag': {
+            'url': 'https://scalawagmagazine.org/feed/',
+            'priority': 'high',
+            'keywords': ['labor', 'worker', 'economic justice', 'union', 'organizing'],
+        },
     }
 
     def __init__(self, max_age_hours: int = 24):

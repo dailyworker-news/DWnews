@@ -20,6 +20,7 @@ from backend.logging_config import get_logger
 from database.models import Article
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from scripts.content.prompt_enhancer import PromptEnhancer
 
 logger = get_logger(__name__)
 
@@ -50,15 +51,23 @@ class ImageSourcer:
         if self.pexels_enabled:
             logger.info("Pexels API available")
 
-        # Initialize GCP Vertex AI Imagen for image generation (PRIMARY)
-        self.vertex_ai_enabled = bool(
-            settings.gcp_project_id and
-            settings.gcp_service_account_key_path
-        )
-        if self.vertex_ai_enabled:
-            logger.info("GCP Vertex AI Imagen available")
-            # Initialize Vertex AI on first use
-            self._vertex_ai_initialized = False
+        # Initialize Gemini 2.5 Flash Image for AI image generation (PRIMARY)
+        self.gemini_enabled = bool(settings.gemini_api_key)
+        if self.gemini_enabled:
+            logger.info("Gemini 2.5 Flash Image available")
+            # Initialize Gemini on first use
+            self._gemini_initialized = False
+            self._gemini_client = None
+
+        # Initialize Claude prompt enhancer
+        self.prompt_enhancer_enabled = bool(settings.claude_api_key)
+        if self.prompt_enhancer_enabled:
+            try:
+                self.prompt_enhancer = PromptEnhancer()
+                logger.info("Claude prompt enhancer initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize prompt enhancer: {e}")
+                self.prompt_enhancer_enabled = False
 
     def download_image(self, url: str, timeout: int = 10) -> Optional[bytes]:
         """Download image from URL"""
@@ -205,88 +214,135 @@ class ImageSourcer:
 
         return None
 
-    def generate_image_with_vertex_ai(self, prompt: str, article_id: int) -> Optional[str]:
+    def generate_image_with_gemini(
+        self,
+        prompt: str,
+        article_id: int,
+        article_title: str = "",
+        article_content: str = ""
+    ) -> Optional[str]:
         """
-        Generate image using Google Cloud Vertex AI Imagen
+        Generate image using Gemini 2.5 Flash Image with Claude-enhanced prompts
 
-        Returns path to saved image file (not a Dict with URL like stock photos)
+        Args:
+            prompt: Base prompt (article title or concept)
+            article_id: Article ID for saving image
+            article_title: Full article title for context
+            article_content: Optional article content for better context
+
+        Returns:
+            Path to saved image file or None if failed
         """
-        if not self.vertex_ai_enabled:
+        if not self.gemini_enabled:
             return None
 
         try:
-            # Sanitize prompt - remove [NEEDS REVIEW], problematic phrases, etc.
-            clean_prompt = prompt.replace('[NEEDS REVIEW]', '').strip()
+            # Initialize Gemini on first use
+            if not self._gemini_initialized:
+                from google import genai
+                from google.genai import types
 
-            # Skip if prompt is too generic or problematic
-            if (len(clean_prompt) < 10 or
-                clean_prompt.lower().startswith('i cannot') or
-                'cannot write' in clean_prompt.lower()):
-                logger.warning(f"Skipping Vertex AI generation - invalid prompt: {clean_prompt[:50]}")
+                self._gemini_client = genai.Client(api_key=settings.gemini_api_key)
+                self._gemini_types = types
+                self._gemini_initialized = True
+                logger.info("Gemini 2.5 Flash Image initialized")
+
+            # Enhance prompt using Claude if available
+            final_prompt = prompt
+            concept_info = {}
+
+            if self.prompt_enhancer_enabled:
+                logger.info("Enhancing prompt with Claude...")
+                concepts = self.prompt_enhancer.generate_image_concepts(
+                    article_title=article_title or prompt,
+                    article_content=article_content,
+                    num_concepts=3
+                )
+
+                if concepts:
+                    best_concept = self.prompt_enhancer.select_best_concept(concepts)
+                    if best_concept:
+                        final_prompt = best_concept['prompt']
+                        concept_info = best_concept
+                        logger.info(f"Using enhanced prompt (confidence: {best_concept['confidence']:.2f})")
+                else:
+                    logger.warning("Failed to enhance prompt, using basic prompt")
+
+            # Sanitize prompt
+            clean_prompt = final_prompt.replace('[NEEDS REVIEW]', '').strip()
+
+            # Skip if prompt is too generic
+            if len(clean_prompt) < 10:
+                logger.warning(f"Skipping Gemini generation - prompt too short")
                 return None
 
-            # Initialize Vertex AI on first use
-            if not self._vertex_ai_initialized:
-                import os
-                os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.gcp_service_account_key_path
+            # Generate image using Gemini 2.5 Flash Image
+            logger.info(f"Generating image with Gemini (prompt length: {len(clean_prompt)} chars)...")
 
-                import vertexai
-                vertexai.init(
-                    project=settings.gcp_project_id,
-                    location=settings.gcp_location
+            response = self._gemini_client.models.generate_content(
+                model="gemini-2.5-flash-image",
+                contents=[clean_prompt],
+                config=self._gemini_types.GenerateContentConfig(
+                    response_modalities=["TEXT", "IMAGE"],
+                    candidate_count=1
                 )
-                self._vertex_ai_initialized = True
-                logger.info("Vertex AI initialized")
-
-            # Import here to avoid loading on init
-            from vertexai.preview.vision_models import ImageGenerationModel
-
-            # Create worker-centric photojournalism prompt
-            # Focus on visual elements rather than political/controversial terms
-            imagen_prompt = f"""Workers in a professional setting related to: {clean_prompt[:80]}
-Professional photojournalism style, diverse group of workers, serious determined expressions,
-workplace or union hall setting, natural lighting, documentary photography style, wide angle."""
-
-            # Load the Imagen model
-            model = ImageGenerationModel.from_pretrained("imagegeneration@006")
-
-            # Generate image
-            response = model.generate_images(
-                prompt=imagen_prompt[:1024],  # Imagen has 1024 char limit
-                number_of_images=1,
-                aspect_ratio="16:9",
-                safety_filter_level="block_some",
-                person_generation="allow_adult"
             )
 
-            if response.images:
-                # Save image directly to article directory
-                image = response.images[0]
-                article_dir = self.media_path / f"article_{article_id}"
-                article_dir.mkdir(parents=True, exist_ok=True)
+            # Extract image data from response
+            if response.candidates and len(response.candidates) > 0:
+                candidate = response.candidates[0]
 
-                file_path = article_dir / "vertex_ai_imagen.png"
-                image.save(str(file_path))
+                # Iterate through parts looking for image data
+                for part in candidate.content.parts:
+                    # Check for inline_data (image)
+                    if hasattr(part, 'inline_data') and part.inline_data:
+                        inline_data = part.inline_data
 
-                # Return relative path
-                return f"media/article_{article_id}/vertex_ai_imagen.png"
+                        # Check if it's an image by MIME type
+                        if hasattr(inline_data, 'mime_type') and 'image' in inline_data.mime_type:
+                            # Get image data (already in bytes format from Gemini)
+                            import base64
+                            image_data = inline_data.data
+
+                            # If it's a string, decode base64; if already bytes, use directly
+                            if isinstance(image_data, str):
+                                image_data = base64.b64decode(image_data)
+
+                            # Save image to article directory
+                            article_dir = self.media_path / f"article_{article_id}"
+                            article_dir.mkdir(parents=True, exist_ok=True)
+
+                            file_path = article_dir / "gemini_flash_image.png"
+                            with open(file_path, 'wb') as f:
+                                f.write(image_data)
+
+                            logger.info(f"Gemini image saved: {file_path} ({len(image_data)} bytes)")
+
+                            # Return relative path
+                            return f"media/article_{article_id}/gemini_flash_image.png"
+
+            logger.warning("Gemini did not return image data in expected format")
+            return None
 
         except Exception as e:
-            logger.error(f"Vertex AI Imagen generation failed: {e}")
-
-        return None
+            logger.error(f"Gemini 2.5 Flash Image generation failed: {e}")
+            return None
 
     def source_image_for_article(self, article: Article, verbose: bool = False) -> bool:
         """
         Generate images from ALL available providers for editorial review
 
         Images are saved to media/article_{id}/ with provider-specific names:
-        - vertex_ai_imagen.png (Google Cloud Vertex AI Imagen - PRIMARY)
-        - unsplash.jpg (stock photo)
-        - pexels.jpg (stock photo)
+        - gemini_flash_image.png (Gemini 2.5 Flash with Claude-enhanced prompts - PRIMARY)
+        - unsplash.jpg (stock photo fallback)
+        - pexels.jpg (stock photo fallback)
 
         The article's image_url will be set to the first successful generation.
         Editor can then manually select the best image during review.
+
+        Claude Enhancement: If Claude API is available, it generates 3 diverse
+        artistic concept prompts and selects the best one (by confidence score)
+        before passing to Gemini for image generation.
         """
         if verbose:
             print(f"\n🖼️  Generating images for editorial review: {article.title[:50]}...")
@@ -329,16 +385,21 @@ workplace or union hall setting, natural lighting, documentary photography style
                         if verbose:
                             print(f"      ✓ Saved Pexels image")
 
-        # 2. Generate AI images with Vertex AI Imagen
-        if self.vertex_ai_enabled:
+        # 2. Generate AI images with Gemini 2.5 Flash Image + Claude enhancement
+        if self.gemini_enabled:
             if verbose:
-                print("   🎨 Generating with Vertex AI Imagen...")
-            saved_path = self.generate_image_with_vertex_ai(search_query, article.id)
+                print("   🎨 Generating with Gemini 2.5 Flash Image (Claude-enhanced)...")
+            saved_path = self.generate_image_with_gemini(
+                prompt=search_query,
+                article_id=article.id,
+                article_title=article.title,
+                article_content=article.content[:500] if article.content else ""
+            )
             if saved_path:
-                generated_images.append(('Vertex AI Imagen', saved_path, 'Generated by Google Cloud Vertex AI Imagen'))
-                successful_providers.append('Vertex AI Imagen')
+                generated_images.append(('Gemini 2.5 Flash', saved_path, 'AI-generated image with Claude-enhanced prompt'))
+                successful_providers.append('Gemini 2.5 Flash')
                 if verbose:
-                    print(f"      ✓ Saved Vertex AI Imagen image")
+                    print(f"      ✓ Saved Gemini 2.5 Flash image")
 
         # Summary
         if verbose:
@@ -401,10 +462,11 @@ def run_image_sourcing(max_articles: int = 10, verbose: bool = True) -> int:
     print("=" * 60)
 
     # Check if image APIs available
-    if not (settings.unsplash_access_key or settings.pexels_api_key or settings.gcp_project_id):
+    if not (settings.unsplash_access_key or settings.pexels_api_key or settings.gemini_api_key):
         print("\n⚠ No image API configured. Images will use placeholders.")
         print("  Configure in .env:")
-        print("  - GCP_PROJECT_ID + GCP_SERVICE_ACCOUNT_KEY_PATH (Vertex AI Imagen - primary)")
+        print("  - GEMINI_API_KEY (Gemini 2.5 Flash Image - primary AI generation)")
+        print("  - CLAUDE_API_KEY (optional - for enhanced prompts)")
         print("  - UNSPLASH_ACCESS_KEY (stock photos - fallback)")
         print("  - PEXELS_API_KEY (stock photos - fallback)")
 

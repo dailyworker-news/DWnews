@@ -40,8 +40,16 @@ class Settings(BaseSettings):
     reddit_client_secret: Optional[str] = Field(default=None, alias="REDDIT_CLIENT_SECRET")
     reddit_user_agent: str = Field(default="DWnews/1.0", alias="REDDIT_USER_AGENT")
 
-    # Image APIs
+    # Image APIs - GCP Vertex AI Imagen (Primary)
+    gcp_project_id: Optional[str] = Field(default=None, alias="GCP_PROJECT_ID")
+    gcp_location: str = Field(default="us-central1", alias="GCP_LOCATION")
+    gcp_service_account_key_path: Optional[str] = Field(default=None, alias="GCP_SERVICE_ACCOUNT_KEY_PATH")
+    gcp_service_account_key_base64: Optional[str] = Field(default=None, alias="GCP_SERVICE_ACCOUNT_KEY_BASE64")
+
+    # DEPRECATED: Gemini doesn't have image generation API - use GCP Vertex AI Imagen instead
     gemini_image_api_key: Optional[str] = Field(default=None, alias="GEMINI_IMAGE_API_KEY")
+
+    # Image APIs - Stock Photos (Fallback)
     unsplash_access_key: Optional[str] = Field(default=None, alias="UNSPLASH_ACCESS_KEY")
     pexels_api_key: Optional[str] = Field(default=None, alias="PEXELS_API_KEY")
 

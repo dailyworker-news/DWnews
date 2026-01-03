@@ -83,3 +83,4 @@ temp/
 # Backup files
 *.backup
 *.bak
+dwnews-gcp-key.json

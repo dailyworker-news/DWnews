@@ -41,25 +41,24 @@ class ImageSourcer:
         self.media_path = Path('media')
         self.media_path.mkdir(parents=True, exist_ok=True)
 
-        # Initialize Unsplash client
+        # Initialize stock photo providers
         self.unsplash_enabled = bool(settings.unsplash_access_key)
         if self.unsplash_enabled:
             logger.info("Unsplash API available")
 
-        # Initialize Pexels client
         self.pexels_enabled = bool(settings.pexels_api_key)
         if self.pexels_enabled:
             logger.info("Pexels API available")
 
-        # Initialize OpenAI DALL-E for image generation
-        self.openai_enabled = bool(settings.openai_api_key)
-        if self.openai_enabled:
-            logger.info("OpenAI DALL-E image generation available")
-
-        # Initialize Google Gemini for image generation (if available)
-        self.gemini_enabled = bool(getattr(settings, 'gemini_api_key', None))
-        if self.gemini_enabled:
-            logger.info("Google Gemini image generation available")
+        # Initialize GCP Vertex AI Imagen for image generation (PRIMARY)
+        self.vertex_ai_enabled = bool(
+            settings.gcp_project_id and
+            settings.gcp_service_account_key_path
+        )
+        if self.vertex_ai_enabled:
+            logger.info("GCP Vertex AI Imagen available")
+            # Initialize Vertex AI on first use
+            self._vertex_ai_initialized = False
 
     def download_image(self, url: str, timeout: int = 10) -> Optional[bytes]:
         """Download image from URL"""
@@ -206,9 +205,13 @@ class ImageSourcer:
 
         return None
 
-    def generate_image_with_dalle(self, prompt: str) -> Optional[Dict]:
-        """Generate image using OpenAI DALL-E 3"""
-        if not self.openai_enabled:
+    def generate_image_with_vertex_ai(self, prompt: str, article_id: int) -> Optional[str]:
+        """
+        Generate image using Google Cloud Vertex AI Imagen
+
+        Returns path to saved image file (not a Dict with URL like stock photos)
+        """
+        if not self.vertex_ai_enabled:
             return None
 
         try:
@@ -219,63 +222,66 @@ class ImageSourcer:
             if (len(clean_prompt) < 10 or
                 clean_prompt.lower().startswith('i cannot') or
                 'cannot write' in clean_prompt.lower()):
-                logger.warning(f"Skipping DALL-E generation - invalid prompt: {clean_prompt[:50]}")
+                logger.warning(f"Skipping Vertex AI generation - invalid prompt: {clean_prompt[:50]}")
                 return None
 
-            # Create neutral, non-political prompt for labor/worker topics
+            # Initialize Vertex AI on first use
+            if not self._vertex_ai_initialized:
+                import os
+                os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.gcp_service_account_key_path
+
+                import vertexai
+                vertexai.init(
+                    project=settings.gcp_project_id,
+                    location=settings.gcp_location
+                )
+                self._vertex_ai_initialized = True
+                logger.info("Vertex AI initialized")
+
+            # Import here to avoid loading on init
+            from vertexai.preview.vision_models import ImageGenerationModel
+
+            # Create worker-centric photojournalism prompt
             # Focus on visual elements rather than political/controversial terms
-            neutral_prompt = clean_prompt
+            imagen_prompt = f"""Workers in a professional setting related to: {clean_prompt[:80]}
+Professional photojournalism style, diverse group of workers, serious determined expressions,
+workplace or union hall setting, natural lighting, documentary photography style, wide angle."""
 
-            # Replace potentially sensitive terms with neutral visual descriptions
-            replacements = {
-                'Trump': 'federal government',
-                'Immigration Crackdown': 'immigration policy',
-                'ICE': 'federal agents',
-                'deportation': 'immigration enforcement'
-            }
+            # Load the Imagen model
+            model = ImageGenerationModel.from_pretrained("imagegeneration@006")
 
-            for old, new in replacements.items():
-                neutral_prompt = neutral_prompt.replace(old, new)
+            # Generate image
+            response = model.generate_images(
+                prompt=imagen_prompt[:1024],  # Imagen has 1024 char limit
+                number_of_images=1,
+                aspect_ratio="16:9",
+                safety_filter_level="block_some",
+                person_generation="allow_adult"
+            )
 
-            # Create a general prompt about workers/labor
-            simplified_prompt = "Workers at a union meeting discussing labor issues. Professional photojournalism style."
+            if response.images:
+                # Save image directly to article directory
+                image = response.images[0]
+                article_dir = self.media_path / f"article_{article_id}"
+                article_dir.mkdir(parents=True, exist_ok=True)
 
-            url = "https://api.openai.com/v1/images/generations"
-            headers = {
-                "Authorization": f"Bearer {settings.openai_api_key}",
-                "Content-Type": "application/json"
-            }
-            data = {
-                "model": "dall-e-3",
-                "prompt": simplified_prompt,
-                "n": 1,
-                "size": "1792x1024",  # Landscape format
-                "quality": "standard"
-            }
+                file_path = article_dir / "vertex_ai_imagen.png"
+                image.save(str(file_path))
 
-            response = requests.post(url, headers=headers, json=data, timeout=60)
-            response.raise_for_status()
-
-            result = response.json()
-            if result.get('data') and len(result['data']) > 0:
-                return {
-                    'url': result['data'][0]['url'],
-                    'attribution': 'AI-generated image by DALL-E 3',
-                    'source': 'DALL-E'
-                }
+                # Return relative path
+                return f"media/article_{article_id}/vertex_ai_imagen.png"
 
         except Exception as e:
-            logger.error(f"DALL-E generation failed: {e}")
+            logger.error(f"Vertex AI Imagen generation failed: {e}")
 
         return None
 
     def source_image_for_article(self, article: Article, verbose: bool = False) -> bool:
         """
-        Generate images from ALL available AI providers for editorial review
+        Generate images from ALL available providers for editorial review
 
         Images are saved to media/article_{id}/ with provider-specific names:
-        - dalle.jpg (OpenAI DALL-E 3)
-        - gemini.jpg (Google Gemini - if available)
+        - vertex_ai_imagen.png (Google Cloud Vertex AI Imagen - PRIMARY)
         - unsplash.jpg (stock photo)
         - pexels.jpg (stock photo)
 
@@ -323,24 +329,16 @@ class ImageSourcer:
                         if verbose:
                             print(f"      ✓ Saved Pexels image")
 
-        # 2. Generate AI images
-        if self.openai_enabled:
+        # 2. Generate AI images with Vertex AI Imagen
+        if self.vertex_ai_enabled:
             if verbose:
-                print("   🎨 Generating with DALL-E 3...")
-            image_info = self.generate_image_with_dalle(search_query)
-            if image_info:
-                image_data = self.download_image(image_info['url'])
-                if image_data:
-                    optimized = self.optimize_image(image_data)
-                    saved_path = self.save_image(optimized, article.id, 'dalle')
-                    if saved_path:
-                        generated_images.append(('DALL-E', saved_path, image_info['attribution']))
-                        successful_providers.append('DALL-E')
-                        if verbose:
-                            print(f"      ✓ Saved DALL-E image")
-
-        # Note: Google Gemini doesn't have public image generation API yet
-        # Would add here when available
+                print("   🎨 Generating with Vertex AI Imagen...")
+            saved_path = self.generate_image_with_vertex_ai(search_query, article.id)
+            if saved_path:
+                generated_images.append(('Vertex AI Imagen', saved_path, 'Generated by Google Cloud Vertex AI Imagen'))
+                successful_providers.append('Vertex AI Imagen')
+                if verbose:
+                    print(f"      ✓ Saved Vertex AI Imagen image")
 
         # Summary
         if verbose:
@@ -403,12 +401,12 @@ def run_image_sourcing(max_articles: int = 10, verbose: bool = True) -> int:
     print("=" * 60)
 
     # Check if image APIs available
-    if not (settings.unsplash_access_key or settings.pexels_api_key or settings.openai_api_key):
+    if not (settings.unsplash_access_key or settings.pexels_api_key or settings.gcp_project_id):
         print("\n⚠ No image API configured. Images will use placeholders.")
         print("  Configure in .env:")
-        print("  - UNSPLASH_ACCESS_KEY (stock photos)")
-        print("  - PEXELS_API_KEY (stock photos)")
-        print("  - OPENAI_API_KEY (DALL-E 3 generation)")
+        print("  - GCP_PROJECT_ID + GCP_SERVICE_ACCOUNT_KEY_PATH (Vertex AI Imagen - primary)")
+        print("  - UNSPLASH_ACCESS_KEY (stock photos - fallback)")
+        print("  - PEXELS_API_KEY (stock photos - fallback)")
 
     # Create database session
     engine = create_engine(

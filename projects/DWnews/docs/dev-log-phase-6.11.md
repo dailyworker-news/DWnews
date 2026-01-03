@@ -308,3 +308,191 @@ Ready for integration: ✓
 **Phase 6.11 Status:** COMPLETE ✓
 **Test Results:** 34/34 PASSING ✓
 **Ready for Production:** YES ✓
+
+---
+
+## 2026-01-02 - Phase 6.11.1: Research & Planning for Image Quality Improvements
+
+**Agent:** tdd-dev-phase6111
+**Status:** Complete
+**Complexity:** S
+
+### Overview
+
+Completed comprehensive research and planning for replacing Vertex AI Imagen with Gemini 2.5 Flash Image and implementing Claude Sonnet-powered prompt enhancement. This planning phase addresses the poor image quality from current implementation and sets foundation for Phases 6.11.2-6.11.5.
+
+### Problem Identified
+
+Current Vertex AI Imagen implementation produces generic, low-quality images:
+- Simple prompt wrapping: "Workers in professional setting related to: {article_title}"
+- Poor visual appeal and engagement
+- Doesn't match article themes well
+- Complex heavyweight SDK (`google-cloud-aiplatform`)
+- Slow generation times (20-30 seconds)
+
+### Solution Designed
+
+Two-step image generation process:
+1. **Claude Sonnet Enhancement:** Generate 3-5 diverse artistic concepts per article, each with:
+   - Detailed, specific image generation prompt (50-300 words)
+   - Confidence score (0.0-1.0) indicating suitability for article
+   - Rationale explaining artistic choices
+2. **Gemini 2.5 Flash Image:** Use selected concept (highest confidence) for generation
+   - Simpler SDK (`google-genai`)
+   - Better image quality
+   - Faster generation (10-15 seconds)
+   - Proven approach from a-team project
+
+### Technical Specifications Created
+
+**1. GEMINI_IMAGE_API_SPECS.md** (17KB, comprehensive API documentation)
+- SDK requirements and installation
+- Authentication configuration
+- Complete request/response format documentation
+- Error handling and retry logic patterns
+- Performance characteristics and cost analysis
+- Safety filter configuration
+- Migration guide from Vertex AI Imagen
+- Testing strategies and validation approaches
+- 60+ code examples covering all use cases
+
+**2. CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md** (23KB, workflow design)
+- Complete Claude prompt engineering template
+- Confidence scoring rubric (0.0-1.0 scale with 5 levels)
+- Concept selection logic (highest confidence score)
+- Database schema for concept storage (`article_image_concepts` table)
+- Cost analysis: $0.03-0.06 per image (Claude + Gemini)
+- Performance optimization strategies
+- Quality assurance validation checks
+- Error handling and fallback procedures
+- Analytics for continuous improvement
+- 30+ code examples for implementation
+
+**3. IMAGEN_TO_GEMINI_MIGRATION.md** (25KB, migration plan)
+- Complete current state analysis
+- Phase-by-phase migration strategy (parallel implementation → switchover → cleanup)
+- Code changes required (specific files, line numbers, before/after)
+- Database migration scripts (`006_image_concepts.sql`)
+- Configuration updates (backend/config.py, .env.example)
+- Comprehensive rollback plan
+- Testing plan (unit, integration, quality, performance)
+- Risk assessment with mitigation strategies
+- Timeline estimate: 12-17 hours total for Phases 6.11.2-6.11.5
+- Success metrics and monitoring
+
+### Key Design Decisions
+
+**Claude Prompt Enhancement:**
+- Generate 3-5 diverse concepts (documentary, editorial, photorealistic, graphic, historical)
+- Confidence scoring based on: thematic alignment (35%), visual clarity (25%), technical feasibility (20%), audience appropriateness (15%), originality (5%)
+- Store ALL concepts in database for learning and optimization
+- Select highest confidence concept for generation
+- Fallback to simple prompts if Claude fails
+
+**Gemini 2.5 Flash Image:**
+- Model: `gemini-2.5-flash-image` (excellent quality/cost ratio)
+- Aspect ratio: 16:9 (standard news article format)
+- Safety settings: Balanced (block_medium for most categories)
+- Retry logic: 3 attempts with exponential backoff
+- Output: PNG format, optimize to JPEG for storage
+
+**Database Schema:**
+```sql
+CREATE TABLE article_image_concepts (
+    id SERIAL PRIMARY KEY,
+    article_id INTEGER REFERENCES articles(id),
+    concept_number INTEGER (1-5),
+    prompt TEXT NOT NULL,
+    confidence DECIMAL(3,2) NOT NULL,  -- 0.00-1.00
+    rationale TEXT NOT NULL,
+    selected BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE images ADD COLUMN concept_confidence DECIMAL(3,2);
+ALTER TABLE images ADD COLUMN concept_rationale TEXT;
+ALTER TABLE images ADD COLUMN claude_enhancement_used BOOLEAN;
+```
+
+### Cost Analysis
+
+**Per-Article Costs:**
+- Claude API (Sonnet 4.5): $0.01-0.02 per enhancement
+- Gemini 2.5 Flash Image: $0.02-0.04 per image (or free tier: 1500/day)
+- **Total:** $0.03-0.06 per image
+
+**Monthly Projection (150 articles/month):**
+- Claude enhancement: $1.50-3.00/month
+- Gemini generation: $3.00-6.00/month
+- **Total:** $4.50-9.00/month (well within $15 budget)
+
+### Performance Characteristics
+
+**Latency:**
+- Claude API call: 3-7 seconds (generate 3-5 concepts)
+- Concept selection: <0.1 seconds (local processing)
+- Gemini API call: 10-15 seconds (image generation)
+- Image optimization: 1-2 seconds
+- **Total:** 14-24 seconds end-to-end (vs. 20-30s current)
+
+**Quality Benefits:**
+- Diverse artistic approaches (documentary, editorial, illustration, etc.)
+- Detailed, specific prompts (vs. generic templates)
+- Confidence scoring ensures best concept selected
+- Rationale provides editorial transparency
+- Proven in production (a-team project success)
+
+### Configuration Identified
+
+**Dependencies to Add:**
+```txt
+google-genai>=1.0.0              # NEW - Gemini 2.5 Flash Image
+anthropic>=0.18.0                # NEW/UPDATE - Claude enhancement
+```
+
+**Dependencies to Remove:**
+```txt
+google-cloud-aiplatform>=1.38.0  # DEPRECATED - replaced by google-genai
+```
+
+**Environment Variables (already set in .env.example):**
+- `GEMINI_API_KEY` - Google Gemini API ✓
+- `CLAUDE_API_KEY` - Anthropic Claude API ✓
+
+**Files to Create:**
+- `/backend/services/image_generation.py` - New service module
+- `/database/migrations/006_image_concepts.sql` - Concept storage
+- `/database/migrations/run_migration_006.py` - Migration runner
+- `/scripts/test_image_generation.py` - Test suite
+
+**Files to Modify:**
+- `/backend/agents/image_sourcing_agent.py` - Replace Vertex AI with Gemini
+- `/backend/config.py` - Update comments, mark deprecated fields
+- `requirements.txt` - Update dependencies
+
+### Deliverables Completed
+
+✅ **Technical specification:** `/docs/GEMINI_IMAGE_API_SPECS.md` (17KB)
+✅ **Workflow design:** `/docs/CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md` (23KB)
+✅ **Migration plan:** `/docs/IMAGEN_TO_GEMINI_MIGRATION.md` (25KB)
+✅ **Requirements updated:** requirements.md already has Gemini 2.5 Flash Image approach (v1.2)
+✅ **Configuration identified:** All changes documented in migration plan
+✅ **Dev log entry:** This entry
+
+**Total Documentation:** 65KB of comprehensive technical specifications
+
+### Next Phase Unblocked
+
+Phase 6.11.2 (Switch to Gemini 2.5 Flash Image) is now unblocked and ready for implementation with complete specifications and migration plan.
+
+### Files Changed
+
+1. `/docs/GEMINI_IMAGE_API_SPECS.md` - Created (17,229 bytes)
+2. `/docs/CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md` - Created (23,337 bytes)
+3. `/docs/IMAGEN_TO_GEMINI_MIGRATION.md` - Created (24,918 bytes)
+4. `/plans/roadmap.md` - Updated Phase 6.11.1 status to 🟢 Complete, unblocked Phase 6.11.2
+5. `/docs/dev-log-phase-6.11.md` - Updated with Phase 6.11.1 entry (this entry)
+
+### Commit Ready
+
+All planning artifacts complete, comprehensive documentation delivered, next phase ready for implementation.

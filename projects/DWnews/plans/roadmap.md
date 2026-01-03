@@ -9,9 +9,13 @@
 
 ## Executive Summary
 
-Lean MVP for The Daily Worker: AI-powered news platform taking influence from marxist/ leninist teachings to deliver accurate, worker-centric news without pulling punches. Agent-driven development using existing LLM subscriptions and GCP infrastructure.
+**STRATEGIC PIVOT (2026-01-02):** DWnews repositioned as **NEWS AGGREGATOR & FILTER platform** for the working class. RSS feeds are primary content source (20-30+ sources), social media deprioritized due to API limitations.
+
+Lean MVP for The Daily Worker: AI-powered news **aggregation and filtering platform** delivering accurate, worker-centric news without pulling punches. Agent-driven development using existing LLM subscriptions and GCP infrastructure.
 
 **Value Proposition:** Accurate, worker-centric news that doesn't pull punches. Quality over quantity.
+
+**Platform Model:** Aggregates news from 20-30+ RSS sources → Filters through quality standards (reading level, worker perspective, fact-checking) → Distills into need-to-know articles for working-class readers.
 
 **Core Features:**
 - Content scales with readership: 3-10 articles daily initially, expanding as audience grows
@@ -22,6 +26,8 @@ Lean MVP for The Daily Worker: AI-powered news platform taking influence from ma
 - Situation-dependent quantity (e.g., more sports on Monday covering weekend events)
 
 **MVP Philosophy:**
+- **RSS-FIRST AGGREGATOR:** 20-30+ RSS feeds as primary content source (unlimited, free, reliable) - UPDATED 2026-01-02
+- **Social Media Deprioritized:** Twitter/Reddit moved from content generation to trending topic monitoring (API limitations)
 - LOCAL-FIRST DEVELOPMENT: Build and validate completely locally before cloud costs
 - Agent-driven development (marginal costs)
 - Free-tier LLMs via existing Claude/ChatGPT/Gemini subscriptions
@@ -29,6 +35,7 @@ Lean MVP for The Daily Worker: AI-powered news platform taking influence from ma
 - Start small, prove utility, scale when justified
 - Complexity-based planning (NO timeline estimates)
 - Zero cloud costs until MVP proven functional
+- **Sustainable Model:** Build on stable foundations (RSS open standard) not rate-limited APIs
 
 **Development Approach:**
 1. Batches 1-4: Build and test everything locally (zero cost) ✅
@@ -38,8 +45,10 @@ Lean MVP for The Daily Worker: AI-powered news platform taking influence from ma
 5. **CURRENT:** Complete local testing + end-user validation
 6. **CURRENT:** Set up security configuration for production
 7. Batch 7: Subscription system (local testing, Stripe integration)
-8. Batches 8-9: Deploy to GCP ONLY after security setup complete
-9. Batch 10: Production testing and launch
+8. **IMMEDIATE (NEW):** Batch 11: RSS Feed Expansion (12→20-30 sources, addressing Twitter API limits) - ADDED 2026-01-02
+9. Batches 8-9: Deploy to GCP ONLY after security setup complete
+10. Batch 10: Production testing and launch
+11. **FUTURE:** Batch 12: YouTube transcripts, Batch 13: Social media automation (deferred)
 
 **Target Costs:**
 - Development: Under $1,000 total
@@ -510,27 +519,30 @@ Current image generation produces generic, low-quality results using basic promp
 - Proven approach from a-team project
 
 ### Phase 6.11.1: Research & Planning
-- **Status:** ⚪ Not Started
+- **Status:** 🟢 Complete
+- **Agent:** tdd-dev-phase6111
+- **Started:** 2026-01-02
+- **Completed:** 2026-01-02
 - **Complexity:** S
 - **Tasks:**
-  - [ ] Document Gemini 2.5 Flash Image API requirements (google-genai SDK)
-  - [ ] Research API endpoints, authentication, request/response format
-  - [ ] Design Claude prompt enhancement workflow (3-5 concepts with confidence scores)
-  - [ ] Create sample prompt enhancement output format
-  - [ ] Review a-team project implementation for best practices
-  - [ ] Update technical specifications in requirements.md
-  - [ ] Document migration path from Vertex AI Imagen to Gemini
-  - [ ] Identify configuration changes needed (backend/config.py, .env.example)
+  - [x] Document Gemini 2.5 Flash Image API requirements (google-genai SDK)
+  - [x] Research API endpoints, authentication, request/response format
+  - [x] Design Claude prompt enhancement workflow (3-5 concepts with confidence scores)
+  - [x] Create sample prompt enhancement output format
+  - [x] Review a-team project implementation for best practices
+  - [x] Update technical specifications in requirements.md
+  - [x] Document migration path from Vertex AI Imagen to Gemini
+  - [x] Identify configuration changes needed (backend/config.py, .env.example)
 - **Done When:** Complete API documentation, workflow design documented, migration plan ready
 - **Deliverables:**
-  - Technical specification: `/docs/GEMINI_IMAGE_API_SPECS.md`
-  - Workflow design: `/docs/CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md`
-  - Migration plan: `/docs/IMAGEN_TO_GEMINI_MIGRATION.md`
-  - Updated requirements.md with new image generation approach
+  - Technical specification: `/docs/GEMINI_IMAGE_API_SPECS.md` ✅
+  - Workflow design: `/docs/CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md` ✅
+  - Migration plan: `/docs/IMAGEN_TO_GEMINI_MIGRATION.md` ✅
+  - Updated requirements.md with new image generation approach ✅ (already updated in v1.2)
 
 ### Phase 6.11.2: Switch to Gemini 2.5 Flash Image
-- **Status:** 🔴 Blocked
-- **Depends On:** Phase 6.11.1
+- **Status:** ⚪ Not Started
+- **Depends On:** Phase 6.11.1 ✅
 - **Complexity:** M
 - **Tasks:**
   - [ ] Remove Vertex AI Imagen integration code
@@ -1263,10 +1275,141 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 
 ---
 
+## Batch 11: RSS Feed Expansion & Optimization (STRATEGIC PRIORITY)
+
+**Added:** 2026-01-02 (Strategic Pivot)
+**Dependencies:** Batch 6 complete (Automated Journalism Pipeline operational)
+**Sequential:** 11.1 → 11.2 → 11.3 (research first, then implement, then monitor)
+**Purpose:** Expand RSS feed sources from 12 to 20-30+ to establish sustainable, unlimited content discovery
+**Priority:** IMMEDIATE (addresses Twitter API limitations, establishes RSS-first aggregator model)
+
+**Strategic Context:**
+- **Problem:** Twitter API limit (100 posts/month) exhausted in 3 days (76/100 used) - unsustainable for daily news
+- **Solution:** RSS feeds are unlimited, free, reliable, and not rate-limited
+- **Pivot:** DWnews repositioned as NEWS AGGREGATOR & FILTER platform, not social media scraper
+- **Target:** 20-30+ diverse RSS sources providing 30-60 events/day
+
+**Current State:**
+- **RSS Sources:** 12 operational (Reuters, AP, ProPublica, Labor Notes, Democracy Now!, Al Jazeera, Guardian, BBC, Common Dreams, Truthout, EPI, Working Class Perspectives)
+- **Events/Day:** 20-50 target (current capacity)
+- **Cost:** $0 (no API fees)
+- **Reliability:** 100% uptime (RSS stable protocol)
+
+**Target State:**
+- **RSS Sources:** 20-30+ diverse feeds
+- **Events/Day:** 30-60+ discovered events
+- **Coverage:** Regional labor + investigative journalism + international labor + local news + worker-focused media
+- **Cost:** $0 (no change)
+- **Sustainability:** No API rate limits, no business risk from third-party API changes
+
+### Phase 11.1: RSS Source Research & Curation
+- **Status:** ⚪ Not Started
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Research and identify 15-20 new high-quality RSS sources
+  - [ ] **Regional Labor Publications:**
+    - [ ] State-level labor news (AFL-CIO state chapters, regional labor papers)
+    - [ ] City-specific labor publications (Detroit, Chicago, NYC, LA labor news)
+  - [ ] **Investigative Journalism:**
+    - [ ] ICIJ (International Consortium of Investigative Journalists)
+    - [ ] Reveal (Center for Investigative Reporting)
+    - [ ] The Markup (tech accountability)
+    - [ ] ProPublica (already have, expand to state bureaus)
+  - [ ] **International Labor:**
+    - [ ] ILO (International Labour Organization)
+    - [ ] Global unions (IndustriALL, ITUC)
+    - [ ] International workers' rights organizations
+  - [ ] **Local News Aggregators:**
+    - [ ] Documented (immigrant labor stories)
+    - [ ] Scalawag (Southern labor/economic justice)
+    - [ ] Belt Magazine (Rust Belt labor)
+  - [ ] **Worker-Focused Media:**
+    - [ ] More Perfect Union
+    - [ ] The Lever (David Sirota)
+    - [ ] Breaking Points (labor coverage)
+    - [ ] Jacobin (socialist perspective)
+  - [ ] **Academic Labor Research:**
+    - [ ] Labor studies journals (if RSS available)
+    - [ ] Think tanks (EPI already have, add Center for Economic and Policy Research)
+  - [ ] Validate each source: RSS feed availability, update frequency, content quality, worker perspective
+  - [ ] Prioritize sources by: reliability, update frequency, geographic coverage, topic diversity
+  - [ ] Create source evaluation matrix (credibility 0-100, update frequency, geographic scope, topic focus)
+- **Done When:** 15-20 new RSS sources identified, validated, and prioritized for implementation
+- **Deliverables:**
+  - RSS source research document: `/backend/agents/feeds/RSS_SOURCE_RESEARCH.md` (source list with evaluation)
+  - Source evaluation matrix: CSV or JSON (source, URL, credibility score, frequency, geography, topics)
+  - Priority ranking: Top 10-15 sources for Phase 11.2 implementation
+
+### Phase 11.2: RSS Feed Integration & Testing
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 11.1
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Add 10-15 new RSS sources to `/backend/agents/feeds/rss_feeds.py`
+  - [ ] Configure priority levels (critical, high, medium) per source
+  - [ ] Set keyword filters for general news sources (labor, union, worker, strike, etc.)
+  - [ ] Update `FEED_SOURCES` dictionary with new sources
+  - [ ] Test each new feed individually (verify parsing, content quality)
+  - [ ] Test deduplication logic with expanded feed list (prevent duplicate events across sources)
+  - [ ] Run Signal Intake Agent with expanded feeds (target: 30-60 events/day)
+  - [ ] Validate event quality: newsworthiness scores, source attribution, worker relevance
+  - [ ] Monitor performance: fetch time, parsing errors, event quality
+  - [ ] Update RSS aggregator documentation
+- **Done When:** 10-15 new RSS sources operational, 30-60 events/day discovered, quality validated
+- **Deliverables:**
+  - Updated RSS aggregator: `/backend/agents/feeds/rss_feeds.py` (22-27 total sources)
+  - Test results: `/scripts/test_expanded_rss_feeds.py` (event counts, quality metrics, performance)
+  - Performance report: Event volume per source, fetch times, parsing success rate
+  - Updated documentation: `/backend/agents/feeds/README.md` (new sources, configuration)
+
+### Phase 11.3: Feed Health Monitoring & Management
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 11.2
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Build RSS feed health monitoring system
+  - [ ] Create `feed_health_log` table (feed_name, last_check, status, error_message, events_fetched, response_time)
+  - [ ] Implement health checks: fetch success rate, parsing errors, average response time, event volume trends
+  - [ ] Build feed priority/weighting system (critical sources checked more frequently)
+  - [ ] Add alerting for feed failures (email notification if source down >24 hours)
+  - [ ] Create admin dashboard for feed health (visual status indicators, error logs, performance metrics)
+  - [ ] Implement automatic feed disabling (if source fails repeatedly, mark as inactive)
+  - [ ] Build feed re-activation workflow (admin can test and re-enable failed feeds)
+  - [ ] Add feed statistics tracking (events per day, acceptance rate, article generation rate)
+  - [ ] Test monitoring system with simulated feed failures
+- **Done When:** Feed health monitored, failures detected and alerted, admin dashboard functional
+- **Deliverables:**
+  - Feed health monitoring: `/backend/agents/feeds/feed_health_monitor.py` (health checks, alerts)
+  - Database migration: `/database/migrations/006_feed_health_log.sql` (new table)
+  - Admin dashboard: `/frontend/admin/feed-health.html` (visual monitoring interface)
+  - Health API endpoints: `/backend/routes/feed_health.py` (GET feed status, POST test feed, POST enable/disable)
+  - Email alerts: Updated `/backend/agents/email_notifications.py` (feed failure template)
+  - Test suite: `/scripts/test_feed_monitoring.py` (simulated failures, alerting, recovery)
+  - Documentation: `/docs/FEED_HEALTH_MONITORING.md` (admin guide, troubleshooting)
+
+**Batch 11 Success Criteria:**
+- [ ] 20-30+ RSS sources operational (12 current + 10-15 new)
+- [ ] 30-60 events/day discovered from RSS feeds alone
+- [ ] Feed health monitoring detects failures within 24 hours
+- [ ] Admin dashboard shows real-time feed status
+- [ ] Zero dependency on rate-limited social media APIs for content
+- [ ] Sustainable, unlimited content discovery model established
+- [ ] Ready to deprecate Twitter/Reddit as primary content sources
+
+**Strategic Impact:**
+- **Sustainable Content Model:** RSS feeds have no rate limits, no API costs, no business risk from third-party changes
+- **Diversified Sources:** 20-30 sources prevent single point of failure
+- **Cost Savings:** $0 RSS vs $100/month Twitter Basic tier
+- **Reliability:** RSS feeds more stable than social media APIs
+- **Quality:** Curated sources provide higher-quality events than social media scraping
+
+---
+
 ## Batch 8: GCP Infrastructure & Deployment
 
 **Dependencies:**
 - Subscription system complete (Batch 7)
+- **RSS Feed Expansion complete (Batch 11)** - ADDED 2026-01-02
 - ALL "Before Production Deployment" prerequisites completed
 - Local testing complete (functional + end-user)
 - Security configuration from CLOUD_SECURITY_CONFIG.md implemented
@@ -1412,10 +1555,12 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 - **Cost:** $0
 - **Done When:** No critical vulnerabilities in production
 
-### Phase 10.3: Social Media Setup
+### Phase 10.3: Social Media Setup (DEPRIORITIZED - UPDATED 2026-01-02)
 - **Complexity:** Low
+- **Status:** OPTIONAL (social media moved to amplification/engagement, not primary content source)
+- **Strategic Note:** Twitter API limits (100 posts/month) make automated content generation unsustainable. Social media now used for trending topic monitoring and audience engagement only.
 - **Tasks:**
-  - [ ] Create accounts: Facebook, X/Twitter, Reddit
+  - [ ] Create accounts: Facebook, X/Twitter, Reddit (manual posting only)
   - [ ] Agent drafts posts (headline, link, hashtags)
   - [ ] Manual posting workflow documentation
   - [ ] Post to relevant subreddits manually
@@ -1558,12 +1703,72 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 
 ---
 
-## API Justification
+## Future Batches (Deferred)
 
-**Social Media:**
-- Twitter API v2: FREE tier (500K tweets/month)
-- Reddit API: FREE tier (60/min)
-- Facebook: Manual posting (no API)
+**NOTE:** These batches are DEFERRED pending completion of RSS Feed Expansion (Batch 11) and successful production launch (Batch 10).
+
+### Batch 12: YouTube Transcript Integration (FUTURE)
+**Dependencies:** Batch 11 complete, production launch successful
+**Purpose:** Add YouTube transcript pulls as secondary content source
+
+**Phases:**
+1. **YouTube Data API Research:** Research API limits, pricing, transcript availability
+2. **Channel Identification:** Identify 10-20 labor-focused YouTube channels/podcasts
+   - Breaking Points, The Majority Report, Democracy at Work, labor union channels
+3. **Transcript Extraction:** Build transcript fetching and processing pipeline
+4. **Content Integration:** Integrate transcripts into Signal Intake Agent
+5. **Testing & Validation:** Test transcript quality, worker relevance scoring
+
+**Success Criteria:**
+- 10-20 YouTube channels monitored
+- 5-10 transcripts/day extracted
+- Integration with existing journalism pipeline
+- Cost under $50/month (YouTube Data API quotas)
+
+**Strategic Note:** YouTube integration provides deep-dive content (podcasts, long-form analysis) complementing RSS news aggregation. Only pursue after RSS-first model validated.
+
+### Batch 13: Social Media Automation (FUTURE - P1)
+**Dependencies:** Production successful, audience validated, revenue model proven
+**Purpose:** Automate social media amplification (NOT content generation)
+**Status:** DEPRIORITIZED from MVP due to API limitations
+
+**Why Deferred:**
+- Twitter API: 100 posts/month limit (76/100 used in 3 days) - unsustainable
+- Upgrade cost: $100/month (exceeds operating budget)
+- Manual posting acceptable until revenue supports automation costs
+
+**Future Automation (when business case proven):**
+- Automated posting to Facebook, X/Twitter (requires $100/mo Twitter upgrade)
+- Instagram/TikTok faceless vlog content (Batch 6.11 quality improvements)
+- Social analytics tracking
+- Engagement monitoring
+
+**Triggers for Batch 13:**
+- Revenue model validated (subscription or sponsorship)
+- Manual posting becomes bottleneck
+- Business analyst approves ROI-positive investment
+- $100/month Twitter API upgrade justified by audience growth
+
+---
+
+## API Justification (UPDATED 2026-01-02)
+
+**PRIMARY CONTENT SOURCES (RSS Feeds):**
+- Reuters, AP, ProPublica, Labor Notes, Democracy Now!: FREE RSS feeds
+- Al Jazeera, Guardian, BBC, Common Dreams, Truthout: FREE RSS feeds
+- Economic Policy Institute, Working Class Perspectives: FREE RSS feeds
+- **Current:** 12 sources, 20-50 events/day, $0 cost
+- **Target (Batch 11):** 20-30 sources, 30-60 events/day, $0 cost
+- **Reliability:** 100% uptime, no rate limits, no API keys required
+
+**DEPRIORITIZED (API Limitations):**
+- **Twitter API v2:** Rate limited to 100 posts/month (FREE tier)
+  - **Usage:** 76/100 in first 3 days of January 2026 (unsustainable)
+  - **Upgrade Cost:** $100/month for Basic tier (exceeds total operating budget)
+  - **New Role:** Trending topic monitoring ONLY (when quota available)
+  - **Status:** DEPRIORITIZED for content generation
+- **Reddit API:** FREE tier (60/min) available but deprioritized
+  - **New Role:** Trending topic discovery, not primary content source
 - **Decision:** FREE tiers for discovery, manual posting for MVP
 
 **News Sources:**
@@ -1801,3 +2006,25 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 - Security scanning and code quality enforcement
 - Updated all batch references throughout roadmap
 
+
+
+**Version 3.3 (2026-01-02) - STRATEGIC PIVOT:**
+- **MAJOR CHANGE:** Repositioned DWnews as NEWS AGGREGATOR & FILTER platform
+- **Problem Identified:** Twitter API limits (100 posts/month, 76/100 used in 3 days) unsustainable for daily news
+- **Solution:** RSS-first content model (20-30+ sources, unlimited, free, reliable)
+- **Added Batch 11:** RSS Feed Expansion & Optimization (IMMEDIATE priority)
+  - Phase 11.1: Research 15-20 new RSS sources
+  - Phase 11.2: Integration & testing (target: 20-30 total sources, 30-60 events/day)
+  - Phase 11.3: Feed health monitoring & management
+- **Deprioritized:** Twitter/Reddit as primary content sources
+  - New role: Trending topic monitoring only (not content generation)
+  - Deferred to Batch 13 (social media automation) pending revenue model
+- **Updated Dependencies:** Batch 8 now depends on Batch 11 completion
+- **Future Batches Added:**
+  - Batch 12: YouTube Transcript Integration (deferred)
+  - Batch 13: Social Media Automation (deferred, requires $100/mo Twitter upgrade)
+- **Updated Executive Summary:** Emphasizes aggregator model, RSS-first approach
+- **Updated MVP Philosophy:** Added "Sustainable Model" principle (build on stable RSS, not rate-limited APIs)
+- **Updated Development Approach:** Inserted Batch 11 as immediate priority
+- **Strategic Documentation:** Added API limitations lessons learned
+- **Parallel Updates:** priorities.md and requirements.md updated with RSS-first positioning

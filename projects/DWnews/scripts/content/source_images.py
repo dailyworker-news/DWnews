@@ -252,7 +252,12 @@ class ImageSourcer:
             concept_info = {}
 
             if self.prompt_enhancer_enabled:
-                logger.info("Enhancing prompt with Claude...")
+                logger.info("=" * 60)
+                logger.info("STEP 1: Claude Prompt Enhancement")
+                logger.info("=" * 60)
+                logger.info(f"Article Title: {article_title or prompt}")
+                logger.info(f"Generating {3} diverse artistic concepts...")
+
                 concepts = self.prompt_enhancer.generate_image_concepts(
                     article_title=article_title or prompt,
                     article_content=article_content,
@@ -260,24 +265,43 @@ class ImageSourcer:
                 )
 
                 if concepts:
+                    logger.info(f"✓ Generated {len(concepts)} concepts from Claude")
+
+                    # Log all concepts with confidence scores
+                    for i, concept in enumerate(concepts, 1):
+                        logger.info(f"  Concept {i}: Confidence {concept['confidence']:.2f}")
+                        logger.info(f"    Prompt: {concept['prompt'][:100]}...")
+                        logger.info(f"    Rationale: {concept['rationale'][:80]}...")
+
                     best_concept = self.prompt_enhancer.select_best_concept(concepts)
                     if best_concept:
                         final_prompt = best_concept['prompt']
                         concept_info = best_concept
-                        logger.info(f"Using enhanced prompt (confidence: {best_concept['confidence']:.2f})")
+                        logger.info("")
+                        logger.info(f"✓ Selected Best Concept: #{best_concept['concept_number']}")
+                        logger.info(f"  Confidence Score: {best_concept['confidence']:.2f}")
+                        logger.info(f"  Enhanced Prompt: {final_prompt[:150]}...")
                 else:
-                    logger.warning("Failed to enhance prompt, using basic prompt")
+                    logger.warning("✗ Failed to enhance prompt, using basic prompt")
+                    logger.info(f"  Fallback Prompt: {prompt}")
 
             # Sanitize prompt
             clean_prompt = final_prompt.replace('[NEEDS REVIEW]', '').strip()
 
             # Skip if prompt is too generic
             if len(clean_prompt) < 10:
-                logger.warning(f"Skipping Gemini generation - prompt too short")
+                logger.warning(f"✗ Skipping Gemini generation - prompt too short ({len(clean_prompt)} chars)")
+                logger.warning(f"  Prompt: '{clean_prompt}'")
                 return None
 
             # Generate image using Gemini 2.5 Flash Image
-            logger.info(f"Generating image with Gemini (prompt length: {len(clean_prompt)} chars)...")
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info("STEP 2: Gemini 2.5 Flash Image Generation")
+            logger.info("=" * 60)
+            logger.info(f"Prompt Length: {len(clean_prompt)} characters")
+            logger.info(f"Final Prompt: {clean_prompt[:200]}...")
+            logger.info("Calling Gemini API...")
 
             response = self._gemini_client.models.generate_content(
                 model="gemini-2.5-flash-image",
@@ -316,16 +340,34 @@ class ImageSourcer:
                             with open(file_path, 'wb') as f:
                                 f.write(image_data)
 
-                            logger.info(f"Gemini image saved: {file_path} ({len(image_data)} bytes)")
+                            logger.info("")
+                            logger.info("=" * 60)
+                            logger.info("STEP 3: Image Saved Successfully")
+                            logger.info("=" * 60)
+                            logger.info(f"✓ Image Path: {file_path}")
+                            logger.info(f"✓ Image Size: {len(image_data):,} bytes ({len(image_data)/1024:.1f} KB)")
+                            logger.info(f"✓ Article ID: {article_id}")
+
+                            # Log metadata if available
+                            if concept_info:
+                                logger.info("")
+                                logger.info("Image Generation Metadata:")
+                                logger.info(f"  Concept Number: {concept_info.get('concept_number', 'N/A')}")
+                                logger.info(f"  Confidence Score: {concept_info.get('confidence', 0.0):.2f}")
+                                logger.info(f"  Rationale: {concept_info.get('rationale', 'N/A')[:80]}...")
 
                             # Return relative path
                             return f"media/article_{article_id}/gemini_flash_image.png"
 
-            logger.warning("Gemini did not return image data in expected format")
+            logger.warning("✗ Gemini did not return image data in expected format")
             return None
 
         except Exception as e:
-            logger.error(f"Gemini 2.5 Flash Image generation failed: {e}")
+            logger.error("=" * 60)
+            logger.error("ERROR: Gemini 2.5 Flash Image generation failed")
+            logger.error("=" * 60)
+            logger.error(f"Error Type: {type(e).__name__}")
+            logger.error(f"Error Message: {e}")
             return None
 
     def source_image_for_article(self, article: Article, verbose: bool = False) -> bool:

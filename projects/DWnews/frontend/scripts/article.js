@@ -257,19 +257,19 @@ function displayVerificationBadge(article) {
 
     switch(verificationLevel) {
         case 'multi-sourced':
-            verificationBadge.classList.add('badge-verified-certified');
-            verificationBadge.innerHTML = `<span class="badge-icon">📰</span> Multi-Sourced`;
-            verificationBadge.title = 'Reported across 5+ independent outlets';
+            verificationBadge.classList.add('badge-multi-source');
+            verificationBadge.innerHTML = `<span class="badge-icon">📰</span> Multi-Source`;
+            verificationBadge.title = '5+ independent sources';
             break;
         case 'corroborated':
-            verificationBadge.classList.add('badge-verified-yes');
+            verificationBadge.classList.add('badge-corroborated');
             verificationBadge.innerHTML = `<span class="badge-icon">📋</span> Corroborated`;
-            verificationBadge.title = 'Multiple sources (2-4) report similar information';
+            verificationBadge.title = '2-4 independent sources';
             break;
         case 'aggregated':
-            verificationBadge.classList.add('badge-verified-no');
+            verificationBadge.classList.add('badge-aggregated');
             verificationBadge.innerHTML = `<span class="badge-icon">📄</span> Aggregated`;
-            verificationBadge.title = 'Republished from single source with attribution';
+            verificationBadge.title = 'Single credible source';
             break;
     }
 
@@ -317,26 +317,26 @@ function displayVerificationCallout(article) {
     // Set content based on verification level
     switch(verificationLevel) {
         case 'multi-sourced':
-            callout.className = 'verification-callout certified';
+            callout.className = 'verification-callout multi-source';
             statusIcon.textContent = '📰';
-            statusText.textContent = 'Multi-Sourced';
-            description.textContent = `Reported across ${sourceCount}+ independent outlets — see ref.`;
+            statusText.textContent = 'Multi-Source';
+            description.textContent = `${sourceCount}+ independent sources — see references below.`;
             break;
         case 'corroborated':
-            callout.className = 'verification-callout verified';
+            callout.className = 'verification-callout corroborated';
             statusIcon.textContent = '📋';
             statusText.textContent = 'Corroborated';
             description.textContent = sourceCount > 0
-                ? `${sourceCount} sources report similar information — see ref.`
-                : 'Multiple sources report similar information — see ref.';
+                ? `${sourceCount} independent sources — see references below.`
+                : '2-4 independent sources — see references below.';
             break;
         case 'aggregated':
-            callout.className = 'verification-callout unverified';
+            callout.className = 'verification-callout aggregated';
             statusIcon.textContent = '📄';
             statusText.textContent = 'Aggregated';
             description.textContent = sourceCount > 0
-                ? `Republished from ${sourceCount} source${sourceCount !== 1 ? 's' : ''} with attribution — see ref.`
-                : 'Republished from single source with attribution — see ref.';
+                ? `Single credible source — see references below.`
+                : 'Single credible source — see references below.';
             break;
     }
 

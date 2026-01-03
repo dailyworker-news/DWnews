@@ -610,21 +610,29 @@ class VerificationAgent:
 
     def _get_verification_note(self, level: str, source_count: int) -> str:
         """
-        Get verification disclaimer note based on verification level
+        Get sourcing disclosure note based on sourcing level
 
         Args:
-            level: Verification level (unverified, verified, certified)
+            level: Sourcing level (aggregated, corroborated, multi-sourced) or legacy (unverified, verified, certified)
             source_count: Number of credible sources found
 
         Returns:
-            Disclaimer text to display with article
+            Sourcing disclosure text to display with article
         """
+        # Map old terminology to new if needed (backwards compatibility)
         if level == 'certified':
-            return f"This article has been thoroughly researched and verified against {source_count}+ credible sources including academic citations."
+            level = 'multi-sourced'
         elif level == 'verified':
-            return f"This article has been verified against {source_count} credible source{'s' if source_count != 1 else ''}. Citations are provided below."
-        else:
-            return "This article could not be independently verified through our standard fact-checking process. We're publishing it because we believe it's newsworthy, but readers should exercise additional caution. If you have information about this story, please contact our editorial team."
+            level = 'corroborated'
+        elif level == 'unverified':
+            level = 'aggregated'
+
+        if level == 'multi-sourced':
+            return f"Multi-sourced from {source_count}+ independent sources. See references below."
+        elif level == 'corroborated':
+            return f"Corroborated by {source_count} independent source{'s' if source_count != 1 else ''}. See references below."
+        else:  # aggregated
+            return f"Aggregated from single credible source. See references below."
 
     def get_verification_stats(self) -> Dict:
         """

@@ -252,10 +252,10 @@ class EnhancedJournalistAgent:
         verification_level = source_plan.get('verification_level', 'unverified')
 
         if verification_note:
-            prompt += f"\n\nVERIFICATION DISCLOSURE (REQUIRED):\n"
-            prompt += f"This article has verification level: {verification_level.upper()}\n"
+            prompt += f"\n\nSOURCING DISCLOSURE (REQUIRED):\n"
+            prompt += f"This article has sourcing level: {verification_level.upper()}\n"
             prompt += f"You MUST include this disclosure at the end of the article:\n\n"
-            prompt += f"---\n**Verification Note:** {verification_note}\n---\n"
+            prompt += f"---\n**Sourcing Note:** {verification_note}\n---\n"
 
         # Add feedback if regenerating
         if previous_feedback:

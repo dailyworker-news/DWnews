@@ -319,14 +319,20 @@ class InvestigatoryJournalistAgent:
         source_plan['investigation_date'] = investigation.investigation_date.isoformat()
         source_plan['investigation_notes'] = investigation.investigation_notes
 
-        # Update verification note based on new level
-        if investigation.recommended_verification_level == 'certified':
-            source_plan['verification_note'] = f"This article has been thoroughly researched and verified against {investigation.credible_sources_found}+ credible sources through investigatory journalism."
-        elif investigation.recommended_verification_level == 'verified':
-            source_plan['verification_note'] = f"This article has been verified against {investigation.credible_sources_found} credible source{'s' if investigation.credible_sources_found != 1 else ''} through investigatory journalism. Citations are provided below."
-        else:
-            # Still unverified
-            source_plan['verification_note'] = f"This article could not be independently verified even through investigatory journalism. We're publishing it because we believe it's newsworthy, but readers should exercise additional caution."
+        # Update sourcing note based on new level (map old terminology to new)
+        level_map = {
+            'certified': 'multi-sourced',
+            'verified': 'corroborated',
+            'unverified': 'aggregated'
+        }
+        new_level = level_map.get(investigation.recommended_verification_level, investigation.recommended_verification_level)
+
+        if new_level == 'multi-sourced':
+            source_plan['verification_note'] = f"Multi-sourced from {investigation.credible_sources_found}+ independent sources through investigatory journalism. See references below."
+        elif new_level == 'corroborated':
+            source_plan['verification_note'] = f"Corroborated by {investigation.credible_sources_found} independent source{'s' if investigation.credible_sources_found != 1 else ''} through investigatory journalism. See references below."
+        else:  # aggregated
+            source_plan['verification_note'] = f"Aggregated from available sources through investigatory journalism. See references below."
             source_plan['investigation_attempted'] = True
 
         # Update topic

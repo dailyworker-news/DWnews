@@ -42,6 +42,7 @@ class ArticleResponse(BaseModel):
     image_attribution: Optional[str]
     why_this_matters: Optional[str]
     what_you_can_do: Optional[str]
+    editorial_notes: Optional[str]  # Sourcing level and notes
     status: str
     published_at: Optional[datetime]
     created_at: datetime
@@ -205,6 +206,7 @@ async def get_article(
         image_attribution=article.image_attribution,
         why_this_matters=article.why_this_matters,
         what_you_can_do=article.what_you_can_do,
+        editorial_notes=article.editorial_notes,
         status=article.status,
         published_at=article.published_at,
         created_at=article.created_at
@@ -273,6 +275,8 @@ def get_article_by_slug(slug: str, db: Session = Depends(get_db)):
         is_local=article.is_local,
         is_ongoing=article.is_ongoing,
         is_new=article.is_new,
+        is_premium=False,
+        preview_only=False,
         region_name=article.region.name if article.region else None,
         reading_level=article.reading_level,
         word_count=article.word_count,
@@ -280,6 +284,7 @@ def get_article_by_slug(slug: str, db: Session = Depends(get_db)):
         image_attribution=article.image_attribution,
         why_this_matters=article.why_this_matters,
         what_you_can_do=article.what_you_can_do,
+        editorial_notes=article.editorial_notes,
         status=article.status,
         published_at=article.published_at,
         created_at=article.created_at

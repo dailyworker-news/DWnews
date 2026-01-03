@@ -159,19 +159,22 @@
   line-height: 1;
 }
 
-.badge-verified-certified {
+/* Multi-Source (5+ sources) - Green */
+.badge-multi-source {
   background: #22c55e;
   color: var(--article-white);
   border-color: #16a34a;
 }
 
-.badge-verified-yes {
+/* Corroborated (2-4 sources) - Blue */
+.badge-corroborated {
   background: #3b82f6;
   color: var(--article-white);
   border-color: #2563eb;
 }
 
-.badge-verified-no {
+/* Aggregated (single source) - Orange */
+.badge-aggregated {
   background: #f59e0b;
   color: var(--article-white);
   border-color: #d97706;
@@ -188,17 +191,20 @@
   border-left: 4px solid;
 }
 
-.verification-callout.verified {
+/* Corroborated (2-4 sources) - Blue background */
+.verification-callout.corroborated {
   background: #d1ecf1;
   border-color: #0c5460;
 }
 
-.verification-callout.certified {
+/* Multi-Source (5+ sources) - Green background */
+.verification-callout.multi-source {
   background: #d4edda;
   border-color: #155724;
 }
 
-.verification-callout.unverified {
+/* Aggregated (single source) - Yellow/Orange background */
+.verification-callout.aggregated {
   background: #fff3cd;
   border-color: #856404;
 }
@@ -215,15 +221,15 @@
   font-weight: 700;
 }
 
-.verification-callout.verified .verification-status {
+.verification-callout.corroborated .verification-status {
   color: #0c5460;
 }
 
-.verification-callout.certified .verification-status {
+.verification-callout.multi-source .verification-status {
   color: #155724;
 }
 
-.verification-callout.unverified .verification-status {
+.verification-callout.aggregated .verification-status {
   color: #856404;
 }
 

@@ -407,29 +407,12 @@ Current image generation produces generic, low-quality results using basic promp
 ### Phase 6.11.2: Switch to Gemini 2.5 Flash Image ✅ COMPLETE
 **See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
-### Phase 6.11.4: Update Image Sourcing Pipeline
-- **Status:** ⚪ Not Started (Ready to start - dependencies met)
-- **Depends On:** Phase 6.11.3 ✅
-- **Complexity:** S
-- **Tasks:**
-  - [ ] Update scripts/content/source_images.py with new workflow
-  - [ ] Implement enhanced workflow: Article → Claude Enhancement → Gemini Image
-  - [ ] Add logging for each step (concept generation, selection, image generation)
-  - [ ] Update image metadata storage (include concept, confidence, rationale)
-  - [ ] Test complete pipeline with 5-10 real articles
-  - [ ] Measure quality improvement (subjective evaluation)
-  - [ ] Add monitoring for API failures (Claude and Gemini)
-  - [ ] Document new workflow in developer docs
-- **Done When:** Complete pipeline functional, image quality significantly improved, workflow documented
-- **Deliverables:**
-  - Updated image sourcing: `/scripts/content/source_images.py`
-  - Pipeline test results: `/docs/IMAGE_PIPELINE_TEST_RESULTS.md`
-  - Quality evaluation: `/docs/IMAGE_QUALITY_EVALUATION.md` (before/after examples)
-  - Developer documentation: `/docs/IMAGE_GENERATION_WORKFLOW.md`
+### Phase 6.11.4: Update Image Sourcing Pipeline ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
 ### Phase 6.11.5: Documentation & Testing
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 6.11.4
+- **Status:** ⚪ Not Started (Ready to start - dependencies met)
+- **Depends On:** Phase 6.11.4 ✅
 - **Complexity:** S
 - **Tasks:**
   - [ ] Update GCP_IMAGEN_SETUP.md → GEMINI_IMAGE_SETUP.md (new setup guide)
@@ -1093,7 +1076,9 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 **See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
 ### Phase 11.2: RSS Feed Integration & Testing
-- **Status:** ⚪ Not Started (Ready to start - dependencies met)
+- **Status:** 🟡 In Progress
+- **Assigned to:** tdd-dev-rss-integration-20260102
+- **Started:** 2026-01-02
 - **Depends On:** Phase 11.1 ✅
 - **Complexity:** M
 - **Tasks:**

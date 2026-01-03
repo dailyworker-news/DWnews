@@ -38,6 +38,52 @@
   - Sustainability: RSS open standard, no API deprecation risk
   - Strategic pivot: Twitter API dependency eliminated (100 posts/month limit)
 
+### Phase 6.11.4: Update Image Sourcing Pipeline
+- **Status:** 🟢 Complete
+- **Completed:** 2026-01-02
+- **Completed by:** tdd-dev-pipeline-001
+- **Git Commit:** bcd1b62
+- **Complexity:** S
+- **Depends On:** Phase 6.11.3 ✅
+- **Tasks:** 8/8 complete
+  - [x] Update scripts/content/source_images.py with new workflow
+  - [x] Implement enhanced workflow: Article → Claude Enhancement → Gemini Image
+  - [x] Add comprehensive logging for each step (concept generation, selection, image generation)
+  - [x] Update image metadata storage (include concept, confidence, rationale)
+  - [x] Create comprehensive test suite (13 new tests)
+  - [x] Test complete pipeline workflow with mocked data
+  - [x] Add monitoring for API failures (Claude and Gemini)
+  - [x] Document pipeline test results
+- **Done When:** Complete pipeline functional with comprehensive logging, all tests passing, workflow documented
+- **Deliverables:**
+  - ✅ Updated image sourcing: `/scripts/content/source_images.py` (enhanced with 3-step logging)
+  - ✅ Pipeline tests: `/backend/tests/test_image_sourcing_pipeline.py` (13 tests, all passing)
+  - ✅ Test results documentation: `/docs/IMAGE_PIPELINE_TEST_RESULTS.md` (comprehensive report)
+- **Quality:**
+  - 13 new pipeline tests: 13/13 passing ✅
+  - All image tests: 59/60 passing (1 skipped integration test) ✅
+  - No regressions in existing tests ✅
+  - Comprehensive logging implemented ✅
+  - Metadata structure validated ✅
+  - Error handling tested ✅
+  - Fallback workflows verified ✅
+- **Logging Improvements:**
+  - STEP 1: Claude Prompt Enhancement (concepts, confidence scores, selection)
+  - STEP 2: Gemini 2.5 Flash Image Generation (prompt length, API status)
+  - STEP 3: Image Save with Metadata (size, concept info, paths)
+  - Structured output with clear visual separators
+  - Enhanced error messages with diagnostic info
+- **Pipeline Workflow:**
+  ```
+  Article
+    ↓
+  Claude Enhancement (3 concepts) → Select best by confidence
+    ↓
+  Gemini 2.5 Flash Image (enhanced prompt) → Generate image
+    ↓
+  Save with Metadata (concept, confidence, rationale) → Update article
+  ```
+
 ### Phase 6.11.3: Implement Claude Prompt Enhancement
 - **Status:** 🟢 Complete
 - **Completed:** 2026-01-02

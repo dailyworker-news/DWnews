@@ -1089,47 +1089,12 @@ Implements subscription functionality to enable revenue generation. Users pay $1
 - **Cost:** $0 (no change)
 - **Sustainability:** No API rate limits, no business risk from third-party API changes
 
-### Phase 11.1: RSS Source Research & Curation
-- **Status:** 🟡 In Progress (tdd-rss-researcher-2026-01-02)
-- **Complexity:** S
-- **Tasks:**
-  - [ ] Research and identify 15-20 new high-quality RSS sources
-  - [ ] **Regional Labor Publications:**
-    - [ ] State-level labor news (AFL-CIO state chapters, regional labor papers)
-    - [ ] City-specific labor publications (Detroit, Chicago, NYC, LA labor news)
-  - [ ] **Investigative Journalism:**
-    - [ ] ICIJ (International Consortium of Investigative Journalists)
-    - [ ] Reveal (Center for Investigative Reporting)
-    - [ ] The Markup (tech accountability)
-    - [ ] ProPublica (already have, expand to state bureaus)
-  - [ ] **International Labor:**
-    - [ ] ILO (International Labour Organization)
-    - [ ] Global unions (IndustriALL, ITUC)
-    - [ ] International workers' rights organizations
-  - [ ] **Local News Aggregators:**
-    - [ ] Documented (immigrant labor stories)
-    - [ ] Scalawag (Southern labor/economic justice)
-    - [ ] Belt Magazine (Rust Belt labor)
-  - [ ] **Worker-Focused Media:**
-    - [ ] More Perfect Union
-    - [ ] The Lever (David Sirota)
-    - [ ] Breaking Points (labor coverage)
-    - [ ] Jacobin (socialist perspective)
-  - [ ] **Academic Labor Research:**
-    - [ ] Labor studies journals (if RSS available)
-    - [ ] Think tanks (EPI already have, add Center for Economic and Policy Research)
-  - [ ] Validate each source: RSS feed availability, update frequency, content quality, worker perspective
-  - [ ] Prioritize sources by: reliability, update frequency, geographic coverage, topic diversity
-  - [ ] Create source evaluation matrix (credibility 0-100, update frequency, geographic scope, topic focus)
-- **Done When:** 15-20 new RSS sources identified, validated, and prioritized for implementation
-- **Deliverables:**
-  - RSS source research document: `/backend/agents/feeds/RSS_SOURCE_RESEARCH.md` (source list with evaluation)
-  - Source evaluation matrix: CSV or JSON (source, URL, credibility score, frequency, geography, topics)
-  - Priority ranking: Top 10-15 sources for Phase 11.2 implementation
+### Phase 11.1: RSS Source Research & Curation ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
 ### Phase 11.2: RSS Feed Integration & Testing
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 11.1
+- **Status:** ⚪ Not Started (Ready to start - dependencies met)
+- **Depends On:** Phase 11.1 ✅
 - **Complexity:** M
 - **Tasks:**
   - [ ] Add 10-15 new RSS sources to `/backend/agents/feeds/rss_feeds.py`

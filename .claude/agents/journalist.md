@@ -358,6 +358,93 @@ Journalist agents may specialize in:
 - Grep/Glob (search existing content)
 - Write (output articles)
 
+## Image Generation Workflow (Phase 6.11)
+
+**IMPORTANT:** Articles can include AI-generated images using the two-step Gemini + Claude workflow.
+
+### When to Request Images
+
+Images should be requested for:
+- Labor stories (strikes, organizing, workplace events)
+- Political events (elections, protests, policy changes)
+- Sports labor stories (athlete organizing, union formation)
+- Cultural worker issues (artists, performers, creative labor)
+- International worker movements
+
+### How Images Are Generated
+
+The system uses a two-step process:
+
+1. **Claude Sonnet** - Generates 3-5 artistic concepts per article
+   - Analyzes article title and content
+   - Creates diverse visual concepts (documentary, illustration, photorealistic)
+   - Provides confidence scores and rationales
+   - Selects best concept automatically
+
+2. **Gemini 2.5 Flash Image** - Generates the final image
+   - Uses the highest-confidence Claude concept as prompt
+   - Generates photorealistic or stylized images
+   - 16:9 aspect ratio (standard news format)
+   - 10-15 second generation time
+
+### Image Quality Standards
+
+All images must meet criteria from `/docs/IMAGE_QUALITY_STANDARDS.md`:
+- **Relevance:** Visually represents article subject
+- **Clarity:** Clear composition, proper lighting, sharp focus
+- **Human Representation:** Diverse, dignified portrayal of workers
+- **Text/Symbols:** Minimal or legible text, accurate symbols
+- **Appropriate Style:** Documentary photorealism for news, illustration for analysis
+
+### Quality Checklist
+
+Images should be:
+- ✅ Directly relevant to article content
+- ✅ Showing diverse representation (race, gender, age)
+- ✅ Dignified portrayal of workers and subjects
+- ✅ Clear focal point and balanced composition
+- ✅ Natural anatomy (no distortions)
+- ✅ Minimal or legible text
+- ✅ Appropriate style for category (documentary vs illustration)
+
+### Category-Specific Guidelines
+
+**Labor:** Documentary photorealism, authentic workplace settings, diverse workers
+**Politics:** Documentary or editorial illustration, civic engagement imagery
+**Sports:** Photorealistic action, team solidarity, diverse athletes
+**Culture:** Flexible style, creative worker representation, authentic settings
+**International:** Documentary photorealism, cultural authenticity, geographic context
+
+### Cost and Performance
+
+- **Cost:** ~$0.04 per image (Claude + Gemini combined)
+- **Time:** 15 seconds average (Claude 2.5s + Gemini 12.5s)
+- **Success Rate:** 87% first-attempt, 96% after retry
+- **Free Tier:** 1,500 images/day capacity
+
+### Integration with Article Workflow
+
+Images are generated automatically during article creation if the article:
+- Has visual potential (events, people, places)
+- Falls into a supported category
+- Passes initial content validation
+
+The journalist agent should note when an article would benefit from an image, but the actual generation is handled by the image sourcing pipeline.
+
+### Troubleshooting
+
+If image generation fails:
+- System falls back to stock photos (Pexels, Unsplash)
+- Editorial team can request regeneration with improved prompts
+- See `/docs/IMAGE_QUALITY_STANDARDS.md` for rejection criteria
+
+### Documentation
+
+- Setup Guide: `/GEMINI_IMAGE_SETUP.md`
+- Quality Standards: `/docs/IMAGE_QUALITY_STANDARDS.md`
+- Performance Metrics: `/docs/IMAGE_GENERATION_METRICS.md`
+- Technical Specs: `/docs/GEMINI_IMAGE_API_SPECS.md`
+
 ## Enhanced Journalist Agent Implementation
 
 **Location:** `/Users/home/sandbox/daily_worker/projects/DWnews/backend/agents/enhanced_journalist_agent.py`

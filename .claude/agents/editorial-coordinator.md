@@ -711,16 +711,133 @@ See `/scripts/test_editorial_workflow.py` for end-to-end testing
 3. Check browser console for errors
 4. Ensure article ID is in URL parameter
 
+## Image Quality Review (Phase 6.11)
+
+**IMPORTANT:** Editorial coordinators should review AI-generated images as part of article approval.
+
+### Image Review Checklist
+
+When reviewing articles with AI-generated images, verify:
+
+**Quality Criteria:**
+- ✅ **Relevance:** Image matches article subject and tone
+- ✅ **Clarity:** Clear composition, proper lighting, no blur or distortion
+- ✅ **Representation:** Diverse and dignified portrayal of people
+- ✅ **Technical Quality:** Natural anatomy (no extra fingers, warped faces)
+- ✅ **Text/Symbols:** Minimal text or legible if present, accurate symbols
+- ✅ **Style:** Appropriate style for category (documentary, illustration, etc.)
+
+### Category-Specific Standards
+
+**Labor Articles:**
+- Documentary photorealism style
+- Authentic workplace settings (warehouses, factories, picket lines)
+- Diverse worker representation (race, gender, age)
+- Dignified portrayal (not stereotypical or demeaning)
+
+**Politics Articles:**
+- Documentary or editorial illustration (depending on article type)
+- Civic engagement imagery (voting, protests, town halls)
+- Diverse constituent representation
+
+**Sports Articles:**
+- Photorealistic action or documentary style
+- Team solidarity emphasized
+- Diverse athletes across gender, race, ability
+
+**Culture Articles:**
+- Flexible style (photorealistic or illustration)
+- Creative workers in authentic settings
+- Behind-the-scenes labor visible
+
+**International Articles:**
+- Documentary photorealism
+- Cultural authenticity and respectful portrayal
+- Accurate geographic context
+
+### Image Approval Actions
+
+**ACCEPT Image:**
+- Image meets all quality criteria
+- Enhances reader understanding
+- No anatomical or technical flaws
+- Diverse and dignified representation
+
+**REQUEST IMAGE REGENERATION:**
+- Poor quality (blurry, distorted, garbled text)
+- Stereotypical or harmful representation
+- Irrelevant to article content
+- Homogeneous or tokenistic representation
+- Anatomical errors (extra fingers, warped faces)
+
+**FALLBACK TO STOCK PHOTO:**
+- Image regeneration fails after retry
+- AI-generated image consistently poor quality
+- Subject matter too complex for AI generation
+
+### Image Quality Standards Documentation
+
+Complete image review guidelines available at:
+- **Quality Standards:** `/projects/DWnews/docs/IMAGE_QUALITY_STANDARDS.md`
+- **Performance Metrics:** `/projects/DWnews/docs/IMAGE_GENERATION_METRICS.md`
+- **Setup Guide:** `/projects/DWnews/GEMINI_IMAGE_SETUP.md`
+
+### Integration with Review Workflow
+
+During article review:
+1. Review article text (standard editorial criteria)
+2. Review accompanying image (if present)
+3. Verify image meets quality standards
+4. If image fails: request regeneration with specific feedback
+5. If regeneration fails: approve article with stock photo fallback
+
+### Image Regeneration Workflow
+
+To request image regeneration:
+1. Include specific feedback in editorial notes:
+   - "Image shows homogeneous representation - regenerate with diverse workers"
+   - "Garbled text on union banner - regenerate with minimal text"
+   - "Generic stock photo aesthetic - request more specific details in prompt"
+2. Image sourcing pipeline will generate new image with improved prompt
+3. Revised article with new image returns to review queue
+
+### Cost and Performance Awareness
+
+Editors should be aware:
+- **Cost:** $0.04 per image (within budget for quality improvements)
+- **Time:** 15 seconds for regeneration (fast turnaround)
+- **Success Rate:** 87% first-attempt, 96% after retry (reliable system)
+- **Free Tier:** 1,500 images/day (regeneration is low-cost)
+
+### Common Image Issues
+
+**Issue: Garbled text on signs/banners**
+**Action:** Request regeneration with note: "Minimize text or blur background text"
+
+**Issue: Homogeneous representation**
+**Action:** Request regeneration with note: "Show diverse group (race, gender, age)"
+
+**Issue: Anatomical distortions**
+**Action:** Request regeneration (Gemini usually fixes on retry)
+
+**Issue: Wrong style (illustration instead of photorealistic)**
+**Action:** Request regeneration with note: "Use documentary-style photography"
+
+**Issue: Generic stock photo aesthetic**
+**Action:** Request regeneration with note: "Add specific details (setting, action, mood)"
+
 ## Related Documentation
 
 - Phase 6.5: Bias Detection & Self-Audit
+- Phase 6.11: Image Generation Quality Improvements
 - Enhanced Journalist Agent: `/backend/agents/enhanced_journalist_agent.py`
 - Database Models: `/database/models.py`
 - Admin Portal: `/frontend/admin/`
+- Image Quality Standards: `/docs/IMAGE_QUALITY_STANDARDS.md`
 
 ## Agent Status
 
 **Implementation Status:** ✅ Complete
 **Test Coverage:** Pending
 **Production Ready:** Pending testing
-**Last Updated:** 2026-01-01
+**Last Updated:** 2026-01-02

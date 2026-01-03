@@ -6,7 +6,7 @@ This guide will help you configure Gemini 2.5 Flash Image with Claude-powered pr
 
 DWnews uses a two-step AI image generation workflow for superior quality:
 
-1. **Claude Sonnet** generates 3-5 detailed artistic concept prompts
+1. **Claude Sonnet** generates 3-5 artistic concepts per article (detailed prompt variations)
 2. **Gemini 2.5 Flash Image** generates the image using the best concept
 
 This approach produces significantly better images than basic prompt wrapping.

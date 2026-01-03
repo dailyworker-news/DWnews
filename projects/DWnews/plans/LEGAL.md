@@ -1,6 +1,6 @@
 # LEGAL GUIDELINES FOR THE DAILY WORKER
 
-**Version:** 1.0
+**Version:** 1.2
 **Last Updated:** 2026-01-02
 **Status:** MANDATORY - All agents must comply
 
@@ -255,11 +255,236 @@ Before publishing ANY article, verify:
 
 ## REVISION HISTORY
 
+- **v1.2 (2026-01-02):** Added Copyright and Fair Use guidelines
+  - Section XVII: Fair use for commentary and transformative use defense
+  - Safe practices for excerpting source material
+  - Headline rewriting requirements to avoid copyright infringement
+  - Block quote usage guidelines
+
+- **v1.1 (2026-01-02):** Added Format B Commentary Model guidelines
+  - Section XVI: Detailed article structure requirements for fact/commentary separation
+  - Commentary voice guidelines with permitted and prohibited content
+  - Fact vs. opinion test with examples
+  - Headline rules for commentary articles
+  - Working-class perspective legal defense framework
+  - Actionable vs. protected commentary distinctions
+
 - **v1.0 (2026-01-02):** Initial legal guidelines established
   - Clarified aggregator/amplifier positioning
   - Defined verification terminology (aggregated/corroborated/multi-sourced)
   - Established attribution requirements
   - Created journalist agent compliance checklist
+
+---
+
+## XVI. Format B Commentary Model - Specific Guidelines
+
+### A. Article Structure Requirements
+
+Every article must have CLEAR SEPARATION between:
+
+1. **SOURCED FACTS** (attributed to external sources)
+2. **ANALYSIS/COMMENTARY** (The Daily Worker's perspective)
+
+**MANDATORY STRUCTURE:**
+
+[Opening paragraph: Sourced facts with attribution and links]
+
+[Analysis section, clearly marked with headers or transitions like:]
+- "From a working-class perspective..."
+- "Our analysis:"
+- "The Daily Worker's view:"
+- "This decision reflects..."
+
+**VISUAL SEPARATION REQUIRED:**
+Consider using formatting (subheads, italics, or distinct sections)
+to make clear where facts end and opinion begins.
+
+### B. Commentary Voice Guidelines
+
+**PERMITTED in commentary sections:**
+- Strong advocacy for worker interests
+- Criticism of corporate or government policies
+- Interpretation of events through pro-labor lens
+- Calls for policy changes
+- Moral or ethical arguments
+- Rhetorical questions and persuasive language
+
+**STILL PROHIBITED even in commentary:**
+- False factual claims (even in service of argument)
+- Defamatory statements about private individuals
+- Fabricated quotes or statistics
+- Specific accusations of illegal conduct without official finding
+- Claims that could constitute trade libel
+
+**THE RULE:** Your opinion can be as strong as you want, but it must
+be BASED ON ACCURATE FACTS and clearly marked AS OPINION.
+
+### C. Fact vs. Opinion Test
+
+**Before publishing any sentence, ask:**
+
+"Is this a factual claim or an opinion?"
+
+**FACTUAL CLAIM** (must be sourced):
+- "Amazon paid workers $15/hour in 2024"
+- "The Federal Reserve raised interest rates"
+- "Unemployment increased to 4.2%"
+- "The CEO stated [quote]"
+
+**OPINION** (can be unsourced if clearly marked):
+- "This wage is insufficient for dignified living"
+- "The Federal Reserve prioritizes corporate interests"
+- "These unemployment figures mask widespread underemployment"
+- "The CEO's statement reveals contempt for workers"
+
+**MIXED** (requires careful handling):
+❌ DANGEROUS: "Amazon's poverty wages exploit workers"
+   (States opinion as fact, implies legal violation)
+
+✅ SAFE: "Amazon paid workers $15/hour [source], a wage that workers'
+   advocates argue is insufficient to meet basic needs in most markets"
+   (Fact + attributed opinion)
+
+✅ SAFE: "In our view, Amazon's $15/hour wage represents exploitation
+   given the company's record profits [source]"
+   (Fact + clearly marked opinion)
+
+### D. Headlines for Format B
+
+**Headlines are HIGHER RISK** because they:
+- Are more visible and shareable
+- Lack nuance and context
+- Are judged more strictly by courts
+
+**HEADLINE RULES:**
+
+1. **If headline makes factual claim, it must be sourced in article**
+
+❌ RISKY: "Amazon Steals Wages from Workers"
+   (Factual claim of illegal conduct)
+
+✅ SAFER: "Amazon Wage Practices Under Federal Investigation"
+   (If true and sourced)
+
+✅ SAFER: "Why Amazon's Wages Betray Workers"
+   (Opinion/analysis framing)
+
+2. **Opinion headlines must be recognizable as opinion**
+
+✅ GOOD: "The Federal Reserve's War on Workers"
+✅ GOOD: "How Corporate Greed Drives Inflation"
+✅ GOOD: "Congress Abandons Working Families - Again"
+
+❌ BAD: "Federal Reserve Illegally Manipulates Economy"
+   (Sounds like factual claim of illegal conduct)
+
+3. **Avoid headlines that could be misread as hard news**
+
+Your audience may share headlines on social media without context.
+Ask: "Could someone read this headline and think we're reporting
+a verified fact rather than offering commentary?"
+
+### E. The "Working-Class Perspective" Defense
+
+Courts give broad protection to OPINION, but you must:
+
+1. **Make perspective explicit** - Don't hide that you're advocating
+2. **Base on disclosed facts** - Opinion must connect to sourced reality
+3. **Avoid provably false statements** - Even in opinion sections
+4. **Signal rhetorical devices** - Hyperbole, metaphor, argument
+
+**EXAMPLE OF PROTECTED COMMENTARY:**
+
+"The Federal Reserve's decision to maintain high interest rates
+[sourced fact] represents a calculated assault on working families.
+While the Fed claims to fight inflation [sourced], the real effect
+is pricing workers out of homeownership while protecting asset
+values for the wealthy [sourced data on housing/wealth]. This isn't
+economic policy - it's class warfare.
+
+From a working-class perspective, the Fed's mandate should prioritize
+full employment over investor returns. Instead, it consistently
+sacrifices worker welfare to maintain corporate profit margins
+[cite economic analysis]. We reject this framework and call for
+monetary policy that serves labor, not capital."
+
+**WHY THIS WORKS:**
+- Strong advocacy, clearly marked as perspective
+- Based on sourced facts (Fed decision, stated rationale, economic data)
+- Opinion language signals ("represents," "we reject," "should prioritize")
+- Rhetorical flourish ("class warfare") in context of obvious advocacy
+- No false factual claims
+- No accusations of illegal conduct
+
+### F. When Commentary Becomes Actionable
+
+**PROTECTED:** "We believe CEO John Smith's policies harm workers"
+**ACTIONABLE:** "CEO John Smith embezzled pension funds"
+   (Specific factual claim of crime)
+
+**PROTECTED:** "This company's practices amount to wage theft"
+   (If "wage theft" is used rhetorically/metaphorically in opinion context)
+**ACTIONABLE:** "This company committed wage theft under FLSA"
+   (Legal conclusion stated as fact)
+
+**PROTECTED:** "Amazon treats workers like machines"
+   (Obvious metaphor in advocacy context)
+**ACTIONABLE:** "Amazon's AI system illegally tracks bathroom breaks"
+   (Specific factual claim unless sourced to official finding)
+
+**THE TEST:**
+- Is this provably false or true? → Fact, needs source
+- Is this a value judgment or interpretation? → Opinion, needs clear framing
+- Could reasonable person think this is verified reporting vs. commentary?
+  → If yes, add clearer opinion signals
+
+---
+
+## XVII. Copyright and Fair Use - Format B Model
+
+### A. Fair Use for Commentary
+
+Format B model relies on "transformative use" fair use defense:
+
+**SAFE PRACTICES:**
+1. **Brief excerpts only** - 2-3 sentences maximum from any source
+2. **Always add substantial original commentary** - Your analysis should
+   be longer than excerpted material
+3. **Link to original source** - Drive traffic back to source
+4. **Attribute clearly** - Make obvious what's source vs. your commentary
+
+**RISKY:**
+- Excerpting entire articles or majority of article
+- Minimal original commentary (just a sentence or two)
+- Aggregating paywalled content extensively
+- Using source's original reporting without adding perspective
+
+**THE RULE:** If someone could read your article instead of the original
+and get the same information, you're not adding enough transformation.
+
+### B. Headline Rewriting
+
+**MUST rewrite source headlines** - Don't copy verbatim
+
+❌ Source: "Fed Holds Rates Steady at 4.5%"
+❌ You: "Fed Holds Rates Steady at 4.5%"
+   (Copyright infringement - headlines are protected)
+
+✅ You: "Federal Reserve Maintains Interest Rates, Harming Workers"
+   (Rewritten with perspective)
+
+### C. When to Use Block Quotes
+
+**Use quote blocks sparingly:**
+
+Acceptable:
+> "We remain committed to bringing inflation back to our 2 percent
+> goal," Federal Reserve Chair Jerome Powell stated. [source link]
+
+Then add substantial commentary analyzing this statement.
+
+**Don't:** String together multiple block quotes with minimal commentary
 
 ---
 

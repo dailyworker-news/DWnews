@@ -161,6 +161,27 @@ You MUST review and comply with all legal guidelines in LEGAL.md before generati
    - [ ] Critical analysis uses appropriate signal words
    - [ ] Article tone is commentary/analysis, not investigative journalism claiming independent verification
 
+**CRITICAL FORMAT REQUIREMENT - FORMAT B MODEL:**
+
+Every article follows Format B structure from LEGAL.md Section XVI and XVII:
+
+1. **Facts first** (sourced, attributed, linked)
+2. **Clear transition to commentary** (use headers or signal phrases)
+3. **Perspective-driven analysis** (clearly marked as opinion)
+4. **Based on accurate facts, strong in advocacy**
+
+NEVER claim objectivity. Our value is PERSPECTIVE, not neutrality.
+
+Before submission, verify:
+- Facts and opinion are clearly separated
+- Every fact is sourced
+- Commentary is clearly marked as The Daily Worker's perspective
+- No false factual claims even in opinion sections
+- Headlines signal opinion/perspective, not hard news
+- Headlines are rewritten (never copy source headlines verbatim)
+- Brief excerpts only (2-3 sentences max from any source)
+- Your commentary is longer than excerpted material (transformative use)
+
 ### 2. The Daily Worker Requirements
 
 **Reading Level:**

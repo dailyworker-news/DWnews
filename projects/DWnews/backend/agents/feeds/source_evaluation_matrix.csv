@@ -1,0 +1,19 @@
+Source Name,RSS URL,Validation Status,Credibility Score,Worker Relevance,Update Frequency,Geographic Scope,Topic Focus,Priority,Notes
+ICIJ,https://www.icij.org/feed/,VALIDATED,95,HIGH,Hourly,Global,"Corporate accountability, corruption, labor exploitation",HIGH,Pulitzer Prize-winning investigations
+Reveal,https://revealnews.org/feed/,VALIDATED,92,HIGH,Hourly,U.S. National,"Labor violations, worker safety, social justice",HIGH,America's first investigative nonprofit
+The Markup,https://themarkup.org/feeds/rss.xml,VALIDATED,88,HIGH,Daily,U.S. + California,"Tech accountability, algorithmic bias, gig economy",HIGH,Now part of CalMatters
+The Lever,https://www.levernews.com/rss,VALIDATED,90,VERY HIGH,Multiple Daily,U.S. National,"Economic justice, corporate accountability, labor",CRITICAL,David Sirota founded
+Jacobin,https://jacobin.com/feed,VALIDATED,85,VERY HIGH,Multiple Daily,U.S. + International,"Socialist labor perspective, union organizing, class analysis",CRITICAL,Published 2026 labor contract guide
+LaborPress,https://www.laborpress.org/feed/,VALIDATED,88,VERY HIGH,Daily,NYC Metro,"Union coverage, worker issues, labor news",HIGH,Covers 2026 NYC contract fights
+Scalawag,https://scalawagmagazine.org/feed/,VALIDATED,85,HIGH,Weekly,U.S. South,"Southern labor organizing, economic justice",HIGH,501(c)3 nonprofit
+Belt Magazine,https://beltmag.com/feed/,VALIDATED,88,VERY HIGH,Weekly,Midwest/Rust Belt,"Industrial labor, manufacturing, worker history",HIGH,Independent Rust Belt journalism
+IndustriALL,https://www.industriall-union.org/rss.xml,VALIDATED,90,HIGH,Weekly,Global,"Manufacturing, mining, energy unions",MEDIUM,50M workers in 140 countries
+More Perfect Union,NOT AVAILABLE,RESEARCH NEEDED,82,VERY HIGH,Daily,U.S. National,"Labor movement, corporate accountability, video",MEDIUM,YouTube-only (1.3M subscribers)
+WNY Labor Today,REQUIRES RESEARCH,FAILED 404,80,HIGH,Daily,NY State + National,"AFL-CIO coverage, regional labor news",MEDIUM,Need to find correct RSS path
+Documented,https://documentedny.com/feed/,BLOCKED 403,87,VERY HIGH,Weekly,NYC + National,"Immigrant labor, worker exploitation, policy",HIGH,Bot protection - contact for access
+CEPR,https://cepr.net/feed/,BLOCKED 403,90,HIGH,Weekly,U.S. National,"Economic policy, wage studies, employment research",MEDIUM,Bot protection - contact for access
+ITUC,REQUIRES RESEARCH,FAILED 404,92,HIGH,Weekly,Global,"International labor standards, global campaigns",MEDIUM,191M workers in 169 countries
+ILO,REQUIRES RESEARCH,FAILED 404,93,MEDIUM,Monthly,Global,"Labor standards, UN research, policy",LOW,UN agency - policy-heavy
+Breaking Points,PODCAST ONLY,N/A,75,MEDIUM,Daily,U.S. National,"Political commentary, labor coverage (mixed)",LOW,Podcast format not suitable
+ProPublica States,REQUIRES RESEARCH,PARTIAL,95,HIGH,Varies,U.S. States,"State-level investigations, labor violations",MEDIUM,Already have main feed
+AFL-CIO State Chapters,REQUIRES RESEARCH,PARTIAL,88,VERY HIGH,Varies,U.S. States,"Direct union news, organizing updates",HIGH,Manual investigation needed

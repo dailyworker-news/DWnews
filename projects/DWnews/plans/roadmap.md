@@ -366,133 +366,16 @@ Implements the 10-step Agentic Journalist Process for autonomous news discovery,
 
 ---
 
-## Batch 6.9: Investigatory Journalist Agent
+## ✅ Batch 6.9: COMPLETED (2026-01-01)
+**See:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md`
 
-**Dependencies:** Batch 6 complete (3-tier verification system operational)
-**Sequential Phases:** 6.9.1 ✅ → 6.9.2 ✅ → 6.9.3 ✅ → 6.9.4 ✅
-**Purpose:** Implement investigatory journalism capabilities for Unverified articles requiring deep investigation
-**Status:** ✅ COMPLETE - All 4 Phases Functional (2026-01-01)
+**All 4 phases complete:**
+- ✅ Phase 6.9.1: Core Investigation Engine (MVP)
+- ✅ Phase 6.9.2: Social Media Investigation
+- ✅ Phase 6.9.3: Deep Context Research
+- ✅ Phase 6.9.4: Advanced Analysis
 
-**Overview:**
-Implements specialized investigatory journalism agent to handle Unverified articles (verification score 0-49) that require deeper research and investigation. This agent acts as a second-pass researcher that attempts to elevate Unverified articles to Verified or Certified status through additional investigation techniques.
-
-**4-Phase Development Approach:**
-1. **Phase 1 (MVP - Complete):** Core investigation engine with multi-engine search, origin tracing, cross-reference validation
-2. **Phase 2:** Social media investigation (Twitter API v2, Reddit API, social credibility scoring, timeline construction)
-3. **Phase 3:** Deep context research (historical events, key actor profiling, local news aggregation, geographic context)
-4. **Phase 4:** Advanced analysis (claim extraction, automated fact-checking, contradiction detection, bias analysis)
-
-**Key Capabilities:**
-- Multi-engine web search (Google, DuckDuckGo, Bing) ✅ Phase 1
-- Social media investigation (Twitter, Reddit) - Phase 2
-- Historical event research and precedent finding - Phase 3
-- Key actor profiling (organizations, people) - Phase 3
-- Claim extraction and automated fact-checking - Phase 4
-- Contradiction detection and bias analysis - Phase 4
-- Transparent disclosure when verification remains limited ✅ Phase 1
-
-### Phase 6.9.1: Core Investigation Engine (Phase 1 MVP) ✅ COMPLETE
-**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
-
-### Phase 6.9.2: Social Media Investigation (Phase 2)
-- **Status:** 🟢 Complete
-- **Completed:** 2026-01-01
-- **Depends On:** Phase 6.9.1 ✅
-- **Complexity:** M
-- **Tasks:**
-  - [x] Integrate Twitter API v2 extended search (hashtag tracking, original tweets, verified accounts)
-  - [x] Integrate Reddit API extended search (subreddit searches, discussion threads, eyewitness accounts)
-  - [x] Implement social source credibility scoring (account age, karma, verification status)
-  - [x] Build timeline construction from social mentions (chronological event tracking)
-  - [x] Implement eyewitness account identification (filter for firsthand reports)
-  - [x] Add social media evidence to source_plan (JSON storage)
-  - [x] Create SocialSource data model (platform, author, credibility, engagement_metrics)
-  - [x] Test with labor events having known Twitter/Reddit activity
-- **Done When:** Agent finds and scores social media evidence, identifies eyewitness accounts, builds event timelines
-- **Deliverables:**
-  - Social Media Investigator: `/backend/agents/investigation/social_media_investigator.py` (650 lines)
-  - SocialSource and SocialTimeline data models with credibility scoring
-  - Twitter API v2 integration with mock data fallback
-  - Reddit API integration with mock data fallback
-  - Eyewitness detection algorithm (first-person language patterns)
-  - Timeline construction with mention velocity and peak activity analysis
-  - Test results: 4 sources found, 1 eyewitness account identified, credibility scoring functional
-
-### Phase 6.9.3: Deep Context Research (Phase 3)
-- **Status:** 🟢 Complete
-- **Completed:** 2026-01-01
-- **Depends On:** Phase 6.9.1 ✅, Phase 6.9.2 ✅
-- **Complexity:** M
-- **Tasks:**
-  - [x] Build historical event research (find precedents, similar past events)
-  - [x] Implement key actor profiling (organizations, people, track records)
-  - [x] Create local news source aggregation (geographic-specific sources)
-  - [x] Implement geographic context gathering (regional political/economic factors)
-  - [x] Build related event clustering (identify patterns across events)
-  - [x] Create ContextResearcher module with 3 research methods
-  - [x] Add context_richness scoring (0-100 scale)
-  - [x] Test with complex multi-faceted events (multiple actors, locations)
-- **Done When:** Agent provides comprehensive historical and geographic context, profiles key actors
-- **Deliverables:**
-  - Deep Context Researcher: `/backend/agents/investigation/deep_context_researcher.py` (900 lines)
-  - HistoricalEvent, ActorProfile, GeographicContext, EventCluster data models
-  - Historical event research with similarity scoring (0-100)
-  - Actor profiling with credibility assessment and bias detection
-  - Geographic context including economic/political/labor environment
-  - Event pattern clustering with predictive power scoring
-  - Local news source aggregation by city/region
-  - Context richness scoring (0-100 scale)
-  - Test results: 67/100 context richness, 3 historical precedents, 2 actor profiles, 2 event patterns
-
-### Phase 6.9.4: Advanced Analysis (Phase 4)
-- **Status:** 🟢 Complete
-- **Completed:** 2026-01-01
-- **Depends On:** Phase 6.9.1 ✅, Phase 6.9.2 ✅, Phase 6.9.3 ✅
-- **Complexity:** M
-- **Tasks:**
-  - [x] Implement claim extraction using LLM (identify verifiable factual claims)
-  - [x] Build automated fact-checking per claim (search for evidence)
-  - [x] Implement contradiction detection (flag conflicting information)
-  - [x] Build bias analysis of sources (detect political/corporate bias)
-  - [x] Implement confidence scoring for recommendations (0-100 scale)
-  - [x] Create human review flagging system (contradictions, serious allegations)
-  - [x] Add verified_claims and disputed_claims to InvestigationResult
-  - [x] Test with disputed events having contradictory reporting
-- **Done When:** Agent extracts claims, fact-checks each, detects contradictions, flags for human review when needed
-- **Deliverables:**
-  - Advanced Analyzer: `/backend/agents/investigation/advanced_analyzer.py` (900 lines)
-  - Claim, Contradiction, BiasAnalysis data models with enum types
-  - Claim extraction with 7 claim types (statistic, event, quote, attribution, timing, location, outcome)
-  - Automated fact-checking with verification status (verified/partially_verified/unverified/disputed/debunked)
-  - Contradiction detection with severity assessment (critical/moderate/minor)
-  - Source bias analysis (pro-labor/pro-management/political/corporate/neutral)
-  - Confidence scoring (0-100) based on verified claims, disputes, contradictions, source reliability
-  - Human review flagging for critical contradictions, low confidence, serious allegations, high bias
-  - Test results: 18 claims extracted, 18 verified, 71/100 confidence, "verified" recommendation
-
-**Batch 6.9 Success Criteria:**
-- [x] **Phase 1 Complete:** Core investigation engine with multi-engine search (MVP with mock data)
-- [x] **Phase 1 Complete:** Investigation workflow functional and tested
-- [x] **Phase 1 Complete:** Database schema for investigation tracking implemented
-- [x] **Phase 1 Complete:** Origin tracing and cross-reference validation working
-- [x] **Phase 2 Complete:** Social media investigation integrated (Twitter API v2, Reddit API)
-- [x] **Phase 2 Complete:** Social source credibility scoring operational
-- [x] **Phase 2 Complete:** Timeline construction from social mentions working
-- [x] **Phase 2 Complete:** Eyewitness account identification functional
-- [x] **Phase 3 Complete:** Historical event research finds precedents
-- [x] **Phase 3 Complete:** Key actor profiling provides organization/people context
-- [x] **Phase 3 Complete:** Local news source aggregation by geography
-- [x] **Phase 3 Complete:** Context richness scoring implemented (0-100)
-- [x] **Phase 4 Complete:** Claim extraction using LLM operational
-- [x] **Phase 4 Complete:** Automated fact-checking validates each claim
-- [x] **Phase 4 Complete:** Contradiction detection flags conflicting information
-- [x] **Phase 4 Complete:** Human review flagging for serious cases
-- [x] **Overall Goal:** ≥30% of Unverified articles elevated to Verified or Certified (achieved in testing: 74% confidence, verified recommendation)
-- [x] **Overall Goal:** Investigation time 2-5 minutes per topic (tested: <1 second with mock data, 2-3 minutes with real APIs)
-- [x] **Overall Goal:** Origin identification accuracy >80% (Phase 1 functional)
-- [x] **Overall Goal:** Cost per investigation <$0.50 (mock data: $0, real API costs estimated <$0.20)
-- [x] **Overall Goal:** Ready for production use (all 4 phases complete, tested, and functional)
-
+---
 
 ## Batch 6.11: Image Generation Quality Improvements
 
@@ -518,54 +401,15 @@ Current image generation produces generic, low-quality results using basic promp
 - Select best prompt based on confidence score
 - Proven approach from a-team project
 
-### Phase 6.11.1: Research & Planning
-- **Status:** 🟢 Complete
-- **Agent:** tdd-dev-phase6111
-- **Started:** 2026-01-02
-- **Completed:** 2026-01-02
-- **Complexity:** S
-- **Tasks:**
-  - [x] Document Gemini 2.5 Flash Image API requirements (google-genai SDK)
-  - [x] Research API endpoints, authentication, request/response format
-  - [x] Design Claude prompt enhancement workflow (3-5 concepts with confidence scores)
-  - [x] Create sample prompt enhancement output format
-  - [x] Review a-team project implementation for best practices
-  - [x] Update technical specifications in requirements.md
-  - [x] Document migration path from Vertex AI Imagen to Gemini
-  - [x] Identify configuration changes needed (backend/config.py, .env.example)
-- **Done When:** Complete API documentation, workflow design documented, migration plan ready
-- **Deliverables:**
-  - Technical specification: `/docs/GEMINI_IMAGE_API_SPECS.md` ✅
-  - Workflow design: `/docs/CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md` ✅
-  - Migration plan: `/docs/IMAGEN_TO_GEMINI_MIGRATION.md` ✅
-  - Updated requirements.md with new image generation approach ✅ (already updated in v1.2)
+### Phase 6.11.1: Research & Planning ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
-### Phase 6.11.2: Switch to Gemini 2.5 Flash Image
-- **Status:** ⚪ Not Started
-- **Depends On:** Phase 6.11.1 ✅
-- **Complexity:** M
-- **Tasks:**
-  - [ ] Remove Vertex AI Imagen integration code
-  - [ ] Install google-genai SDK (replace google-cloud-aiplatform)
-  - [ ] Implement Gemini 2.5 Flash Image integration
-  - [ ] Update backend/config.py with Gemini API configuration
-  - [ ] Update .env.example with GEMINI_API_KEY variable
-  - [ ] Implement new image generation endpoint using Gemini
-  - [ ] Add error handling and retry logic (3 attempts, exponential backoff)
-  - [ ] Update image generation workflow to use Gemini API
-  - [ ] Test image generation with simple prompts (verify API works)
-  - [ ] Compare image quality: Vertex AI Imagen vs. Gemini 2.5 Flash Image
-- **Done When:** Gemini 2.5 Flash Image operational, basic image generation working, quality improved over Imagen
-- **Deliverables:**
-  - Updated image generation module: `/backend/services/image_generation.py`
-  - Updated configuration: `/backend/config.py`, `/.env.example`
-  - Test script: `/scripts/test_gemini_image_generation.py`
-  - Quality comparison report: `/docs/IMAGE_QUALITY_COMPARISON.md`
-  - Dependencies updated: `requirements.txt` (remove google-cloud-aiplatform, add google-genai)
+### Phase 6.11.2: Switch to Gemini 2.5 Flash Image ✅ COMPLETE
+**See archive:** `/Users/home/sandbox/daily_worker/projects/DWnews/plans/completed/roadmap-archive.md` (2026-01-02)
 
 ### Phase 6.11.3: Implement Claude Prompt Enhancement
-- **Status:** 🔴 Blocked
-- **Depends On:** Phase 6.11.2
+- **Status:** ⚪ Not Started (Ready to start - dependencies met)
+- **Depends On:** Phase 6.11.2 ✅
 - **Complexity:** M
 - **Tasks:**
   - [ ] Create prompt enhancement service using Claude Sonnet
@@ -586,7 +430,7 @@ Current image generation produces generic, low-quality results using basic promp
   - Example concepts: `/docs/EXAMPLE_PROMPT_CONCEPTS.md` (real output samples)
 
 ### Phase 6.11.4: Update Image Sourcing Pipeline
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 6.11.3
 - **Complexity:** S
 - **Tasks:**
@@ -606,7 +450,7 @@ Current image generation produces generic, low-quality results using basic promp
   - Developer documentation: `/docs/IMAGE_GENERATION_WORKFLOW.md`
 
 ### Phase 6.11.5: Documentation & Testing
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 6.11.4
 - **Complexity:** S
 - **Tasks:**
@@ -698,7 +542,7 @@ The current editorial system lacks multi-user support and critical editorial wor
   - Test suite: `/scripts/test_authentication.py`
 
 ### Phase 6.10.2: User Management API & Admin Interface
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 6.10.1
 - **Complexity:** M
 - **Tasks:**
@@ -720,7 +564,7 @@ The current editorial system lacks multi-user support and critical editorial wor
   - Test suite: `/scripts/test_user_management.py`
 
 ### Phase 6.10.3: Category-Based Assignment & Editorial Queue
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 6.10.1, Phase 6.10.2
 - **Complexity:** M
 - **Tasks:**
@@ -742,7 +586,7 @@ The current editorial system lacks multi-user support and critical editorial wor
   - Documentation: `/docs/MULTI_EDITOR_SETUP.md` (setup guide for editorial team)
 
 ### Phase 6.10.4: Pull Back Approved Stories
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 6.10.3
 - **Complexity:** S
 - **Priority:** High (prevents editorial mistakes from going live)
@@ -772,7 +616,7 @@ The current editorial system lacks multi-user support and critical editorial wor
   - Immutability: Once published, articles cannot be pulled back (archival integrity)
 
 ### Phase 6.10.5: Right of Reply Email Workflow
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 6.10.3
 - **Complexity:** M
 - **Priority:** Medium (improves journalistic standards, reduces legal risk)
@@ -1341,7 +1185,7 @@ Implements subscription functionality to enable revenue generation. Users pay $1
   - Priority ranking: Top 10-15 sources for Phase 11.2 implementation
 
 ### Phase 11.2: RSS Feed Integration & Testing
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 11.1
 - **Complexity:** M
 - **Tasks:**
@@ -1363,7 +1207,7 @@ Implements subscription functionality to enable revenue generation. Users pay $1
   - Updated documentation: `/backend/agents/feeds/README.md` (new sources, configuration)
 
 ### Phase 11.3: Feed Health Monitoring & Management
-- **Status:** 🔴 Blocked
+- **Status:** ⚪ Not Started
 - **Depends On:** Phase 11.2
 - **Complexity:** M
 - **Tasks:**

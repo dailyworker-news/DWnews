@@ -37,7 +37,7 @@ praw==7.7.1             # Reddit API
 # LLM Clients
 anthropic==0.18.0       # Claude API
 openai==1.10.0          # OpenAI API
-google-generativeai==0.3.2  # Google Gemini API
+google-generativeai>=1.0.0  # Google Gemini API (Gemini 2.5 Flash Image)
 
 # Payment Processing
 stripe==7.10.0          # Stripe SDK for Python

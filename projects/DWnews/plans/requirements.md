@@ -43,7 +43,11 @@ Deliver accurate, worker-centric news that doesn't pull punches. Materialist per
 
 ### 2.3 Imagery
 - **News Articles:** Reputable sources (AP, Reuters, Creative Commons) with proper citations
-- **Opinion Pieces:** Google Gemini generated images via user's GCP API
+- **Opinion Pieces:** Google Gemini 2.5 Flash Image with Claude-powered prompt enhancement
+  - Claude Sonnet generates 3-5 diverse artistic concepts per article
+  - Each concept includes detailed prompt, confidence score (0.0-1.0), and rationale
+  - Best concept selected based on confidence score
+  - Proven approach from a-team project for superior image quality
 - **Free Stock:** Unsplash, Pexels as fallback
 
 ### 2.4 Categories
@@ -203,7 +207,7 @@ All images MUST include proper source citations (photographer, license, source).
 
 ### REQ-005: Google Gemini Integration
 **Priority:** High
-The system MUST use user's GCP API for Gemini image generation on opinion pieces or articles that don't have available imagery from places like Reuters, the AP etc.
+The system MUST use Gemini 2.5 Flash Image (google-genai SDK) with Claude-powered prompt enhancement for opinion pieces or articles that don't have available imagery from places like Reuters, the AP etc. Claude Sonnet MUST generate 3-5 diverse artistic concepts with confidence scores and rationales, selecting the best prompt for image generation.
 
 ### REQ-006: Reading Level Validation
 **Priority:** High
@@ -567,37 +571,97 @@ engagement: JSONB (likes, shares, comments)
 
 **Use Case:** Generate images for opinion pieces (is_opinion=TRUE)
 
-**API Specifications:**
-- **Service**: Google Cloud Vertex AI Image Generation
-- **Endpoint**: `POST https://us-central1-aiplatform.googleapis.com/v1/projects/{project}/locations/us-central1/publishers/google/models/imagegeneration:predict`
-- **Authentication**: User's GCP service account key (provided)
-- **Request Format**:
+**Updated Approach (2026-01-02):**
+Two-step process combining Claude Sonnet prompt enhancement with Gemini 2.5 Flash Image generation.
+
+**Step 1: Claude Prompt Enhancement**
+- **Service**: Claude Sonnet 4.5 (Anthropic API)
+- **Purpose**: Generate 3-5 diverse artistic image concepts for article
+- **Input**: Article headline, summary, category
+- **Output**: JSON array of concepts:
 ```json
 {
-  "instances": [{
-    "prompt": "Editorial cartoon style: [article headline], worker perspective, bold colors"
-  }],
-  "parameters": {
-    "sampleCount": 1,
-    "aspectRatio": "16:9"
-  }
+  "concepts": [
+    {
+      "prompt": "Documentary-style photograph showing diverse warehouse workers organizing a union meeting, warm lighting emphasizing solidarity and collective action, photorealistic, 16:9 aspect ratio",
+      "confidence": 0.9,
+      "rationale": "This interpretation emphasizes solidarity and collective action, core themes in labor organizing stories. Documentary style provides authenticity and gravitas."
+    },
+    {
+      "prompt": "Bold editorial illustration featuring stylized workers holding union signs, high contrast colors (red, black, yellow), graphic novel aesthetic, powerful composition, 16:9 aspect ratio",
+      "confidence": 0.85,
+      "rationale": "Editorial illustration style allows for more dramatic visual impact and clearer messaging. Color palette evokes traditional labor movement aesthetics."
+    }
+  ]
 }
 ```
-- **Response**: Base64 encoded image
-- **Cost**: ~$0.02-0.04 per image (user's GCP billing)
+- **Selection Logic**: Choose concept with highest confidence score
+- **Cost**: ~$0.01-0.02 per enhancement (3-5 concepts)
 
-**Workflow:**
+**Step 2: Gemini 2.5 Flash Image Generation**
+- **Service**: Gemini 2.5 Flash Image (google-genai SDK)
+- **Model**: `gemini-2.5-flash-image`
+- **Authentication**: User's Gemini API key (GEMINI_API_KEY environment variable)
+- **Input**: Selected concept prompt from Claude
+- **Request Format**:
+```python
+import google.generativeai as genai
+
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-2.5-flash-image')
+
+response = model.generate_images(
+    prompt=selected_concept["prompt"],
+    number_of_images=1,
+    aspect_ratio="16:9"
+)
+```
+- **Response**: Base64 encoded image or image URL
+- **Cost**: ~$0.02-0.04 per image (user's Gemini API billing)
+
+**Complete Workflow:**
 1. Article created with is_opinion=TRUE
-2. Generate prompt: "Editorial cartoon: {headline}, worker-centric theme"
-3. Call Gemini API
-4. Upload image to Cloud Storage
-5. Store URL in images table with generated_by_gemini=TRUE, gemini_prompt=prompt
-6. Attach to article
+2. **Claude Enhancement**: Generate 3-5 artistic concepts with confidence scores
+3. **Concept Selection**: Choose highest confidence concept
+4. **Image Generation**: Call Gemini 2.5 Flash Image with selected prompt
+5. Upload image to Cloud Storage
+6. Store metadata in images table:
+   - generated_by_gemini=TRUE
+   - gemini_prompt=selected_concept["prompt"]
+   - concept_confidence=selected_concept["confidence"]
+   - concept_rationale=selected_concept["rationale"]
+7. Store all concepts in article_image_concepts table for future reference
+8. Attach image to article
+
+**Database Schema Updates:**
+- **images table**: Add columns concept_confidence (DECIMAL), concept_rationale (TEXT)
+- **article_image_concepts table** (new):
+  - article_id (INTEGER, FK to articles.id)
+  - concept_number (INTEGER, 1-5)
+  - prompt (TEXT)
+  - confidence (DECIMAL)
+  - rationale (TEXT)
+  - selected (BOOLEAN)
+  - created_at (TIMESTAMP)
 
 **Error Handling:**
-- API failure → Fallback to Unsplash API (search: "editorial, newspaper")
+- Claude API failure → Fallback to simple prompt wrapping: "Editorial image for: {headline}"
+- Gemini API failure → Fallback to Unsplash API (search: headline keywords)
 - Invalid API key → Alert admin, use fallback
-- Retry: 3 attempts with exponential backoff
+- Retry: 3 attempts with exponential backoff for both APIs
+- Log all concept generations and selections for quality analysis
+
+**Performance:**
+- Total time: ~15-30 seconds (Claude: 5-10s, Gemini: 10-20s)
+- Total cost: ~$0.03-0.06 per image (Claude + Gemini)
+- Quality: Significantly improved over simple prompt wrapping
+
+**Quality Benefits:**
+- Diverse artistic approaches (documentary, editorial, illustration, photorealistic)
+- Detailed, specific prompts (vs. generic "workers in professional setting")
+- Confidence scoring ensures best concept selected
+- Rationale provides editorial transparency
+- Proven in production (a-team project)
 
 ### 13.5 APIs and Integrations Summary
 - Google Cloud Gemini API (user-provided GCP key)
@@ -1143,6 +1207,7 @@ Editor manually assigns severity_score based on:
 |---------|------|--------|---------|
 | 1.0 | 2025-12-29 | Product Team | Complete rewrite for streamlined MVP. Removed all timeline references. Added NEW/CONTINUING story classification. Specified GCP deployment. Added local news with state preferences/IP inference. Clarified imagery sources (reputable + citations for news, Gemini for opinion). Deferred social auto-posting and native apps. Removed traditional metrics, focus on satisfactory utility and quality. Reduced verbosity significantly. |
 | 1.1 | 2025-12-29 | Product Team | Added critical development details: Complete database schema with all tables (articles, images, users, states, categories, sources, editorial_queue, social_posts). Front page display algorithm with query logic and card layout specs. IP geolocation implementation (IPinfo.io, state mapping, privacy). Google Gemini API integration (Vertex AI specs, workflow, error handling). Editorial workflow state machine. GCP infrastructure specifications (Cloud Run, Cloud SQL, Cloud Storage, networking, IAM). Edge cases and error handling (18 scenarios). User experience flows (5 complete flows). Document increased from 553 to 1,013 lines with development-ready specifications. |
+| 1.2 | 2026-01-02 | Product Team | Updated image generation approach: Replaced Vertex AI Imagen with Gemini 2.5 Flash Image (google-genai SDK). Added Claude Sonnet-powered prompt enhancement (3-5 diverse artistic concepts per article with confidence scoring and rationale). Updated REQ-005 to require Claude+Gemini two-step process. Added complete workflow specifications in Section 13.4 with database schema updates (article_image_concepts table, images table metadata columns). Updated imagery section 2.3 with new approach details. Added performance metrics and cost analysis. Total cost per image: ~$0.03-0.06 (Claude $0.01-0.02 + Gemini $0.02-0.04). Quality significantly improved over simple prompt wrapping. |
 
 ---
 

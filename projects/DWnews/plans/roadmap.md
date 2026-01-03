@@ -485,6 +485,154 @@ Implements specialized investigatory journalism agent to handle Unverified artic
 - [x] **Overall Goal:** Ready for production use (all 4 phases complete, tested, and functional)
 
 
+## Batch 6.11: Image Generation Quality Improvements
+
+**Dependencies:** Batch 6 complete (Automated Journalism Pipeline operational)
+**Sequential:** 6.11.1 → 6.11.2 → 6.11.3 → 6.11.4 → 6.11.5
+**Purpose:** Replace poor-quality Vertex AI Imagen with Gemini 2.5 Flash Image and implement Claude-powered prompt enhancement
+**Priority:** High (current image quality is poor and not compelling)
+**Added:** 2026-01-02
+
+**Overview:**
+Current image generation produces generic, low-quality results using basic prompt wrapping with Vertex AI Imagen. This batch implements two major improvements: (1) switch to Gemini 2.5 Flash Image using google-genai SDK (proven in production from a-team project), and (2) implement Claude Sonnet-powered prompt enhancement that generates 3-5 diverse artistic concept prompts per article with confidence scoring and rationale.
+
+**Current Problem:**
+- Poor image quality from Vertex AI Imagen
+- Generic prompts: "Workers in a professional setting related to: {article_title}"
+- Results not compelling or engaging
+- Using google-cloud-aiplatform SDK (complex, heavyweight)
+
+**Solution:**
+- Switch to Gemini 2.5 Flash Image (google-genai SDK, simpler integration)
+- Claude-powered prompt enhancement (3-5 artistic concepts per article)
+- Confidence scoring and rationale for each concept
+- Select best prompt based on confidence score
+- Proven approach from a-team project
+
+### Phase 6.11.1: Research & Planning
+- **Status:** ⚪ Not Started
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Document Gemini 2.5 Flash Image API requirements (google-genai SDK)
+  - [ ] Research API endpoints, authentication, request/response format
+  - [ ] Design Claude prompt enhancement workflow (3-5 concepts with confidence scores)
+  - [ ] Create sample prompt enhancement output format
+  - [ ] Review a-team project implementation for best practices
+  - [ ] Update technical specifications in requirements.md
+  - [ ] Document migration path from Vertex AI Imagen to Gemini
+  - [ ] Identify configuration changes needed (backend/config.py, .env.example)
+- **Done When:** Complete API documentation, workflow design documented, migration plan ready
+- **Deliverables:**
+  - Technical specification: `/docs/GEMINI_IMAGE_API_SPECS.md`
+  - Workflow design: `/docs/CLAUDE_PROMPT_ENHANCEMENT_WORKFLOW.md`
+  - Migration plan: `/docs/IMAGEN_TO_GEMINI_MIGRATION.md`
+  - Updated requirements.md with new image generation approach
+
+### Phase 6.11.2: Switch to Gemini 2.5 Flash Image
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.11.1
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Remove Vertex AI Imagen integration code
+  - [ ] Install google-genai SDK (replace google-cloud-aiplatform)
+  - [ ] Implement Gemini 2.5 Flash Image integration
+  - [ ] Update backend/config.py with Gemini API configuration
+  - [ ] Update .env.example with GEMINI_API_KEY variable
+  - [ ] Implement new image generation endpoint using Gemini
+  - [ ] Add error handling and retry logic (3 attempts, exponential backoff)
+  - [ ] Update image generation workflow to use Gemini API
+  - [ ] Test image generation with simple prompts (verify API works)
+  - [ ] Compare image quality: Vertex AI Imagen vs. Gemini 2.5 Flash Image
+- **Done When:** Gemini 2.5 Flash Image operational, basic image generation working, quality improved over Imagen
+- **Deliverables:**
+  - Updated image generation module: `/backend/services/image_generation.py`
+  - Updated configuration: `/backend/config.py`, `/.env.example`
+  - Test script: `/scripts/test_gemini_image_generation.py`
+  - Quality comparison report: `/docs/IMAGE_QUALITY_COMPARISON.md`
+  - Dependencies updated: `requirements.txt` (remove google-cloud-aiplatform, add google-genai)
+
+### Phase 6.11.3: Implement Claude Prompt Enhancement
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.11.2
+- **Complexity:** M
+- **Tasks:**
+  - [ ] Create prompt enhancement service using Claude Sonnet
+  - [ ] Implement prompt: "Generate 3-5 diverse artistic image concepts for this article: {headline} + {summary}"
+  - [ ] Parse Claude response to extract concepts, confidence scores, rationales
+  - [ ] Implement confidence scoring validation (0.0-1.0 scale)
+  - [ ] Implement prompt selection logic (highest confidence score)
+  - [ ] Add concept diversity validation (ensure different artistic approaches)
+  - [ ] Store all 3-5 concepts in database (article_image_concepts table)
+  - [ ] Store selected concept metadata (confidence, rationale) with image record
+  - [ ] Test with real articles (verify concept quality and diversity)
+  - [ ] Add fallback: if Claude API fails, use simple prompt wrapping
+- **Done When:** Claude generates 3-5 artistic concepts per article, confidence scoring works, best prompt selected
+- **Deliverables:**
+  - Prompt enhancement service: `/backend/services/prompt_enhancement.py`
+  - Database migration: `/database/migrations/006_image_concepts.sql` (article_image_concepts table)
+  - Test suite: `/backend/tests/test_prompt_enhancement.py`
+  - Example concepts: `/docs/EXAMPLE_PROMPT_CONCEPTS.md` (real output samples)
+
+### Phase 6.11.4: Update Image Sourcing Pipeline
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.11.3
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Update scripts/content/source_images.py with new workflow
+  - [ ] Implement enhanced workflow: Article → Claude Enhancement → Gemini Image
+  - [ ] Add logging for each step (concept generation, selection, image generation)
+  - [ ] Update image metadata storage (include concept, confidence, rationale)
+  - [ ] Test complete pipeline with 5-10 real articles
+  - [ ] Measure quality improvement (subjective evaluation)
+  - [ ] Add monitoring for API failures (Claude and Gemini)
+  - [ ] Document new workflow in developer docs
+- **Done When:** Complete pipeline functional, image quality significantly improved, workflow documented
+- **Deliverables:**
+  - Updated image sourcing: `/scripts/content/source_images.py`
+  - Pipeline test results: `/docs/IMAGE_PIPELINE_TEST_RESULTS.md`
+  - Quality evaluation: `/docs/IMAGE_QUALITY_EVALUATION.md` (before/after examples)
+  - Developer documentation: `/docs/IMAGE_GENERATION_WORKFLOW.md`
+
+### Phase 6.11.5: Documentation & Testing
+- **Status:** 🔴 Blocked
+- **Depends On:** Phase 6.11.4
+- **Complexity:** S
+- **Tasks:**
+  - [ ] Update GCP_IMAGEN_SETUP.md → GEMINI_IMAGE_SETUP.md (new setup guide)
+  - [ ] Document Claude prompt enhancement workflow
+  - [ ] Add example prompts and concepts to documentation
+  - [ ] Create troubleshooting guide (API failures, poor quality images)
+  - [ ] Test with 20+ real articles (diverse categories)
+  - [ ] Validate image quality across categories (Labor, Politics, Sports, etc.)
+  - [ ] Add performance metrics (concept generation time, image generation time)
+  - [ ] Document cost per image (Claude API + Gemini API)
+  - [ ] Update agent instructions (journalist.md, editorial-coordinator.md)
+  - [ ] Create image quality standards guide for editors
+- **Done When:** Complete documentation, 20+ test articles with quality images, agent instructions updated
+- **Deliverables:**
+  - Setup guide: `/docs/GEMINI_IMAGE_SETUP.md` (replaces GCP_IMAGEN_SETUP.md)
+  - Workflow documentation: `/docs/CLAUDE_PROMPT_ENHANCEMENT.md`
+  - Example library: `/docs/IMAGE_PROMPT_EXAMPLES.md` (20+ real examples)
+  - Troubleshooting guide: `/docs/IMAGE_GENERATION_TROUBLESHOOTING.md`
+  - Performance report: `/docs/IMAGE_GENERATION_PERFORMANCE.md`
+  - Cost analysis: `/docs/IMAGE_GENERATION_COSTS.md`
+  - Updated agent instructions: `/.claude/agents/journalist.md`, `/.claude/agents/editorial-coordinator.md`
+  - Quality standards: `/docs/IMAGE_QUALITY_STANDARDS.md`
+
+**Batch 6.11 Success Criteria:**
+- [ ] Gemini 2.5 Flash Image fully operational (Vertex AI Imagen removed)
+- [ ] Claude prompt enhancement generates 3-5 diverse concepts per article
+- [ ] Confidence scoring and rationale working correctly
+- [ ] Image quality significantly improved over previous approach
+- [ ] Complete pipeline tested with 20+ real articles
+- [ ] Documentation complete and accurate
+- [ ] Agent instructions updated with new workflow
+- [ ] Cost per image documented and acceptable (< $0.10 per image)
+- [ ] Performance acceptable (< 30 seconds total: concept generation + image generation)
+- [ ] Ready for production use with high-quality, compelling images
+
+---
+
 ## Batch 6.10: Multi-Editor User Management
 
 **Dependencies:** Batch 6 complete (Editorial Workflow Integration Phase 6.6)

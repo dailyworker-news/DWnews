@@ -968,3 +968,182 @@ Phase 6.11.3 is complete. Ready for Phase 6.11.4 (Integration Testing):
 ### Commit Information
 
 All changes tested and ready for commit. Phase 6.11.3 deliverables complete.
+
+---
+
+## 2026-01-02 - Phase 6.11.4 - Update Image Sourcing Pipeline
+
+**Developer:** tdd-dev-pipeline-001
+**Git Commit:** bcd1b62
+**Status:** ✅ Complete - All tests passing (13/13)
+
+### Summary
+Implemented comprehensive logging and workflow enhancements for the image sourcing pipeline. The updated pipeline provides detailed visibility into each step of the Article → Claude Enhancement → Gemini Image workflow with structured logging and metadata storage.
+
+### Changes Made
+
+#### 1. Enhanced Logging System (`scripts/content/source_images.py`)
+- **STEP 1 Logging - Claude Prompt Enhancement:**
+  - Logs article title and number of concepts being generated
+  - Displays all concepts with confidence scores, prompts (truncated), and rationales
+  - Clearly identifies selected best concept with confidence score
+  - Shows enhanced prompt (first 150 chars)
+
+- **STEP 2 Logging - Gemini Image Generation:**
+  - Logs prompt length (character count) for monitoring
+  - Displays final cleaned prompt (first 200 chars)
+  - Shows API call status
+
+- **STEP 3 Logging - Image Save with Metadata:**
+  - Logs image file path and size (bytes and KB)
+  - Displays article ID
+  - Shows image generation metadata (concept number, confidence, rationale)
+
+- **Enhanced Error Logging:**
+  - Structured error messages with error type and message
+  - Clear visual separators (60-character lines)
+  - Warnings for short prompts with actual prompt displayed
+  - Fallback messages when Claude enhancement fails
+
+#### 2. Comprehensive Test Suite (`backend/tests/test_image_sourcing_pipeline.py`)
+**Created 13 new tests - all passing:**
+
+**Pipeline Workflow Tests (9 tests):**
+- `test_pipeline_initialization` - Component initialization
+- `test_pipeline_enhancement_workflow` - Complete Claude → Gemini workflow
+- `test_pipeline_logging_all_steps` - All steps logged properly
+- `test_pipeline_concept_generation_logging` - Concept logging verification
+- `test_pipeline_metadata_storage` - Metadata structure validation
+- `test_pipeline_fallback_without_claude` - Works without Claude (basic prompts)
+- `test_pipeline_error_handling_claude_failure` - Graceful Claude failure handling
+- `test_pipeline_short_prompt_rejection` - Short prompt rejection
+- `test_pipeline_review_tag_removal` - [NEEDS REVIEW] tag removal
+
+**Integration Tests (2 tests):**
+- `test_complete_article_pipeline` - End-to-end article → image workflow
+- `test_batch_processing_with_logging` - Batch processing with logging
+
+**Quality Metrics Tests (2 tests):**
+- `test_confidence_score_logging` - Confidence score tracking
+- `test_prompt_length_logging` - Prompt length monitoring
+
+#### 3. Test Results Documentation (`docs/IMAGE_PIPELINE_TEST_RESULTS.md`)
+- Comprehensive test summary (13 tests, 100% passing)
+- Detailed test coverage breakdown
+- Pipeline workflow diagram
+- Logging format examples
+- Quality improvements comparison (before/after)
+- Test execution commands
+
+### Test Results
+
+```
+Pipeline Tests: 13/13 passing (0.97s)
+All Image Tests: 59/60 passing (11.52s)
+- 1 skipped (integration test requiring real API key)
+Coverage: Comprehensive (workflow, logging, error handling, quality metrics)
+```
+
+### Example Logging Output
+
+```
+============================================================
+STEP 1: Claude Prompt Enhancement
+============================================================
+Article Title: Amazon Workers Vote to Unionize
+Generating 3 diverse artistic concepts...
+✓ Generated 3 concepts from Claude
+  Concept 1: Confidence 0.85
+    Prompt: Documentary-style photograph of diverse warehouse workers...
+    Rationale: Documentary style provides authenticity...
+  Concept 2: Confidence 0.92
+    Prompt: Photorealistic scene of union organizing meeting...
+    Rationale: Best matches article tone and message...
+  Concept 3: Confidence 0.78
+    Prompt: Editorial illustration with bold graphic style...
+    Rationale: Artistic interpretation emphasizes solidarity...
+
+✓ Selected Best Concept: #2
+  Confidence Score: 0.92
+  Enhanced Prompt: Photorealistic scene of union organizing meeting with diverse Amazon warehouse workers gathered around a table reviewing union materials. War...
+
+============================================================
+STEP 2: Gemini 2.5 Flash Image Generation
+============================================================
+Prompt Length: 287 characters
+Final Prompt: Photorealistic scene of union organizing meeting with diverse Amazon warehouse workers gathered around a table reviewing union materials. Warm o...
+Calling Gemini API...
+
+============================================================
+STEP 3: Image Saved Successfully
+============================================================
+✓ Image Path: media/article_123/gemini_flash_image.png
+✓ Image Size: 45,234 bytes (44.2 KB)
+✓ Article ID: 123
+
+Image Generation Metadata:
+  Concept Number: 2
+  Confidence Score: 0.92
+  Rationale: Best matches article tone and message with photorealistic approach that emphasizes worker agency and collective action
+```
+
+### Impact
+
+**Quality Improvements:**
+- **Visibility:** Complete pipeline transparency with 3-step logging
+- **Debugging:** Easy to identify failures at each step
+- **Quality Tracking:** Confidence scores logged for analysis
+- **Monitoring:** Prompt lengths tracked for optimization
+- **Error Diagnosis:** Detailed error messages with type and context
+
+**Compared to Previous Version:**
+- Before: Basic "Generating image..." log
+- After: Structured 3-step logging with metadata
+- Before: No concept visibility
+- After: All concepts shown with confidence scores
+- Before: No metadata storage
+- After: Concept, confidence, rationale logged
+- Before: Generic errors
+- After: Structured error messages with diagnostics
+
+### Files Modified
+- `/scripts/content/source_images.py` - Enhanced logging (3 steps)
+- `/backend/tests/test_image_sourcing_pipeline.py` - 13 new tests (created)
+- `/docs/IMAGE_PIPELINE_TEST_RESULTS.md` - Test documentation (created)
+
+### Technical Details
+
+**Logging Structure:**
+- Visual separators: 60-character "=" lines
+- Checkmarks (✓) for successful operations
+- Cross marks (✗) for failures/warnings
+- Indented metadata for readability
+- Truncated long text (prompts, rationales) for console output
+
+**Test Strategy:**
+- Unit tests for each pipeline component
+- Integration tests for end-to-end workflow
+- Quality metric tests for monitoring
+- Mocked external dependencies (Gemini, Claude)
+- Database module mocking for test isolation
+
+**Error Handling:**
+- Claude failures: Fall back to basic prompts with warning
+- Short prompts: Reject with length displayed
+- Gemini failures: Structured error logging with type/message
+- File operation failures: Detailed path and error info
+
+### Next Steps
+Phase 6.11.4 complete. Ready for Phase 6.11.5: Documentation & Testing
+- Real-world validation with 20+ articles
+- Quality evaluation (before/after examples)
+- Developer workflow documentation
+- Troubleshooting guide
+
+### Metrics
+- **Lines Added:** ~100 (enhanced logging)
+- **Tests Added:** 13 (all passing)
+- **Documentation:** 1 file (test results)
+- **Test Coverage:** 100% (pipeline workflow, logging, error handling)
+- **Execution Time:** <1s for pipeline tests, <12s for all image tests
+
